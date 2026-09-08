@@ -188,3 +188,79 @@ By contrast, an Active apparel product (Stand Collar Bomber Jacket) has vendor "
 **Consequence:** the 5 baby/nursery Drafts are out of scope for the D12 (§9.2) 34-product feed-gap audit. That audit targets the **Active apparel/candle/fragrance products only** — the real, live business. `02-catalog-eligibility-audit.md`'s "known products requiring audit" list has been corrected accordingly.
 
 **Decision:** Baby/nursery Drafts excluded from §9.2 scope; treated as an abandoned product line, not active/removed inventory.  **Date:** 2026-09-08
+
+---
+
+## D14 — Chat bubble render: first functional gate passed
+**Status: DECIDED 2026-09-08 — Theme App Extension confirmed wired correctly.**
+
+The `AI Chat Assistant` app embed was toggled **off** by default in the dev store's theme editor (`Online Store > Themes > Customize > App embeds`). Toggling it on and saving made the chat bubble render — confirmed visually as a purple bubble in the bottom-right corner of the live preview at `lazy-customs-chat-agent.myshopify.com`.
+
+**Consequence:** the Theme App Extension (`extensions/chat-bubble`) is wired correctly end-to-end (bundling, install, embed). Per the standing checklist branching logic, this clears the way to test MCP tool calls next.
+
+**Open item:** interaction testing (clicking into an actual conversation) could not be completed. The theme editor's live preview intercepts clicks for section-selection, and the raw dev storefront URL is password-gated (the dev store's own storefront password — separate from the resolved production password, D1/D10). Real click-through testing needs the storefront password or a context outside the theme editor preview.
+
+**Correction (2026-09-08):** the dev store's password toggle does not map to D1/D10. On a development-plan store, password protection is **not a settable toggle at all** — Shopify locks it on with the banner "Your online store is in development. To let visitors access your store, give them the password." It only lifts on a paid plan. The unblock here is not disabling protection but simply using the password already shown in that field (`eabree`) to pass the gate and continue interaction testing.
+
+**Decision:** Chat bubble render confirmed working. Real interaction testing deferred pending dev store storefront password.  **Date:** 2026-09-08
+
+---
+
+## D15 — Chat agent conversational round-trip: three-bug chain found and fixed
+**Status: DECIDED 2026-09-08 — Full round trip verified in terminal log and browser.**
+
+Testing past D14 (bubble render) surfaced three independent, stacked bugs, each masking the next:
+
+1. **Hardcoded `localhost:3458`** in `extensions/chat-bubble/assets/chat.js` for `/chat`, chat history, and `/auth/token-status` — didn't match `shopify app dev`'s random-port + cloudflare-tunnel setup, so every request failed client-side before reaching the server. Fixed via a `ShopAIChat.APP_URL` constant sourced from a new merchant-configurable `app_url` setting in `chat-interface.liquid`.
+2. **Machine-wide `ANTHROPIC_BASE_URL`** (User + Machine env vars, set previously via `claude-meter setup`) pointed at `http://127.0.0.1:7735` — a local research proxy (`C:\Users\P\claude-meter`) that simply wasn't running, causing `ECONNREFUSED` on every Claude API call system-wide (not scoped to this repo). Fixed by starting it: `C:\Users\P\.local\bin\claude-meter.exe start`.
+3. **Stale/retired model ID** `claude-sonnet-4-20250514` in `app/services/config.server.js` (`AppConfig.api.defaultModel`) — Anthropic returned `404 not_found_error`. Fixed by updating to `claude-sonnet-5`.
+
+**Verification:** confirmed independently via both the `npm run dev` terminal log (no error logged after the two post-fix MCP connections) and the actual browser chat widget (real multi-paragraph Claude response, ~5.4s stream duration vs. near-instant error before).
+
+**Open item:** the response noted `search_shop_catalog` (the store's product-search MCP tool) isn't returning results — conversational replies work, but product search may still be broken. Needs separate investigation.
+
+**Decision:** All three bugs fixed; conversational chat round-trip confirmed working end-to-end.  **Date:** 2026-09-08
+
+---
+
+## D16 — `search_shop_catalog` unavailable on the password-protected dev store
+**Status: DECIDED 2026-09-08 — Root cause confirmed via direct MCP + storefront probes, not a code bug.**
+
+After D15's fixes, "show me hoodies" still got "I don't have direct access to browse or search the product catalog" — reproducible via direct `curl` to `/chat` (bypassing the browser/theme layer entirely), with two prompt variants (`standardAssistant`, `systemShopping`), ruling out a prompt-wording issue.
+
+**Direct evidence:**
+- `curl` to the storefront MCP endpoint (`https://lazy-customs-chat-agent.myshopify.com/api/mcp`, `tools/list`) returns exactly **one** tool: `search_shop_policies_and_faqs`. `search_shop_catalog` is not exposed at all.
+- `curl` to `/products.json` on the dev store returns `302` → `https://lazy-customs-chat-agent.myshopify.com/password` — confirming the dev store is still password-protected (ties to D14's finding that dev-plan stores cannot disable this toggle).
+
+**Diagnosis:** `search_shop_catalog` requires the storefront catalog to be publicly reachable, same constraint as D1 (Shopify Catalog/AI-channel discovery requires no password gate). A password-protected store's MCP endpoint only offers tools that don't need public catalog access (policies/FAQs), withholding catalog search entirely. This is a platform-level exclusion, not a bug in `mcp-client.js`, `chat.jsx`, or the tool-formatting code (all independently verified correct).
+
+**Consequence:** `search_shop_catalog` cannot be verified on this dev store while it remains on the (locked) development plan. To test real product search, either (a) test against the production store `lazycustoms.com` (password already off, D10, 30 real products, D12), or (b) upgrade the dev store to a paid plan to lift the password lock.
+
+**Secondary finding (minor, non-blocking):** `app/routes/chat.jsx` line 129 (`getCustomerAccountUrls(shopDomain, ...)`) crashes with `Cannot destructure property 'mcpApiUrl' of null` when `Origin` header is absent — real browsers always send `Origin`, so this doesn't affect normal use, but the route should default to an empty object instead of assuming a non-null return. Not fixed (out of scope for this session), flagged for later.
+
+**Decision:** `search_shop_catalog` gap is a platform-level exclusion (password-protected store), not an app bug. No further chat-agent code changes needed for this to work — needs either production testing or a paid dev-store plan.  **Date:** 2026-09-08
+
+**Correction (2026-09-08, later same day):** password removal was necessary but **not sufficient**. The app was installed and tested against production (`lazycustoms.com`, password already off since D10, 30 real products). Direct `curl` to `https://lazycustoms.com/api/mcp` `tools/list` returns the **identical** result as the dev store — only `search_shop_policies_and_faqs`, still no `search_shop_catalog`. This rules out password protection as the sole/primary cause.
+
+**Revised diagnosis:** `search_shop_catalog` exposure most likely depends on the full Shopify Catalog eligibility gate set documented in `02-catalog-eligibility-audit.md`, not just S3 (private mode). Remaining unresolved gates as of this session: S2 (plan tier — Unverified), S4 (policies completed — Unverified), S5 (account standing: verified email/2FA/business verification — Unverified), S6 (operating history: genuine sales, low chargebacks — **Unknown, no public operating history**). Per D1's original framing, S5/S6 are explicitly **not** a one-time checkbox — Shopify states eligibility is "reviewed over time," and genuine sales history accumulation takes **weeks to months, only by operating**. This means `search_shop_catalog` may not become available quickly regardless of further config changes — it may require sustained real store operation, not a fixable setting.
+
+**Revised decision:** Do not expect `search_shop_catalog` to activate from further code or config changes alone. Next step is auditing S2/S4/S5/S6 directly in the Partner/Store admin to find what's still failing, while accepting that S6 in particular may be a multi-week gate tied to real operating history, not something closeable today.  **Date:** 2026-09-08
+
+**Operational note:** the chat widget on production currently depends on the local dev server + cloudflare tunnel staying up (per the `app_url` theme setting). This is a temporary testing configuration, not a production-ready deployment — the app should be properly deployed (not tunnel-dependent) before leaving it live on `lazycustoms.com` unattended.
+
+**Admin follow-up (2026-09-08):** Checked production Settings > Plan and Policies read-only. S2 passes the recorded tier criterion: Basic ($1 USD/month promotional price until November 4, 2026). S4 is incomplete: refund policy retains `[INSERT RETURN ADDRESS]`; terms retain `[LINK]` references and trading-name/business-contact/registration/VAT placeholders. Privacy policy is populated with automated policy enabled. These completion gaps do not establish the cause of missing MCP catalog search. See `02-catalog-eligibility-audit.md` for source links. Per user direction, S5/S6 are logged as time/process-blocked and deferred, not investigated further today. No admin settings changed.
+
+**Authorized Terms update (2026-09-08):** Published only the approved Terms replacements: trading name, business address and phone; removed registration/VAT placeholder lines; replaced four link placeholders with three privacy-policy links and one refund-policy link. Verified on https://lazycustoms.com/policies/terms-of-service. Other template text unchanged. Refund policy remains unchanged in Shopify; revised POD-scoped draft saved in 03-refund-policy-draft.md and explicitly held pending essential-oils terms. S4 remains incomplete; S5/S6 remain deferred.
+
+---
+
+## D17 — Chat agent's own MCP client didn't comply with the store's Agent Terms
+**Status: DECIDED 2026-09-08 — Fixed, verified against live ToS text and code.**
+
+While independently verifying the ToS-audit report (S4 gate), a live read of `lazycustoms.com/policies/terms-of-service` found Section 14 ("Agents") is Shopify's standard Agent Terms framework: an Agent may access the Services provided it identifies itself on every request via `User-Agent: Agent/[agent name]` (14.4(i)), doesn't mimic human behavior, and answers truthfully about being non-human. Section 13(e)'s blanket "no AI tools (such as agentic AI)" language is the default; Section 14 is the compliant carve-out path — not a conflict with this project's goal, but the mechanism that legitimizes it.
+
+**Gap found:** `app/mcp-client.js`'s four outbound requests to the store's own `/api/mcp` (customer and storefront tools/list and tools/call) set only `Content-Type` and sometimes `Authorization` — no `User-Agent` at all, let alone the required `Agent/[name]` format. The store's own chat agent was not complying with the store's own Agent Terms.
+
+**Fix:** added a shared `AGENT_USER_AGENT = "Agent/LazyCustomsChatAssistant"` constant and included it in all four header objects in `mcp-client.js`.
+
+**Decision:** All outbound MCP requests now self-identify per Section 14.4(i). No ToS changes needed — the policy text is already correct and standard.  **Date:** 2026-09-08

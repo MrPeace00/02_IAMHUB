@@ -13,15 +13,31 @@ Nothing in `GEO_PLAYBOOK.md` or `PRODUCT_DATA_SPEC.md` produces any result until
 | # | Gate | Evidence | LC status |
 |---|---|---|---|
 | S1 | Complies with Shopify Terms of Service and Acceptable Use Policy | Verified | Assumed pass |
-| S2 | On Starter plan or higher | Verified | Unverified |
+| S2 | On Starter plan or higher | Verified | **PASS (2026-09-08) — production admin Settings > Plan shows Basic; promotional $1 USD/month until November 4, 2026.** |
 | S3 | **Store not in private mode** | Verified | **PASS (2026-09-08) — password protection and B2B restriction disabled; see D10, D11** |
-| S4 | Terms of service, Privacy policy, Return and refund policy completed in Settings > Policies | Verified | Unverified |
-| S5 | Account standing: verified email, two-step auth, identity/business verification when prompted | Verified | Unverified |
-| S6 | Operating history: genuine sales to real customers, prompt fulfillment, low chargeback rate, invoices paid on time | Verified | **Unknown — no public operating history** |
+| S4 | Terms of service, Privacy policy, Return and refund policy completed in Settings > Policies | Verified | **INCOMPLETE (2026-09-08) — approved Terms placeholder replacements published and verified; automated privacy policy enabled. Existing refund policy unchanged; replacement draft held pending essential-oils terms.** |
+| S5 | Account standing: verified email, two-step auth, identity/business verification when prompted | Verified | **PROCESS-BLOCKED / deferred (2026-09-08, user direction); unverified, not investigated today.** |
+| S6 | Operating history: genuine sales to real customers, prompt fulfillment, low chargeback rate, invoices paid on time | Verified | **TIME/PROCESS-BLOCKED / deferred (2026-09-08, user direction); operating history unverified, not investigated today.** |
 
 **On S5/S6:** Shopify states eligibility is reviewed over time and that a store may *lose* eligibility if it stops meeting requirements. **[Verified]** This is not a one-time checkbox. It is an ongoing condition.
 
 ---
+
+## Production admin check — 2026-09-08
+
+**Later authorized update:** Terms business name/address/phone placeholders replaced, registration/VAT placeholder lines removed, and four link placeholders replaced with three privacy-policy links and one refund-policy link. Verified on the public Terms page. Other template text (including existing email and merchant note) unchanged as requested. Refund policy publication explicitly held; local draft in `03-refund-policy-draft.md` awaits essential-oils terms. S4 remains open. The read-only findings below document the earlier state.
+
+Read-only check of Lazy Customs (`lazycustoms.com`, admin handle `lazy-customs-2`):
+
+- [Plan](https://admin.shopify.com/store/lazy-customs-2/settings/plan): Basic, promotional $1 USD/month until November 4, 2026. S2 passes the recorded tier criterion.
+- [Return and refund policy](https://admin.shopify.com/store/lazy-customs-2/settings/legal/refund): saved content still includes `[INSERT RETURN ADDRESS]`.
+- [Terms of service](https://admin.shopify.com/store/lazy-customs-2/settings/legal/terms-of-service): saved content retains `[LINK]` references and `[INSERT TRADING NAME]`, `[INSERT BUSINESS ADDRESS]`, `[INSERT BUSINESS PHONE NUMBER]`, `[INSERT BUSINESS REGISTRATION NUMBER]`, and `[INSERT VAT NUMBER]`. Applicability of individual business fields was not assessed.
+- [Privacy policy](https://admin.shopify.com/store/lazy-customs-2/settings/legal/privacy): automated policy enabled, content populated, last updated September 8, 2026.
+- S4 is not marked complete because saved templates contain unfinished fields. This is a content-completion finding, not a legal review or proof of why Shopify omits `search_shop_catalog`.
+- Policies list also shows Shipping policy and Legal notice as “No policy set”; these are outside the three-policy S4 check.
+- S5/S6 logged as time/process-blocked at user direction; no account-standing or operating-history investigation today. These labels describe deferred work, not a confirmed Shopify rejection.
+
+No plan, policy, billing, or account settings were changed.
 
 ## Product-level gates
 

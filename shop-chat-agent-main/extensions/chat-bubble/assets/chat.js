@@ -11,6 +11,10 @@
    * Application namespace to prevent global scope pollution
    */
   const ShopAIChat = {
+    // Backend app origin. Reads from window.shopChatConfig.appUrl (set in
+    // chat-interface.liquid) so it doesn't need a hardcoded value per environment.
+    APP_URL: window.shopChatConfig?.appUrl || 'https://localhost:3458',
+
     /**
      * UI-related elements and functionality
      */
@@ -481,7 +485,7 @@
             prompt_type: promptType
           });
 
-          const streamUrl = 'https://localhost:3458/chat';
+          const streamUrl = `${ShopAIChat.APP_URL}/chat`;
           const shopId = window.shopId;
 
           const response = await fetch(streamUrl, {
@@ -630,7 +634,7 @@
           messagesContainer.appendChild(loadingMessage);
 
           // Fetch history from the server
-          const historyUrl = `https://localhost:3458/chat?history=true&conversation_id=${encodeURIComponent(conversationId)}`;
+          const historyUrl = `${ShopAIChat.APP_URL}/chat?history=true&conversation_id=${encodeURIComponent(conversationId)}`;
           console.log('Fetching history from:', historyUrl);
 
           const response = await fetch(historyUrl, {
@@ -779,7 +783,7 @@
           attemptCount++;
 
           try {
-            const tokenUrl = 'https://localhost:3458/auth/token-status?conversation_id=' +
+            const tokenUrl = `${ShopAIChat.APP_URL}/auth/token-status?conversation_id=` +
               encodeURIComponent(conversationId);
             const response = await fetch(tokenUrl);
 

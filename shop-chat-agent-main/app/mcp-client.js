@@ -1,6 +1,10 @@
 import { generateAuthUrl } from "./auth.server";
 import { getCustomerToken } from "./db.server";
 
+// Required by the storefront's Terms of Service (Agent Terms, Section 14.4(i)):
+// every request from an Agent must identify itself via this User-Agent format.
+const AGENT_USER_AGENT = "Agent/LazyCustomsChatAssistant";
+
 /**
  * Client for interacting with Model Context Protocol (MCP) API endpoints.
  * Manages connections to both customer and storefront MCP endpoints, and handles tool invocation.
@@ -52,7 +56,8 @@ class MCPClient {
       // and tools that require auth will prompt for it later
       const headers = {
         "Content-Type": "application/json",
-        "Authorization": this.customerAccessToken || ""
+        "Authorization": this.customerAccessToken || "",
+        "User-Agent": AGENT_USER_AGENT
       };
 
       const response = await this._makeJsonRpcRequest(
@@ -87,7 +92,8 @@ class MCPClient {
       console.log(`Connecting to MCP server at ${this.storefrontMcpEndpoint}`);
 
       const headers = {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "User-Agent": AGENT_USER_AGENT
       };
 
       const response = await this._makeJsonRpcRequest(
@@ -142,7 +148,8 @@ class MCPClient {
       console.log("Calling storefront tool", toolName, toolArgs);
 
       const headers = {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "User-Agent": AGENT_USER_AGENT
       };
 
       const response = await this._makeJsonRpcRequest(
@@ -190,7 +197,8 @@ class MCPClient {
 
       const headers = {
         "Content-Type": "application/json",
-        "Authorization": accessToken
+        "Authorization": accessToken,
+        "User-Agent": AGENT_USER_AGENT
       };
 
       try {

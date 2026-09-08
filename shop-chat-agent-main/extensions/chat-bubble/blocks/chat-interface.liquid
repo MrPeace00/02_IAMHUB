@@ -34,7 +34,8 @@
 <script>
   window.shopChatConfig = {
     promptType: {{ block.settings.system_prompt | json }},
-    welcomeMessage: {{ block.settings.welcome_message | json }}
+    welcomeMessage: {{ block.settings.welcome_message | json }},
+    appUrl: {{ block.settings.app_url | json }}
   };
   window.shopId = {{ shop.id }};
 </script>
@@ -44,6 +45,13 @@
   "name": "AI Chat Assistant",
   "target": "body",
   "settings": [
+    {
+      "type": "text",
+      "id": "app_url",
+      "label": "App backend URL",
+      "info": "The app's public origin (dev tunnel or production URL). No trailing slash.",
+      "default": "https://plate-proprietary-bottles-cruz.trycloudflare.com"
+    },
     {
       "type": "color",
       "id": "chat_bubble_color",
