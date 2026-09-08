@@ -1,0 +1,12 @@
+{
+  "check": "ai_discovery",
+  "domain": "lazycustoms.com",
+  "label": "baseline",
+  "timestamp": "2026-09-08T05:56:57.233257+00:00",
+  "homepage_status": 200,
+  "password_protection_active": false,
+  "robots_status": 200,
+  "robots_disallow_all": false,
+  "homepage_noindex": false,
+  "discovery_restricted": false
+}

@@ -1,0 +1,10 @@
+{
+  "check": "catalog_eligibility",
+  "domain": "lazycustoms.com",
+  "label": "baseline",
+  "timestamp": "2026-09-08T05:56:55.729349+00:00",
+  "homepage_status": 200,
+  "password_protection_active": false,
+  "feed_status": 200,
+  "product_count": 30
+}
