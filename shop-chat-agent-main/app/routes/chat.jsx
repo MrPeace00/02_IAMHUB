@@ -24,6 +24,13 @@ export async function loader({ request }) {
 
   const url = new URL(request.url);
 
+  // Lightweight widget reachability check; does not access customer data or call AI.
+  if (url.searchParams.get('health') === 'true') {
+    return Response.json({ service: 'shop-chat-agent', status: 'ok' }, {
+      headers: { ...getCorsHeaders(request), 'Cache-Control': 'no-store' }
+    });
+  }
+
   // Handle history fetch requests - matches /chat?history=true&conversation_id=XYZ
   if (url.searchParams.has('history') && url.searchParams.has('conversation_id')) {
     return handleHistoryRequest(request, url.searchParams.get('conversation_id'));

@@ -13,7 +13,32 @@
   const ShopAIChat = {
     // Backend app origin. Reads from window.shopChatConfig.appUrl (set in
     // chat-interface.liquid) so it doesn't need a hardcoded value per environment.
-    APP_URL: window.shopChatConfig?.appUrl || 'https://localhost:3458',
+    APP_URL: '',
+
+    configureBackend: async function() {
+      const configuredUrl = window.shopChatConfig?.appUrl?.trim();
+      if (!configuredUrl) throw new Error('Missing chat backend URL');
+      const url = new URL(configuredUrl);
+      if (url.protocol !== 'https:' || url.username || url.password ||
+          url.pathname !== '/' || url.search || url.hash) {
+        throw new Error('Chat backend must be a public HTTPS origin');
+      }
+      this.APP_URL = url.origin;
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 8000);
+      try {
+        const response = await fetch(`${this.APP_URL}/chat?health=true`, {
+          signal: controller.signal, cache: 'no-store'
+        });
+        if (!response.ok) throw new Error(`Chat backend returned ${response.status}`);
+        const health = await response.json();
+        if (health.service !== 'shop-chat-agent' || health.status !== 'ok') {
+          throw new Error('URL does not identify a chat backend');
+        }
+      } finally {
+        clearTimeout(timeout);
+      }
+    },
 
     /**
      * UI-related elements and functionality
@@ -415,7 +440,7 @@
         for (let i = 0; i < lines.length; i++) {
           const line = lines[i];
           const unorderedMatch = line.match(/^\s*([-*])\s+(.*)/);
-          const orderedMatch = line.match(/^\s*(\d+)[\.)]\s+(.*)/);
+          const orderedMatch = line.match(/^\s*(\d+)[.)]\s+(.*)/);
 
           if (unorderedMatch) {
             if (currentList !== 'ul') {
@@ -511,7 +536,7 @@
           currentMessageElement = messageElement;
 
           // Process the stream
-          while (true) {
+          for (;;) {
             const { value, done } = await reader.read();
             if (done) break;
 
@@ -599,7 +624,7 @@
             }
             break;
 
-          case 'new_message':
+          case 'new_message': {
             ShopAIChat.Formatting.formatMessageContent(currentMessageElement);
             ShopAIChat.UI.showTypingIndicator();
 
@@ -613,6 +638,7 @@
             // Update the current element reference
             updateCurrentElement(newMessageElement);
             break;
+          }
 
           case 'content_block_complete':
             ShopAIChat.UI.showTypingIndicator();
@@ -908,12 +934,25 @@
     /**
      * Initialize the chat application
      */
-    init: function() {
+    init: async function() {
       // Initialize UI
       const container = document.querySelector('.shop-ai-chat-container');
       if (!container) return;
 
       this.UI.init(container);
+
+      const { chatInput, sendButton, messagesContainer } = this.UI.elements;
+      chatInput.disabled = true;
+      sendButton.disabled = true;
+      try {
+        await this.configureBackend();
+      } catch (error) {
+        console.error('Chat backend unavailable. Check the theme block App backend URL and running deployment.', error);
+        this.Message.add('Chat is temporarily unavailable. Please try again later.', 'assistant', messagesContainer);
+        return;
+      }
+      chatInput.disabled = false;
+      sendButton.disabled = false;
 
       // Check for existing conversation
       const conversationId = sessionStorage.getItem('shopAiConversationId');

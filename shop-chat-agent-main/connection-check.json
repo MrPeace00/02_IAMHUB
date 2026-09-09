@@ -1,0 +1,54 @@
+{
+  "checkedAt": "2026-09-09T01:39:08.074Z",
+  "store": "https://lazycustoms.com",
+  "searches": [
+    {
+      "query": "baby",
+      "httpStatus": 200,
+      "isError": false,
+      "status": "success",
+      "count": 0,
+      "messages": [],
+      "hasNextPage": false
+    },
+    {
+      "query": "shirt",
+      "httpStatus": 200,
+      "isError": false,
+      "status": "success",
+      "count": 10,
+      "messages": [],
+      "hasNextPage": false
+    },
+    {
+      "query": "hoodie",
+      "httpStatus": 200,
+      "isError": false,
+      "status": "success",
+      "count": 10,
+      "messages": [],
+      "hasNextPage": true
+    },
+    {
+      "query": "",
+      "httpStatus": 200,
+      "isError": false,
+      "status": "success",
+      "count": 10,
+      "messages": [],
+      "hasNextPage": true
+    }
+  ],
+  "publishedBackend": "https://plate-proprietary-bottles-cruz.trycloudflare.com",
+  "storefrontStatus": 200,
+  "configuredBackendCheck": {
+    "url": "https://plate-proprietary-bottles-cruz.trycloudflare.com",
+    "reachable": false,
+    "error": "ENOTFOUND"
+  },
+  "publishedBackendCheck": {
+    "url": "https://plate-proprietary-bottles-cruz.trycloudflare.com",
+    "reachable": false,
+    "error": "ENOTFOUND"
+  }
+}

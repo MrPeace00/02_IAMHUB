@@ -1,5 +1,18 @@
 # MCP connection audit — September 8, 2026
 
+## Follow-up: catalog and published widget
+
+Checked September 9, 2026 at 01:39 UTC (September 8 local time). See connection-check.json for the compact live evidence.
+
+- The public storefront is reachable and serves published products. Its actual rendered window.shopChatConfig.appUrl still points to plate-proprietary-bottles-cruz.trycloudflare.com. Both this live setting and the matching shopify.app.toml URL fail DNS resolution (ENOTFOUND).
+- UCP searches without added context return 10 products for "shirt", 10 for "hoodie", and 10 for an empty browse query; "baby" returns zero, with status success and no diagnostic messages. Adding US context gives the same counts. The evidence supports a query-specific empty result, not a store-wide catalog outage. It does not prove whether a particular baby product should have been indexed.
+- Removed the expired tunnel default from the theme block and the localhost fallback from the widget. Added HTTPS-origin validation and a bounded availability check before enabling chat. The widget shows a temporary-unavailability message if the check fails.
+- Added GET /chat?health=true with CORS and no-store headers. This identifies the backend without accessing the database, customer accounts or Claude. It is a reachability check, not an AI/database readiness guarantee. Deploy the backend health route before the updated widget.
+- Added scripts/check-connections.mjs: read-only checks of configured and published backend URLs plus four catalog queries. Run `node scripts/check-connections.mjs`; exit code 1 means a backend check or catalog request failed, while a successful zero-match search is not itself a failure.
+- Eight regression tests pass. The live connection-check script correctly exits 1 because the published tunnel is expired.
+
+**Deployment remains pending:** a new running public backend origin must replace the old application_url, auth redirect URLs and active theme block setting. No replacement origin was available during this follow-up; no URL was invented, and no live configuration was changed. Removing a schema default does not overwrite the existing merchant setting.
+
 ## Verified local and live findings
 
 Claude's supplied audit predates the working tree: mcp-client.js and config.server.js already contained uncommitted UCP migration edits. Those edits were preserved and repaired.
