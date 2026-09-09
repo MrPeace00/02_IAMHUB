@@ -24,7 +24,9 @@ export const AppConfig = {
 
   // Tool Configuration
   tools: {
-    productSearchName: "search_shop_catalog",
+    // "search_shop_catalog" was the pre-migration name; catalog search now lives
+    // on the UCP MCP endpoint as "search_catalog" (see app/mcp-client.js).
+    productSearchName: "search_catalog",
     maxProductsToDisplay: 3
   }
 };

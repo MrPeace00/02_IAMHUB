@@ -33,7 +33,7 @@ export function createClaudeService(apiKey = process.env.CLAUDE_API_KEY) {
     tools
   }, streamHandlers) => {
     // Get system prompt from configuration or use default
-    const systemInstruction = getSystemPrompt(promptType);
+    const systemInstruction = `${getSystemPrompt(promptType)}\n\nCommerce rules for every assistant: Use discovered search_catalog, lookup_catalog and get_product tools for catalog information, preserving their catalog argument wrapper. Use search_shop_policies_and_faqs for store policy questions and follow its returned policies; do not invent policies or promise exceptions. Use discovered get_cart, create_cart and update_cart tools for cart state and changes, following their live schemas (UCP cart tools may require a cart wrapper), using actual variant IDs returned by the catalog. Only claim a cart change succeeded when the tool confirms success. If a required tool is unavailable or fails, explain that limitation instead of inventing results.`;
 
     // Create stream
     const stream = await anthropic.messages.stream({

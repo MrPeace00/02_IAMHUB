@@ -41,11 +41,13 @@ export function createToolService() {
    */
   const handleToolSuccess = async (toolUseResponse, toolName, toolUseId, conversationHistory, productsToDisplay, conversationId) => {
     // Check if this is a product search result
-    if (toolName === AppConfig.tools.productSearchName) {
+    if (!toolUseResponse.isError && toolName === AppConfig.tools.productSearchName) {
       productsToDisplay.push(...processProductSearchResult(toolUseResponse));
     }
 
-    addToolResultToHistory(conversationHistory, toolUseId, toolUseResponse.content, conversationId);
+    const content = toolUseResponse.content?.length ? toolUseResponse.content
+      : JSON.stringify(toolUseResponse.structuredContent || toolUseResponse);
+    await addToolResultToHistory(conversationHistory, toolUseId, content, conversationId, !!toolUseResponse.isError);
   };
 
   /**
@@ -57,6 +59,10 @@ export function createToolService() {
     try {
       console.log("Processing product search result");
       let products = [];
+      if (Array.isArray(toolUseResponse.structuredContent?.products)) {
+        return toolUseResponse.structuredContent.products
+          .slice(0, AppConfig.tools.maxProductsToDisplay).map(formatProductData);
+      }
 
       if (toolUseResponse.content && toolUseResponse.content.length > 0) {
         const content = toolUseResponse.content[0].text;
@@ -94,18 +100,23 @@ export function createToolService() {
    * @returns {Object} Formatted product data
    */
   const formatProductData = (product) => {
-    const price = product.price_range
+    const money = product.price_range?.min?.amount !== undefined
+      ? product.price_range.min : product.variants?.[0]?.price;
+    const price = money && typeof money === 'object' && money.currency
+      ? new Intl.NumberFormat('en-US', { style: 'currency', currency: money.currency }).format(
+        money.amount / 10 ** new Intl.NumberFormat('en-US', { style: 'currency', currency: money.currency }).resolvedOptions().maximumFractionDigits)
+      : product.price_range
       ? `${product.price_range.currency} ${product.price_range.min}`
       : (product.variants && product.variants.length > 0
         ? `${product.variants[0].currency} ${product.variants[0].price}`
         : 'Price not available');
 
     return {
-      id: product.product_id || `product-${Math.random().toString(36).substring(7)}`,
+      id: product.id || product.product_id || `product-${Math.random().toString(36).substring(7)}`,
       title: product.title || 'Product',
       price: price,
-      image_url: product.image_url || '',
-      description: product.description || '',
+      image_url: product.image_url || product.media?.find(item => item.type === 'image')?.url || '',
+      description: typeof product.description === 'string' ? product.description : product.description?.plain || '',
       url: product.url || ''
     };
   };
@@ -117,12 +128,13 @@ export function createToolService() {
    * @param {string} content - The content of the tool result
    * @param {string} conversationId - The conversation ID
    */
-  const addToolResultToHistory = async (conversationHistory, toolUseId, content, conversationId) => {
+  const addToolResultToHistory = async (conversationHistory, toolUseId, content, conversationId, isError = false) => {
     const toolResultMessage = {
       role: 'user',
       content: [{
         type: "tool_result",
         tool_use_id: toolUseId,
+        is_error: isError,
         content: content
       }]
     };
