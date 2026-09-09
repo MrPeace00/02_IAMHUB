@@ -8,6 +8,7 @@ import AppConfig from "../services/config.server";
 import { createSseStream } from "../services/streaming.server";
 import { createClaudeService } from "../services/claude.server";
 import { createToolService } from "../services/tool.server";
+import { getCorsHeaders, isAllowedOrigin } from "../services/cors.server";
 
 
 /**
@@ -16,9 +17,12 @@ import { createToolService } from "../services/tool.server";
 export async function loader({ request }) {
   // Handle OPTIONS requests (CORS preflight)
   if (request.method === "OPTIONS") {
+    if (!isAllowedOrigin(request)) {
+      return Response.json({ error: "Origin not allowed" }, { status: 403, headers: getCorsHeaders(request, "GET, POST, OPTIONS") });
+    }
     return new Response(null, {
       status: 204,
-      headers: getCorsHeaders(request)
+      headers: getCorsHeaders(request, "GET, POST, OPTIONS")
     });
   }
 
@@ -26,9 +30,16 @@ export async function loader({ request }) {
 
   // Lightweight widget reachability check; does not access customer data or call AI.
   if (url.searchParams.get('health') === 'true') {
+    if (request.headers.get("Origin") && !isAllowedOrigin(request)) {
+      return Response.json({ error: "Origin not allowed" }, { status: 403, headers: getCorsHeaders(request, "GET, POST, OPTIONS") });
+    }
     return Response.json({ service: 'shop-chat-agent', status: 'ok' }, {
-      headers: { ...getCorsHeaders(request), 'Cache-Control': 'no-store' }
+      headers: { ...getCorsHeaders(request, "GET, POST, OPTIONS"), 'Cache-Control': 'no-store' }
     });
+  }
+
+  if (!isAllowedOrigin(request)) {
+    return Response.json({ error: "Origin not allowed" }, { status: 403, headers: getCorsHeaders(request, "GET, POST, OPTIONS") });
   }
 
   // Handle history fetch requests - matches /chat?history=true&conversation_id=XYZ
@@ -49,6 +60,9 @@ export async function loader({ request }) {
  * React Router action function for handling POST requests
  */
 export async function action({ request }) {
+  if (!isAllowedOrigin(request)) {
+    return Response.json({ error: "Origin not allowed" }, { status: 403, headers: getCorsHeaders(request, "GET, POST, OPTIONS") });
+  }
   return handleChatRequest(request);
 }
 
@@ -329,38 +343,15 @@ async function getCustomerAccountUrls(shopDomain, conversationId) {
 }
 
 /**
- * Gets CORS headers for the response
- * @param {Request} request - The request object
- * @returns {Object} CORS headers object
- */
-function getCorsHeaders(request) {
-  const origin = request.headers.get("Origin") || "*";
-  const requestHeaders = request.headers.get("Access-Control-Request-Headers") || "Content-Type, Accept";
-
-  return {
-    "Access-Control-Allow-Origin": origin,
-    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Access-Control-Allow-Headers": requestHeaders,
-    "Access-Control-Allow-Credentials": "true",
-    "Access-Control-Max-Age": "86400" // 24 hours
-  };
-}
-
-/**
  * Get SSE headers for the response
  * @param {Request} request - The request object
  * @returns {Object} SSE headers object
  */
 function getSseHeaders(request) {
-  const origin = request.headers.get("Origin") || "*";
-
   return {
+    ...getCorsHeaders(request, "GET, POST, OPTIONS"),
     "Content-Type": "text/event-stream",
     "Cache-Control": "no-cache",
     "Connection": "keep-alive",
-    "Access-Control-Allow-Credentials": "true",
-    "Access-Control-Allow-Origin": origin,
-    "Access-Control-Allow-Methods": "GET,OPTIONS,POST",
-    "Access-Control-Allow-Headers": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version"
   };
 }

@@ -1,0 +1,69 @@
+<div
+  id="lazy-home-{{ block.id }}"
+  class="lazy-home"
+  data-lazy-home
+  data-backend-url="{{ block.settings.app_url | escape }}"
+  data-shop-id="{{ shop.id }}"
+>
+  <main class="lazy-home__surface">
+    <div class="lazy-home__start">
+      <p class="lazy-home__eyebrow">CUSTOM, WITHOUT THE COMPLICATED</p>
+      <h1 class="lazy-home__wordmark" aria-label="Lazy Customs">Lazy<span>.</span></h1>
+      <p class="lazy-home__intro">Tell us what you have in mind.</p>
+
+      <form class="lazy-home__form" data-lazy-form>
+        <label class="lazy-home__sr-only" for="lazy-home-input-{{ block.id }}">
+          Search products or describe custom artwork
+        </label>
+        <div class="lazy-home__search-shell">
+          <svg class="lazy-home__search-icon" aria-hidden="true" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="7"></circle>
+            <path d="m20 20-4-4"></path>
+          </svg>
+          <input
+            id="lazy-home-input-{{ block.id }}"
+            data-lazy-input
+            type="text"
+            maxlength="1000"
+            autocomplete="off"
+            placeholder="A cozy winter shirt for her…"
+          >
+          <button class="lazy-home__send" data-lazy-send type="submit" aria-label="Send">
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <path d="M5 12h14M13 6l6 6-6 6"></path>
+            </svg>
+          </button>
+        </div>
+      </form>
+
+      <p class="lazy-home__status" data-lazy-status role="status" aria-live="polite"></p>
+      <div class="lazy-home__chips" data-lazy-chips aria-label="Suggestions"></div>
+    </div>
+
+    <section class="lazy-home__results" data-lazy-results aria-label="Conversation" hidden>
+      <div class="lazy-home__messages" data-lazy-messages aria-live="polite"></div>
+      <div class="lazy-home__products" data-lazy-products></div>
+    </section>
+  </main>
+</div>
+
+{% schema %}
+{
+  "name": "Lazy AI home",
+  "target": "section",
+  "stylesheet": "lazy-home.css",
+  "javascript": "lazy-home.js",
+  "enabled_on": {
+    "templates": ["index"]
+  },
+  "settings": [
+    {
+      "type": "text",
+      "id": "app_url",
+      "label": "App backend URL",
+      "info": "The public HTTPS origin for the Railway app.",
+      "default": "https://ai.lazycustoms.com"
+    }
+  ]
+}
+{% endschema %}

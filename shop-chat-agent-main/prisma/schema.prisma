@@ -10,7 +10,7 @@ generator client {
 // See https://www.prisma.io/docs/orm/reference/prisma-schema-reference#string for more information
 datasource db {
   provider = "sqlite"
-  url      = "file:dev.sqlite"
+  url      = env("DATABASE_URL")
 }
 
 model Session {
@@ -32,23 +32,23 @@ model Session {
 }
 
 model CustomerToken {
-  id              String    @id
-  conversationId  String
-  accessToken     String
-  refreshToken    String?
-  expiresAt       DateTime
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id             String   @id
+  conversationId String
+  accessToken    String
+  refreshToken   String?
+  expiresAt      DateTime
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   @@index([conversationId])
 }
 
 model CodeVerifier {
-  id              String    @id
-  state           String    @unique
-  verifier        String
-  createdAt       DateTime  @default(now())
-  expiresAt       DateTime
+  id        String   @id
+  state     String   @unique
+  verifier  String
+  createdAt DateTime @default(now())
+  expiresAt DateTime
 
   @@index([state])
 }
@@ -64,7 +64,7 @@ model Message {
   id             String       @id @default(cuid())
   conversationId String
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  role           String       // "user" or "assistant"
+  role           String // "user" or "assistant"
   content        String
   createdAt      DateTime     @default(now())
 
@@ -72,11 +72,20 @@ model Message {
 }
 
 model CustomerAccountUrls {
-  id               String    @id @default(cuid())
-  conversationId   String    @unique
+  id               String   @id @default(cuid())
+  conversationId   String   @unique
   mcpApiUrl        String?
   authorizationUrl String?
   tokenUrl         String?
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model GenerationRateLimit {
+  key         String   @id
+  count       Int      @default(0)
+  windowStart DateTime
+  updatedAt   DateTime @updatedAt
+
+  @@index([updatedAt])
 }
