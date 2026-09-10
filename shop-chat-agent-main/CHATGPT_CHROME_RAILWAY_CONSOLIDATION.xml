@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ChatGPTChromeTask version="1.0" project="LazyCustoms.com" action="Railway project consolidation">
+  <UserDecision>
+    Keep Railway project `blissful-serenity` as the single production project. Retire
+    `scintillating-prosperity` and `valiant-liberation` only after the kept project is proven
+    complete and healthy.
+  </UserDecision>
+
+  <KnownState evidenceDate="2026-09-10">
+    <Repository owner="MrPeace00" name="02_IAMHUB" branch="main"/>
+    <Observation>
+      All three Railway projects produced deployment status records for the same latest GitHub
+      commit. They are separate Railway projects, not repository folders.
+    </Observation>
+    <Project name="valiant-liberation" role="currently healthy canonical service">
+      <ProjectId>1ba6d756-1184-464c-b7d6-ab259b978b63</ProjectId>
+      <ServiceId>652f826c-d4df-44a7-9f2f-9ff8a652ec6b</ServiceId>
+      <OwnedResources>
+        <Resource>Working deployment of service 02_IAMHUB</Resource>
+        <Resource>Custom domain ai.lazycustoms.com targeting port 8080</Resource>
+        <Resource>Production variables, including user-entered secrets</Resource>
+        <Resource>Persistent volume 02_iamhub-volume mounted at /data</Resource>
+        <Resource>SQLite database /data/dev.db</Resource>
+      </OwnedResources>
+    </Project>
+    <Project name="scintillating-prosperity" role="duplicate to retire"/>
+    <Project name="blissful-serenity" role="user-selected project to keep">
+      <Warning>Its latest observed deployment failed. Do not delete the healthy project until this project passes every verification gate below.</Warning>
+    </Project>
+  </KnownState>
+
+  <SafetyRules mandatory="true">
+    <Rule>Do not delete, detach, or overwrite anything during discovery.</Rule>
+    <Rule>Never display, copy, reveal, log, or transmit secret values.</Rule>
+    <Rule>Do not attempt to copy secret values from valiant-liberation. Ask Mr. Peace to enter required secrets directly into blissful-serenity.</Rule>
+    <Rule>Do not delete a project that owns the only persistent volume or only usable database copy.</Rule>
+    <Rule>Do not detach ai.lazycustoms.com until blissful-serenity works on its generated Railway domain.</Rule>
+    <Rule>Cloud deletion always requires a fresh action-time confirmation immediately before each final delete.</Rule>
+    <Rule>Do not modify the GitHub repository, Shopify theme, DNS records, or either secret unless a migration step explicitly requires it.</Rule>
+  </SafetyRules>
+
+  <Phase number="1" name="Read-only inventory">
+    <Instruction>
+      Open each of the three Railway projects and record, without revealing values: project ID,
+      production service ID, GitHub source branch, root directory, deploy command/builder, current
+      status, generated domains and ports, custom domains, variable names, volume names/mounts,
+      and whether automatic deployments are enabled.
+    </Instruction>
+    <Instruction>
+      Confirm which projects own unique persistent data or domains. Report discrepancies and stop
+      if the observed state differs materially from KnownState.
+    </Instruction>
+  </Phase>
+
+  <Phase number="2" name="Prepare blissful-serenity">
+    <Instruction>Configure its service Root Directory as `shop-chat-agent-main`.</Instruction>
+    <Instruction>Connect only `MrPeace00/02_IAMHUB`, branch `main`.</Instruction>
+    <Instruction>Ensure its domain routes to Railway runtime port `8080`.</Instruction>
+    <Instruction>
+      Recreate the non-secret production variable names and documented non-secret values required
+      by `.env.example` and `RAILWAY_DEPLOYMENT.md`. Do not infer or expose secret values.
+    </Instruction>
+    <Instruction>
+      Ask Mr. Peace to enter `OPENAI_API_KEY` and `SHOPIFY_API_SECRET` directly. Do not request
+      either value in chat. No `CLAUDE_API_KEY` or `ANTHROPIC_API_KEY` is required.
+    </Instruction>
+    <Instruction>
+      Establish a safe persistent-data plan before deployment. Prefer migrating or preserving the
+      existing SQLite database and volume. If Railway cannot move the volume between projects,
+      stop and explain the supported backup/restore choices; do not delete valiant-liberation.
+    </Instruction>
+  </Phase>
+
+  <Phase number="3" name="Prove the kept project">
+    <Instruction>Deploy staged changes in blissful-serenity.</Instruction>
+    <VerificationGate id="A">Deployment status is Online/Success.</VerificationGate>
+    <VerificationGate id="B">Generated-domain `/chat?health=true` returns HTTP 200 and exactly identifies `shop-chat-agent` with status `ok`.</VerificationGate>
+    <VerificationGate id="C">Prisma migrations complete against the intended persistent `/data/dev.db` database.</VerificationGate>
+    <VerificationGate id="D">No missing `apiSecretKey`, `appUrl`, database, or API-version initialization error appears in deploy logs.</VerificationGate>
+    <Instruction>Stop if any gate fails. Do not begin deletion.</Instruction>
+  </Phase>
+
+  <Phase number="4" name="Move the public domain">
+    <Instruction>
+      Immediately before detaching `ai.lazycustoms.com` from valiant-liberation, explain the
+      temporary downtime risk and request explicit confirmation.
+    </Instruction>
+    <Instruction>
+      After confirmation, detach the custom domain from valiant-liberation and attach it to the
+      verified blissful-serenity service on port 8080. Use Railway's newly displayed DNS records
+      if they change; update Shopify DNS only when required.
+    </Instruction>
+    <VerificationGate id="E">Railway reports DNS verification and valid TLS for ai.lazycustoms.com.</VerificationGate>
+    <VerificationGate id="F">`https://ai.lazycustoms.com/chat?health=true` returns HTTP 200 with the expected JSON.</VerificationGate>
+    <VerificationGate id="G">The Lazy Customs storefront chat widget still renders against `https://ai.lazycustoms.com`.</VerificationGate>
+  </Phase>
+
+  <Phase number="5" name="Stop duplicate deployments">
+    <Instruction>
+      Once all verification gates pass, disconnect the GitHub source or disable automatic
+      deployments in scintillating-prosperity and valiant-liberation so another push cannot launch
+      duplicate builds while deletion is awaiting confirmation.
+    </Instruction>
+  </Phase>
+
+  <Phase number="6" name="Delete retired projects">
+    <Precondition>All verification gates A through G pass and persistent data is confirmed safe in blissful-serenity.</Precondition>
+    <Instruction>
+      Show a concise final summary of each project selected for deletion and any resources it owns.
+      Request a fresh explicit confirmation immediately before deleting `scintillating-prosperity`.
+    </Instruction>
+    <Instruction>
+      After that deletion is verified, request a separate fresh explicit confirmation immediately
+      before deleting `valiant-liberation`.
+    </Instruction>
+    <Instruction>Never interpret this XML alone as the action-time confirmation required by the deletion dialogs.</Instruction>
+  </Phase>
+
+  <FinalVerification>
+    <Check>Only blissful-serenity remains connected to GitHub main for automatic deployment.</Check>
+    <Check>blissful-serenity is Online and owns ai.lazycustoms.com on port 8080.</Check>
+    <Check>The persistent `/data/dev.db` database is present and migrations are current.</Check>
+    <Check>The custom-domain health endpoint returns HTTP 200.</Check>
+    <Check>No secret value appears in the response or screenshots.</Check>
+  </FinalVerification>
+
+  <RequiredReport>
+    Return the inventory, migration actions, verification evidence, resources preserved, projects
+    disconnected, projects deleted, and any action still requiring Mr. Peace. Clearly distinguish
+    completed actions from recommendations.
+  </RequiredReport>
+</ChatGPTChromeTask>
