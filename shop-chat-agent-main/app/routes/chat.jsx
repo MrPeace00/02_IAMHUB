@@ -1,12 +1,12 @@
 /**
  * Chat API Route
- * Handles chat interactions with Claude API and tools
+ * Handles streamed OpenAI chat interactions and Shopify tools
  */
 import MCPClient from "../mcp-client";
 import { saveMessage, getConversationHistory, storeCustomerAccountUrls, getCustomerAccountUrls as getCustomerAccountUrlsFromDb } from "../db.server";
 import AppConfig from "../services/config.server";
 import { createSseStream } from "../services/streaming.server";
-import { createClaudeService } from "../services/claude.server";
+import { createOpenAIService, formatConversationHistory } from "../services/openai.server";
 import { createToolService } from "../services/tool.server";
 import { getCorsHeaders, isAllowedOrigin } from "../services/cors.server";
 
@@ -141,7 +141,7 @@ async function handleChatSession({
   stream
 }) {
   // Initialize services
-  const claudeService = createClaudeService();
+  const openAIService = createOpenAIService();
   const toolService = createToolService();
 
   // Initialize MCP client
@@ -172,9 +172,7 @@ async function handleChatSession({
     console.warn('Failed to connect to MCP servers, continuing without tools:', error.message);
   }
 
-  // Prepare conversation state
-  let conversationHistory = [];
-  let productsToDisplay = [];
+  const productsToDisplay = [];
 
   // Save user message to the database
   await saveMessage(conversationId, 'user', userMessage);
@@ -182,108 +180,73 @@ async function handleChatSession({
   // Fetch all messages from the database for this conversation
   const dbMessages = await getConversationHistory(conversationId);
 
-  // Format messages for Claude API
-  conversationHistory = dbMessages.map(dbMessage => {
-    let content;
-    try {
-      content = JSON.parse(dbMessage.content);
-    } catch (e) {
-      content = dbMessage.content;
-    }
-    return {
-      role: dbMessage.role,
-      content
-    };
-  });
+  let input = formatConversationHistory(dbMessages);
+  let previousResponseId;
+  let assistantText = "";
 
-  // Execute the conversation stream
-  let finalMessage = { role: 'user', content: userMessage };
-
-  while (finalMessage.stop_reason !== "end_turn") {
-    finalMessage = await claudeService.streamConversation(
-      {
-        messages: conversationHistory,
-        promptType,
-        tools: mcpClient.tools
+  for (let toolRound = 0; toolRound < AppConfig.api.maxToolRounds; toolRound += 1) {
+    const response = await openAIService.streamResponse({
+      input,
+      previousResponseId,
+      promptType,
+      tools: mcpClient.tools,
+    }, {
+      onText: (textDelta) => {
+        assistantText += textDelta;
+        stream.sendMessage({ type: 'chunk', chunk: textDelta });
       },
-      {
-        // Handle text chunks
-        onText: (textDelta) => {
-          stream.sendMessage({
-            type: 'chunk',
-            chunk: textDelta
-          });
-        },
+    });
 
-        // Handle complete messages
-        onMessage: (message) => {
-          conversationHistory.push({
-            role: message.role,
-            content: message.content
-          });
+    if (response.functionCalls.length === 0) break;
+    if (!response.responseId) throw new Error("OpenAI tool response was missing its response ID");
 
-          saveMessage(conversationId, message.role, JSON.stringify(message.content))
-            .catch((error) => {
-              console.error("Error saving message to database:", error);
-            });
+    const toolOutputs = [];
 
-          // Send a completion message
-          stream.sendMessage({ type: 'message_complete' });
-        },
+    for (const toolCall of response.functionCalls) {
+      const toolArgs = parseToolArguments(toolCall.arguments);
+      stream.sendMessage({
+        type: 'tool_use',
+        tool_use_message: `Calling tool: ${toolCall.name}`,
+      });
 
-        // Handle tool use requests
-        onToolUse: async (content) => {
-          const toolName = content.name;
-          const toolArgs = content.input;
-          const toolUseId = content.id;
-
-          const toolUseMessage = `Calling tool: ${toolName} with arguments: ${JSON.stringify(toolArgs)}`;
-
-          stream.sendMessage({
-            type: 'tool_use',
-            tool_use_message: toolUseMessage
-          });
-
-          // Call the tool
-          const toolUseResponse = await mcpClient.callTool(toolName, toolArgs);
-
-          // Handle tool response based on success/error
-          if (toolUseResponse.error) {
-            await toolService.handleToolError(
-              toolUseResponse,
-              toolName,
-              toolUseId,
-              conversationHistory,
-              stream.sendMessage,
-              conversationId
-            );
-          } else {
-            await toolService.handleToolSuccess(
-              toolUseResponse,
-              toolName,
-              toolUseId,
-              conversationHistory,
-              productsToDisplay,
-              conversationId
-            );
-          }
-
-          // Signal new message to client
-          stream.sendMessage({ type: 'new_message' });
-        },
-
-        // Handle content block completion
-        onContentBlock: (contentBlock) => {
-          if (contentBlock.type === 'text') {
-            stream.sendMessage({
-              type: 'content_block_complete',
-              content_block: contentBlock
-            });
-          }
-        }
+      let toolUseResponse;
+      try {
+        toolUseResponse = await mcpClient.callTool(toolCall.name, toolArgs);
+      } catch (error) {
+        toolUseResponse = { error: { type: "tool_error", data: error.message } };
       }
-    );
+
+      if (toolUseResponse.error?.type === "auth_required") {
+        stream.sendMessage({ type: 'auth_required' });
+      }
+
+      if (!toolUseResponse.error && toolCall.name === AppConfig.tools.productSearchName) {
+        const products = toolService.processProductSearchResult(toolUseResponse);
+        const existingIds = new Set(productsToDisplay.map((product) => product.id));
+        productsToDisplay.push(...products.filter((product) => !existingIds.has(product.id)));
+      }
+
+      toolOutputs.push({
+        type: "function_call_output",
+        call_id: toolCall.call_id,
+        output: serializeToolOutput(toolUseResponse),
+      });
+    }
+
+    previousResponseId = response.responseId;
+    input = toolOutputs;
+    stream.sendMessage({ type: 'new_message' });
+
+    if (toolRound === AppConfig.api.maxToolRounds - 1) {
+      throw new Error("The shopping assistant reached its tool-call limit");
+    }
   }
+
+  if (assistantText.trim()) {
+    await saveMessage(conversationId, 'assistant', assistantText);
+  }
+
+  stream.sendMessage({ type: 'message_complete' });
 
   // Signal end of turn
   stream.sendMessage({ type: 'end_turn' });
@@ -296,6 +259,23 @@ async function handleChatSession({
     });
   }
 
+}
+
+function parseToolArguments(argumentsJson) {
+  try {
+    const parsed = JSON.parse(argumentsJson || "{}");
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function serializeToolOutput(toolUseResponse) {
+  try {
+    return JSON.stringify(toolUseResponse);
+  } catch {
+    return JSON.stringify({ error: { type: "serialization_error", data: "Tool output could not be serialized" } });
+  }
 }
 
 /**

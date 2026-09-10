@@ -19,11 +19,12 @@ adding replicas.
 Copy the variable names from `.env.example` into Railway and provide real
 values. At minimum the service needs:
 
-- `CLAUDE_API_KEY`
 - `OPENAI_API_KEY`
+- `OPENAI_CHAT_MODEL=gpt-5.6` (optional; this is the default)
 - `SHOPIFY_API_KEY`
 - `SHOPIFY_API_SECRET`
-- `SCOPES`
+- `SHOPIFY_APP_URL=https://ai.lazycustoms.com`
+- `SCOPES=unauthenticated_read_product_listings`
 - `DATABASE_URL=file:/data/dev.db`
 - `RATE_LIMIT_SECRET` with a long random value
 - `ALLOWED_ORIGINS=https://lazycustoms.com,https://www.lazycustoms.com,https://lazy-customs-2.myshopify.com,https://vbw9zu-f7.myshopify.com`
@@ -40,8 +41,10 @@ per source IP per hour. Override `IMAGE_SESSION_LIMIT`, `IMAGE_IP_LIMIT`, or
 3. Confirm `https://ai.lazycustoms.com/chat?health=true` returns the service
    health response.
 
-The Shopify app and both theme blocks are already configured to use that stable
-hostname. Do not release the Shopify configuration before DNS and TLS work.
+The Shopify app configuration and theme-block schema defaults use that stable
+hostname. Existing merchant theme settings are not overwritten by a new schema
+default, so confirm the active block setting in the theme editor. Do not release
+the Shopify configuration before DNS and TLS work.
 
 ## 4. Release to Shopify
 

@@ -6,8 +6,9 @@
 export const AppConfig = {
   // API Configuration
   api: {
-    defaultModel: 'claude-sonnet-5',
+    defaultModel: 'gpt-5.6',
     maxTokens: 2000,
+    maxToolRounds: 6,
     defaultPromptType: 'standardAssistant',
   },
 
@@ -15,11 +16,11 @@ export const AppConfig = {
   errorMessages: {
     missingMessage: "Message is required",
     apiUnsupported: "This endpoint only supports server-sent events (SSE) requests or history requests.",
-    authFailed: "Authentication failed with Claude API",
+    authFailed: "Authentication failed with OpenAI API",
     apiKeyError: "Please check your API key in environment variables",
     rateLimitExceeded: "Rate limit exceeded",
     rateLimitDetails: "Please try again later",
-    genericError: "Failed to get response from Claude"
+    genericError: "Failed to get response from OpenAI"
   },
 
   // Tool Configuration

@@ -64,18 +64,14 @@ test('JSON-RPC errors are failures, and an endpoint outage does not hide the oth
   await client.connectToStorefrontServer();
   assert.ok(client.tools.some(t => t.name === 'search_catalog'));
 });
-test('UCP structured products and tool errors reach conversation history', async () => {
+test('UCP structured products are normalized for storefront cards', () => {
   const text = readFileSync(new URL('../app/services/tool.server.js', import.meta.url), 'utf8')
     .replace(/^import .*;\r?\n/gm, '').replace('export function', 'function').replace(/export default \{[\s\S]*$/, 'globalThis.service = createToolService();');
-  const context = vm.createContext({ console, Intl, AppConfig: { tools: { productSearchName: 'search_catalog', maxProductsToDisplay: 3 } }, saveMessage: async () => {} });
+  const context = vm.createContext({ console, Intl, AppConfig: { tools: { productSearchName: 'search_catalog', maxProductsToDisplay: 3 } } });
   vm.runInContext(text, context);
   const response = { structuredContent: { products: [{ id: 'p1', title: 'Test', price_range: { min: { amount: 1899, currency: 'USD' } }, media: [{ type: 'image', url: 'https://example.com/image' }] }] } };
-  const history = [], products = [];
-  await context.service.handleToolSuccess(response, 'search_catalog', 't1', history, products, null);
+  const products = context.service.processProductSearchResult(response);
   assert.equal(products[0].price, '$18.99');
   assert.equal(products[0].id, 'p1');
-  assert.ok(history[0].content[0].content.includes('products'));
-  await context.service.handleToolSuccess({ isError: true, content: [{ type: 'text', text: 'failed' }] }, 'search_catalog', 't2', history, products, null);
-  assert.equal(history[1].content[0].is_error, true);
   assert.equal(products.length, 1);
 });

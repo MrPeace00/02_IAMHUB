@@ -7,8 +7,8 @@ export default function Index() {
         <s-stack gap="base">
           <s-heading>Congrats on creating a new Shopify app 🎉</s-heading>
           <s-paragraph>
-            This is a reference app that adds a chat agent on your storefront,
-            which is powered via claude and can connect shopify mcp platform.
+            This reference app adds an OpenAI-powered shopping assistant to
+            your storefront and connects it to Shopify&apos;s MCP platform.
           </s-paragraph>
         </s-stack>
       </s-section>
