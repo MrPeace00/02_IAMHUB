@@ -4,17 +4,17 @@
 **Operator:** Mr. Peace Elluvasun Allah Cush-El  
 **Store handle used in project:** `lazy-customs-2`  
 **Published UCP backing hostname:** `vbw9zu-f7.myshopify.com`  
-**Updated through:** September 8, 2026 local time; connection evidence timestamp September 9, 2026, 01:39 UTC  
-**Governed by:** LAZY CUSTOMS — STORE AND AGENT ENGINE v2.0 · CHAMPION MASTER ENGINE v5.5
+**Updated through:** September 10, 2026; production health independently verified
+**Governed by:** LAZY CUSTOMS — STORE AND AGENT ENGINE v3.0 · CHAMPION MASTER ENGINE v5.5
 
 ## 1. CURRENT POSITION
 
-UCP is published and catalog search works. The chat-agent fork is implemented and tested locally, and its three completed commits are pushed. The published storefront widget still points to an expired backend tunnel, so a working customer chat session has not been verified.
+UCP is published and catalog search works. The OpenAI chat-agent backend is deployed in the canonical Railway project `valiant-liberation`; `https://ai.lazycustoms.com/chat?health=true` independently returns HTTP 200. The published storefront widget points to this backend and renders. A complete customer message, Shopify tool call and OAuth flow still require end-to-end verification.
 
 Two outcomes remain distinct:
 
 1. **Machine discovery and transactions:** the store publishes UCP capabilities for external agents. Publication and catalog responses are verified; third-party agent visibility and completed transactions are not.
-2. **Customer-facing chat:** the fork provides the storefront widget, chat orchestration, Claude streaming and Shopify MCP client. Deployment and end-to-end operation remain pending.
+2. **Customer-facing chat:** the fork provides the storefront widget, OpenAI Responses streaming and Shopify MCP client. Backend deployment and widget rendering are verified; end-to-end conversational commerce is not yet verified.
 
 Catalog/product decisions and chat deployment can proceed independently. A successful API connection does not prove that every intended product is indexed or that a deployed chatbot works.
 
@@ -24,7 +24,7 @@ Repository root: `C:\Users\P\Desktop\02_IAMHUB`.
 
 | Location | Contents |
 |---|---|
-| `shop-chat-agent-main/` | Active application fork: React Router v7, Shopify OAuth, Prisma, theme extension and Anthropic streaming |
+| `shop-chat-agent-main/` | Active application fork: React Router v7, Shopify OAuth, Prisma, theme extension, OpenAI chat and OpenAI artwork generation |
 | `_lazycustoms/` | Planning documents, operations scripts and staged additions within the same repository |
 
 **Constraint:** these folders remain siblings. `_lazycustoms` is not nested inside the application.
@@ -33,25 +33,28 @@ Key application files:
 
 - `app/mcp-client.js` — discovers tools and routes calls, including UCP agent-profile metadata.
 - `app/routes/chat.jsx` — chat route and `GET /chat?health=true` reachability check.
-- `app/services/claude.server.js` — shared tool-backed policy and cart instructions across assistant modes.
+- `app/services/openai.server.js` and `openai-format.js` — streamed OpenAI Responses integration, history migration and Shopify tool schemas.
+- `app/routes/generate-image.jsx` — server-side OpenAI artwork generation with strict CORS and combined session/IP limits.
 - `app/services/tool.server.js` — tool results, errors and UCP product-card formatting.
 - `extensions/chat-bubble/assets/chat.js` — HTTPS backend validation and bounded health check before enabling chat.
 - `extensions/chat-bubble/blocks/chat-interface.liquid` — merchant backend setting; expired default removed from source.
 - `scripts/check-connections.mjs` — read-only published/configured backend and catalog diagnostics.
-- `tests/mcp-routing.test.mjs` and `tests/widget-backend.test.mjs` — eight regression tests.
+- `tests/*.test.mjs` — 15 focused chat, image-generation, MCP-routing and widget/backend tests.
 - `connection-check.json` and `MCP-CONNECTION-AUDIT.md` — saved live evidence and audit details.
 
 Verification record: [`VERIFICATION_LOG.md`](VERIFICATION_LOG.md).
 
 ## 3. COMMIT RECORD — PUSHED
 
-The operator confirmed successful fetch/push against GitHub. Local `HEAD` and the local `origin/main` tracking ref both resolve to `51fb5b7`. The working tree was clean before this report update. This new report is a subsequent documentation change, not part of those three commits.
+Local `HEAD` and `origin/main` both resolve to `63b0d10`. The tracked tree was clean before this report update; untracked Claude review artifacts and a scratch image script remain outside the deployment commit.
 
 | Commit | Completed work |
 |---|---|
 | `99c2c3a` | Corrected UCP metadata and tool routing; added cart fallback, result handling, shared policy instructions and routing tests |
 | `180de63` | Removed stale widget defaults, added backend health checks and widget tests, and recorded connection evidence |
 | `51fb5b7` | Added `VERIFICATION_LOG.md` with five dated entries |
+| `382ce67` | Corrected the initial Railway Docker install after the then-missing lockfile |
+| `63b0d10` | Migrated customer chat to OpenAI, committed a reproducible lockfile, restored Docker `npm ci`, added tests and deployment documentation |
 
 Pushing code does not deploy the application or update an existing merchant theme setting.
 
@@ -61,10 +64,11 @@ Pushing code does not deploy the application or update an existing merchant them
 
 | Check | Recorded result |
 |---|---|
-| MCP routing regression tests | 4 passed |
-| Widget/backend regression tests | 4 passed |
-| Targeted ESLint | Passed |
-| Backend/Claude/customer OAuth/browser integration | Not verified end to end |
+| Focused application tests | 15 passed |
+| ESLint and typecheck | Passed |
+| Production client/SSR build | Passed |
+| Railway custom-domain health | HTTP 200; canonical GitHub deployment status successful |
+| OpenAI response, Shopify tool call and customer OAuth | Not verified end to end |
 
 ### Catalog queries
 
@@ -81,9 +85,9 @@ The zero-match `baby` result is not evidence of an API outage, a store-wide empt
 
 ### Published widget
 
-The rendered storefront `window.shopChatConfig.appUrl` and `shopify.app.toml` point to `https://plate-proprietary-bottles-cruz.trycloudflare.com`. The saved check records DNS failure `ENOTFOUND` for both.
+The active theme chat backend and `shopify.app.toml` now point to `https://ai.lazycustoms.com`. Railway custom-domain DNS verification and TLS completed, the widget renders, and the health route returns the expected service identity.
 
-Removing the default from source does not replace that existing published merchant setting. The new health route checks backend identity and reachability only; it does not prove database, Claude or OAuth readiness.
+This supersedes the expired `plate-proprietary-bottles-cruz.trycloudflare.com` state recorded on September 8. The health route checks backend identity and reachability only; it does not prove OpenAI response generation, Shopify tool execution, database writes or OAuth readiness.
 
 ## 5. COMMERCE MECHANISMS AND ACTUAL ROUTES
 
@@ -128,10 +132,10 @@ Original item numbers are retained for continuity.
 | 2 | Previously Active products assigned to zero channels | Recheck assignments and intended channel strategy; inspect specific missing products |
 | 3 | Seven previously unanswered Knowledge Base topics | Recheck current gaps and approve merchant answers; do not invent policies |
 | 4 | Pending Preferences password toggle | Re-observe current settings/editor state before save or discard; historical state may be stale |
-| 5 | Agent runtime setup | Scaffolding is complete. Verify runtime credentials, database, customer OAuth and a full widget-to-Claude session in the deployment environment; credential availability was not inspected |
+| 5 | Agent runtime setup | **Partially resolved:** canonical Railway backend and widget are live. Verify a full widget-to-OpenAI-to-Shopify-tools response, database persistence and customer OAuth |
 | 6 | UCP publication | **Resolved:** manifest verified live, including the shared backing MCP hostname |
 | 7 | Verification log | **Resolved:** file exists and is committed in `51fb5b7` |
-| 8 | Expired backend tunnel | **Open deployment blocker:** supply or provision a running public HTTPS backend, update app/auth URLs and active theme setting, then deploy and test |
+| 8 | Expired backend tunnel | **Resolved:** `ai.lazycustoms.com` is configured with verified DNS/TLS, targets Railway port 8080, returns HTTP 200 and is saved in the active theme setting |
 | 9 | Push completed commits | **Resolved:** all three commits pushed; operator remote verification and local tracking ref agree |
 
 ## 8. DECISIONS LOG
@@ -147,16 +151,16 @@ Original item numbers are retained for continuity.
 - The client identifies requests with `Agent/LazyCustomsChatAssistant`.
 - UCP calls place the profile at `params.arguments.meta.ucp-agent.profile`. The default remains Shopify's public example; `UCP_AGENT_PROFILE_URL` can select a hosted production profile.
 - Store policy answers use Shopify's policy tool. Shared assistant instructions do not edit merchant policies or enforce additional checkout rules.
-- Runtime prompt keys are `standardAssistant`, `systemShopping`, `systemDesignCoach` and `enthusiasticAssistant`. A standalone `guardrails` prompt key is not present; shared commerce instructions are supplied by the Claude service.
+- Runtime prompt keys are `standardAssistant`, `systemShopping`, `systemDesignCoach` and `enthusiasticAssistant`. A standalone `guardrails` prompt key is not present; shared commerce instructions are supplied by the OpenAI service.
 - `.env` exists. Its contents and usable credentials were not inspected for this report; file existence is not proof of runtime readiness.
 - Printify public API availability was previously reported verified; Tapstitch API availability remains an open vendor question. Neither was rechecked here.
 - XML remains the recorded preference for Champion-facing modules; “project knowledge files” remains the recorded term for files uploaded into project context.
-- No live cart mutation, completed checkout, customer OAuth session or successful full storefront chat was verified in this work.
+- No live cart mutation, completed checkout, customer OAuth session or successful full storefront chat response has yet been verified.
 
 ## 10. NEXT ACTIONS
 
-1. Resolve #8: obtain a running public backend origin, update `shopify.app.toml` application/auth redirects and the active theme block URL. Deploy the health route before the updated widget.
-2. Verify runtime configuration and dependencies, then test the complete widget → `/chat` → Claude → Shopify tools → widget response path. Treat `/chat?health=true` as reachability only.
+1. Test the complete widget → `/chat` → OpenAI → Shopify tools → widget response path. Treat `/chat?health=true` as reachability only.
+2. Verify customer OAuth and database persistence in production, then run `shopify app deploy` to synchronize the committed application and redirect configuration if it has not already been deployed.
 3. Inspect intended baby products individually, including current status and sales-channel assignment; repeat relevant search and lookup checks after any approved changes.
 4. Re-observe the Preferences toggle and Knowledge Base gaps; make the operator's intended changes based on current state.
 5. Record new evidence in `VERIFICATION_LOG.md`. UCP publication, initial log creation and the three completed pushes do not need to be repeated as unresolved tasks.

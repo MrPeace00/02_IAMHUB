@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ClaudeCodeInvitation version="1.0" project="LazyCustoms.com" mode="architecture-review">
+  <Purpose>
+    Invite Claude Code to contribute development wisdom, consistency review, text-generation
+    expertise, image analysis, and proactive error detection while preserving the verified
+    OpenAI-first production architecture.
+  </Purpose>
+
+  <RoleSeparation mandatory="true">
+    <Role name="Claude Code" function="development partner">
+      Review architecture and implementation, identify errors, improve reliability, and explain
+      material recommendations. Claude Code is not the customer-facing storefront chatbot.
+    </Role>
+    <Role name="OpenAI runtime" function="production customer agent">
+      Continue powering customer chat and artwork generation on LazyCustoms.com through the
+      existing server-side OpenAI integration.
+    </Role>
+    <Role name="Optional Claude API runtime" function="non-critical backup and reviewer">
+      May be proposed for bounded text generation, image analysis, quality review, or provider
+      fallback only when its benefit is concrete and its failure cannot disable the primary path.
+    </Role>
+    <Prohibition>
+      Never infer that Claude Code performing development work means Claude must replace OpenAI
+      as the production chatbot. Never use the terms Claude Code, Claude API, OpenAI chatbot,
+      Shopify MCP, or Shopify back-office assistant interchangeably.
+    </Prohibition>
+  </RoleSeparation>
+
+  <CurrentArchitecture>
+    <PrimaryChat provider="OpenAI" interface="Responses API" serverSide="true"/>
+    <PrimaryArtwork provider="OpenAI" model="gpt-image-2.5-flare" serverSide="true"/>
+    <Commerce provider="Shopify" interfaces="Storefront MCP,UCP"/>
+    <Deployment provider="Railway" service="valiant-liberation/production/02_IAMHUB"/>
+    <SecretBoundary>
+      API keys remain server-side environment variables. Never request that a secret be pasted
+      into chat, browser code, source files, logs, screenshots, or committed .env files.
+    </SecretBoundary>
+  </CurrentArchitecture>
+
+  <Invitation>
+    <Capability name="Development wisdom and review">
+      Audit proposed and implemented changes for correctness, simplicity, security, maintainability,
+      inconsistent documentation, stale assumptions, and regressions. Prefer evidence from source,
+      tests, logs, and live checks over claims in handoff notes.
+    </Capability>
+    <Capability name="Text generation">
+      Evaluate whether an optional Claude API worker could improve merchant-side catalog copy,
+      design briefs, prompt refinement, or offline response evaluation without entering the
+      customer-critical request path.
+    </Capability>
+    <Capability name="Image analysis">
+      Evaluate an optional, asynchronous design-review function that can inspect generated artwork
+      for prompt alignment, print suitability, unwanted mockups or backgrounds, obvious artifacts,
+      and policy or trademark concerns. It must provide advice, not silently reject customer work.
+    </Capability>
+    <Capability name="Backup consistency">
+      If recommending Claude API as a provider fallback, design it behind an explicit feature flag,
+      with bounded timeouts, normalized outputs, independent rate limits, cost controls, observability,
+      and a circuit breaker. The OpenAI primary path must continue operating when Claude is absent,
+      unconfigured, slow, rate-limited, or unavailable.
+    </Capability>
+    <Capability name="Error flagging">
+      Flag missing variables, incompatible model or endpoint assumptions, unsafe secret handling,
+      duplicated providers or deployments, mismatched tool schemas, broken conversation-history
+      conversion, image-format incompatibility, unbounded retries, failover loops, cost amplification,
+      privacy concerns, and misleading completion claims.
+    </Capability>
+  </Invitation>
+
+  <EngineeringConstraints>
+    <Constraint>Do not add ANTHROPIC_API_KEY or another secret unless the user explicitly approves a concrete runtime feature.</Constraint>
+    <Constraint>Do not require Claude API for health checks, startup, chat, image generation, checkout, or Shopify fulfillment.</Constraint>
+    <Constraint>Do not reintroduce the removed Anthropic customer-chat implementation merely to create fallback behavior.</Constraint>
+    <Constraint>Do not implement changes during this review. Return a recommendation first.</Constraint>
+    <Constraint>Prefer the smallest useful addition and state when no Claude API integration is warranted.</Constraint>
+    <Constraint>Any future implementation requires focused tests for primary success, fallback success, both-provider failure, timeout, rate limit, malformed output, and secret absence.</Constraint>
+  </EngineeringConstraints>
+
+  <RequestedReview>
+    <Question id="1">What concrete value could Claude Code add as the continuing development reviewer?</Question>
+    <Question id="2">Which, if any, bounded Claude API feature would improve Lazy Customs enough to justify a second provider?</Question>
+    <Question id="3">Should Claude API be a live fallback, an asynchronous reviewer, a merchant-only tool, or not integrated at this stage?</Question>
+    <Question id="4">What failure modes, security risks, costs, and role-confusion risks must be addressed?</Question>
+    <Question id="5">What is the smallest safe phased plan, including feature flags, observability, tests, and rollback?</Question>
+  </RequestedReview>
+
+  <RequiredResponse format="structured">
+    <Section>Executive recommendation: adopt now, defer, or reject</Section>
+    <Section>Best contribution from Claude Code without any Claude API key</Section>
+    <Section>Optional Claude API use cases ranked by customer value and implementation risk</Section>
+    <Section>Role-separation and naming corrections</Section>
+    <Section>Failure-mode and security audit</Section>
+    <Section>Minimal implementation plan, only if adoption is recommended</Section>
+    <Section>Explicit list of assumptions and evidence still required</Section>
+  </RequiredResponse>
+
+  <ClosingPrinciple>
+    Knowledge and wisdom serve the same child, LazyCustoms.com. Partnership means testing each
+    contribution and preserving what works; it does not mean adding a second production dependency
+    without demonstrated customer value.
+  </ClosingPrinciple>
+</ClaudeCodeInvitation>
