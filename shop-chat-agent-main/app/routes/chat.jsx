@@ -1,12 +1,12 @@
 /**
  * Chat API Route
- * Handles streamed OpenAI chat interactions and Shopify tools
+ * Handles streamed AI chat interactions and Shopify tools
  */
 import MCPClient from "../mcp-client";
 import { saveMessage, getConversationHistory, storeCustomerAccountUrls, getCustomerAccountUrls as getCustomerAccountUrlsFromDb } from "../db.server";
 import AppConfig from "../services/config.server";
 import { createSseStream } from "../services/streaming.server";
-import { createOpenAIService, formatConversationHistory } from "../services/openai.server";
+import { createAIService } from "../services/ai.server";
 import { createToolService } from "../services/tool.server";
 import { getCorsHeaders, isAllowedOrigin } from "../services/cors.server";
 
@@ -176,7 +176,7 @@ async function handleChatSession({
   stream
 }) {
   // Initialize services
-  const openAIService = createOpenAIService();
+  const { provider, service: aiService, formatHistory } = createAIService();
   const toolService = createToolService();
 
   // Initialize MCP client
@@ -215,66 +215,35 @@ async function handleChatSession({
   // Fetch all messages from the database for this conversation
   const dbMessages = await getConversationHistory(conversationId);
 
-  let input = formatConversationHistory(dbMessages);
-  let previousResponseId;
   let assistantText = "";
 
-  for (let toolRound = 0; toolRound < AppConfig.api.maxToolRounds; toolRound += 1) {
-    const response = await openAIService.streamResponse({
-      input,
-      previousResponseId,
+  const handleTextDelta = (textDelta) => {
+    assistantText += textDelta;
+    stream.sendMessage({ type: 'chunk', chunk: textDelta });
+  };
+
+  if (provider === "anthropic") {
+    await runAnthropicToolLoop({
+      aiService,
+      messages: formatHistory(dbMessages),
       promptType,
-      tools: mcpClient.tools,
-    }, {
-      onText: (textDelta) => {
-        assistantText += textDelta;
-        stream.sendMessage({ type: 'chunk', chunk: textDelta });
-      },
+      mcpClient,
+      toolService,
+      productsToDisplay,
+      stream,
+      onText: handleTextDelta,
     });
-
-    if (response.functionCalls.length === 0) break;
-    if (!response.responseId) throw new Error("OpenAI tool response was missing its response ID");
-
-    const toolOutputs = [];
-
-    for (const toolCall of response.functionCalls) {
-      const toolArgs = parseToolArguments(toolCall.arguments);
-      stream.sendMessage({
-        type: 'tool_use',
-        tool_use_message: `Calling tool: ${toolCall.name}`,
-      });
-
-      let toolUseResponse;
-      try {
-        toolUseResponse = await mcpClient.callTool(toolCall.name, toolArgs);
-      } catch (error) {
-        toolUseResponse = { error: { type: "tool_error", data: error.message } };
-      }
-
-      if (toolUseResponse.error?.type === "auth_required") {
-        stream.sendMessage({ type: 'auth_required' });
-      }
-
-      if (!toolUseResponse.error && toolCall.name === AppConfig.tools.productSearchName) {
-        const products = toolService.processProductSearchResult(toolUseResponse);
-        const existingIds = new Set(productsToDisplay.map((product) => product.id));
-        productsToDisplay.push(...products.filter((product) => !existingIds.has(product.id)));
-      }
-
-      toolOutputs.push({
-        type: "function_call_output",
-        call_id: toolCall.call_id,
-        output: serializeToolOutput(toolUseResponse),
-      });
-    }
-
-    previousResponseId = response.responseId;
-    input = toolOutputs;
-    stream.sendMessage({ type: 'new_message' });
-
-    if (toolRound === AppConfig.api.maxToolRounds - 1) {
-      throw new Error("The shopping assistant reached its tool-call limit");
-    }
+  } else {
+    await runOpenAIToolLoop({
+      aiService,
+      input: formatHistory(dbMessages),
+      promptType,
+      mcpClient,
+      toolService,
+      productsToDisplay,
+      stream,
+      onText: handleTextDelta,
+    });
   }
 
   if (assistantText.trim()) {
@@ -296,6 +265,150 @@ async function handleChatSession({
 
 }
 
+async function runOpenAIToolLoop({
+  aiService,
+  input,
+  promptType,
+  mcpClient,
+  toolService,
+  productsToDisplay,
+  stream,
+  onText,
+}) {
+  let currentInput = input;
+  let previousResponseId;
+
+  for (let toolRound = 0; toolRound < AppConfig.api.maxToolRounds; toolRound += 1) {
+    const response = await aiService.streamResponse({
+      input: currentInput,
+      previousResponseId,
+      promptType,
+      tools: mcpClient.tools,
+    }, { onText });
+
+    if ((response.functionCalls || []).length === 0) break;
+    if (!response.responseId) throw new Error("OpenAI tool response was missing its response ID");
+
+    const toolOutputs = [];
+
+    for (const toolCall of response.functionCalls) {
+      const toolUseResponse = await executeShopifyTool({
+        name: toolCall.name,
+        args: parseToolArguments(toolCall.arguments),
+        mcpClient,
+        toolService,
+        productsToDisplay,
+        stream,
+      });
+
+      toolOutputs.push({
+        type: "function_call_output",
+        call_id: toolCall.call_id,
+        output: serializeToolOutput(toolUseResponse),
+      });
+    }
+
+    previousResponseId = response.responseId;
+    currentInput = toolOutputs;
+    stream.sendMessage({ type: 'new_message' });
+
+    if (toolRound === AppConfig.api.maxToolRounds - 1) {
+      throw new Error("The shopping assistant reached its tool-call limit");
+    }
+  }
+}
+
+async function runAnthropicToolLoop({
+  aiService,
+  messages,
+  promptType,
+  mcpClient,
+  toolService,
+  productsToDisplay,
+  stream,
+  onText,
+}) {
+  let currentMessages = messages;
+
+  for (let toolRound = 0; toolRound < AppConfig.api.maxToolRounds; toolRound += 1) {
+    const response = await aiService.streamResponse({
+      messages: currentMessages,
+      promptType,
+      tools: mcpClient.tools,
+    }, { onText });
+
+    const toolUses = response.toolUses || [];
+    if (toolUses.length === 0) break;
+
+    const assistantContent = (response.contentBlocks || [])
+      .filter((block) => block.type !== "text" || block.text);
+    const toolResults = [];
+
+    for (const toolUse of toolUses) {
+      const toolUseResponse = await executeShopifyTool({
+        name: toolUse.name,
+        args: normalizeToolInput(toolUse.input),
+        mcpClient,
+        toolService,
+        productsToDisplay,
+        stream,
+      });
+
+      toolResults.push({
+        type: "tool_result",
+        tool_use_id: toolUse.id,
+        content: serializeToolOutput(toolUseResponse),
+        is_error: Boolean(toolUseResponse.error),
+      });
+    }
+
+    currentMessages = [
+      ...currentMessages,
+      { role: "assistant", content: assistantContent.length ? assistantContent : toolUses },
+      { role: "user", content: toolResults },
+    ];
+    stream.sendMessage({ type: 'new_message' });
+
+    if (toolRound === AppConfig.api.maxToolRounds - 1) {
+      throw new Error("The shopping assistant reached its tool-call limit");
+    }
+  }
+}
+
+async function executeShopifyTool({
+  name,
+  args,
+  mcpClient,
+  toolService,
+  productsToDisplay,
+  stream,
+}) {
+  stream.sendMessage({
+    type: 'tool_use',
+    tool_use_message: `Calling tool: ${name}`,
+  });
+
+  let toolUseResponse;
+  try {
+    toolUseResponse = await mcpClient.callTool(name, args);
+  } catch (error) {
+    toolUseResponse = { error: { type: "tool_error", data: error.message } };
+  }
+
+  if (toolUseResponse.error?.type === "auth_required") {
+    stream.sendMessage({ type: 'auth_required' });
+  }
+
+  if (!toolUseResponse.error && name === AppConfig.tools.productSearchName) {
+    const products = toolService.processProductSearchResult(toolUseResponse);
+    const existingIds = new Set(productsToDisplay.map((product) => product.id));
+    productsToDisplay.push(...products.filter((product) => !existingIds.has(product.id)));
+  }
+
+  return toolUseResponse;
+
+}
+
 function parseToolArguments(argumentsJson) {
   try {
     const parsed = JSON.parse(argumentsJson || "{}");
@@ -311,6 +424,11 @@ function serializeToolOutput(toolUseResponse) {
   } catch {
     return JSON.stringify({ error: { type: "serialization_error", data: "Tool output could not be serialized" } });
   }
+}
+
+function normalizeToolInput(input) {
+  if (!input) return {};
+  return typeof input === "object" && !Array.isArray(input) ? input : {};
 }
 
 /**

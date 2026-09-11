@@ -19,8 +19,11 @@ adding replicas.
 Copy the variable names from `.env.example` into Railway and provide real
 values. At minimum the service needs:
 
+- `AI_TEXT_PROVIDER=anthropic` to use Claude for Lazy Chat text
+- `ANTHROPIC_API_KEY`
+- `ANTHROPIC_CHAT_MODEL=claude-sonnet-5` (optional; this is the default)
 - `OPENAI_API_KEY`
-- `OPENAI_CHAT_MODEL=gpt-5.6` (optional; this is the default)
+- `OPENAI_CHAT_MODEL=gpt-5.6` (optional; used when `AI_TEXT_PROVIDER=openai`)
 - `SHOPIFY_API_KEY`
 - `SHOPIFY_API_SECRET`
 - `SHOPIFY_APP_URL=https://ai.lazycustoms.com`

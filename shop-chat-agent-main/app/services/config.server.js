@@ -16,11 +16,11 @@ export const AppConfig = {
   errorMessages: {
     missingMessage: "Message is required",
     apiUnsupported: "This endpoint only supports server-sent events (SSE) requests or history requests.",
-    authFailed: "Authentication failed with OpenAI API",
+    authFailed: "Authentication failed with the AI provider",
     apiKeyError: "Please check your API key in environment variables",
     rateLimitExceeded: "Rate limit exceeded",
     rateLimitDetails: "Please try again later",
-    genericError: "Failed to get response from OpenAI"
+    genericError: "Failed to get response from the AI provider"
   },
 
   // Tool Configuration
