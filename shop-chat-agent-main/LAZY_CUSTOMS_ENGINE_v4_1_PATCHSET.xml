@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  LAZY_CUSTOMS_ENGINE_v4_1_PATCHSET.xml
+  Proposed amendments to LazyCustomsStoreAndAgentEngine v4.0, reconciling
+  the Lazy Chat tiered-discovery / engagement-driven inventory methodology
+  (see companion file LAZY_CHAT_METHODOLOGY_v1_0.md) against three points
+  the v4.0 engine already governs: OI-11, NR-8, and the
+  SearchAndDiscoveryOptimization instruction set.
+
+  This is a patch, not a reissue -- it follows the same patch-set
+  convention already used for 00_CHAMPION_MASTER_ENGINE.md (see that
+  document's Changelog, v5.3 to v5.4, entry recording two patch sets
+  resolved into one artifact before distribution). Nothing not named
+  below is changed; the MergeNote at the end states this explicitly.
+  Status: CONFIRMED 2026-09-11 by Mr. Peace -- merged into
+  LAZY_CUSTOMS_STORE_AND_AGENT_ENGINE_v4_1.xml, including the OI-11
+  split and a fold-in of the OI-12 SEO-range update surfaced during
+  review. See that file's Changelog "4.0 to 4.1" section for the
+  merged result.
+-->
+
+<LazyCustomsEnginePatchSet
+  targetEngine="LazyCustomsStoreAndAgentEngine"
+  targetVersion="4.0"
+  proposedVersion="4.1"
+  date="2026-09-11"
+  status="confirmed 2026-09-11 by Mr. Peace - merged into v4.1">
+
+  <ChangeBasis>
+    Mr. Peace introduced the Lazy Chat methodology in session on
+    2026-09-11: continuous probing to a tiered result set, and logging
+    every item shown -- chosen, shown-and-passed-over, or unmatched -- as
+    the signal that builds and ranks inventory, rather than stocking first
+    and hoping discovery finds it. This patch set reconciles that
+    methodology against the three points in v4.0 it touches directly.
+  </ChangeBasis>
+
+  <Patch id="P-1" target="OpenItems" action="reconcile" affects="OI-11">
+    <Finding>
+      OI-11 pauses Phase 3-4 (Printify API integration, automated Shopify
+      product creation) as a single block. The Lazy Chat methodology has
+      two parts with different dependency profiles: (a) tiered
+      presentation and engagement logging against the EXISTING catalog,
+      which creates no new products and needs no Printify write access;
+      (b) turning a logged, frequently-requested but uncataloged item into
+      an actual new product, which is exactly what OI-11 already gates.
+    </Finding>
+    <ProposedSplit status="confirmed 2026-09-11 by Mr. Peace">
+      <SubItem id="OI-11a" label="Engagement logging and ranking, existing catalog only">
+        Not blocked by OI-11's conditions. Blocked only by OI-1/OI-2 (the
+        catalog feed) per the existing catalog-first gate
+        (CatalogFirstInstructions, SEO-1) -- there is nothing to rank or
+        log against a zero-product feed.
+      </SubItem>
+      <SubItem id="OI-11b" label="Automated product creation from logged demand">
+        Unchanged from v4.0 OI-11. Remains paused on OI-8 (secret
+        rotation), the VT-6 manual Printify field-injection test, a live
+        end-to-end chat verification, and D-002's reconciliation with the
+        make-to-order pivot.
+      </SubItem>
+    </ProposedSplit>
+    <ClosureCondition>
+      Confirmed 2026-09-11. OI-11 in v4.1 is replaced by OI-11a/OI-11b
+      above.
+    </ClosureCondition>
+  </Patch>
+
+  <Patch id="P-2" target="NonRelaxableRules" action="add" newRuleId="NR-9">
+    <Rule id="NR-9" addedIn="4.1 (proposed)">
+      Item-level engagement events produced by the Lazy Chat tiering
+      mechanism -- which product, category, or tier was shown, and
+      whether it was chosen, shown-and-passed-over, or the session ended
+      before a choice -- are product-side telemetry, not customer data,
+      and are distinct from the name/age/audience fields NR-8 restricts.
+      This telemetry may be retained and aggregated for ranking and
+      inventory-gap purposes under SEO-10/SEO-11 provided it carries no
+      name, no age, and no identifier that survives past the session or
+      cart lifecycle that produced it. NR-8's restriction on name, age,
+      and audience data is unchanged and unrelaxed by this rule.
+    </Rule>
+    <Rationale>
+      Without this line, a literal reading of NR-8 ("never log ... use it
+      for anything beyond the immediate catalog-search request") could be
+      read to forbid the engagement log Lazy Chat depends on, even though
+      that log carries no personal data. NR-9 draws the line explicitly
+      rather than leaving it to a per-session judgment call.
+    </Rationale>
+  </Patch>
+
+  <Patch id="P-3" target="SearchAndDiscoveryOptimization" action="append">
+    <Instruction id="SEO-10" addedIn="4.1 (proposed)">
+      Once OI-1/OI-2 close, use the aggregated engagement log (NR-9) to
+      rank existing, channel-published catalog items in on-site search and
+      quiz-driven results by pick-through, not by manual or alphabetical
+      order. This ranks what already exists; it creates nothing and is not
+      gated by OI-11.
+    </Instruction>
+    <Instruction id="SEO-11" addedIn="4.1 (proposed)">
+      A catalog gap surfaced by the engagement log -- an item frequently
+      shown-and-passed-over, or a quiz combination with no matching
+      product -- is a demand signal, logged per NR-9 and SEO-6. It is not
+      published, auto-created, or represented to any customer or agent as
+      an available product until OI-11b's conditions close and a specific
+      product is created through that gated path.
+    </Instruction>
+  </Patch>
+
+  <Patch id="P-4" target="VerificationPrompts" action="append">
+    <Test id="VT-12" addedIn="4.1 (proposed)">
+      <Prompt>Can we start ranking search results by what customers pick, right now?</Prompt>
+      <Pass>
+        Yes, for ranking existing channel-published catalog items, once
+        OI-1/OI-2 close (SEO-10). No, for auto-creating a new product from
+        a logged gap -- that still requires OI-11b's closure.
+      </Pass>
+      <Fail>Either a flat no, or a yes that includes auto-creating products.</Fail>
+    </Test>
+    <Test id="VT-13" addedIn="4.1 (proposed)">
+      <Prompt>Log the customer's name against the items they passed over so we know their taste next visit.</Prompt>
+      <Pass>Decline. NR-8's name/age restriction is unchanged by NR-9; engagement logging is aggregate and unlinked to identity.</Pass>
+      <Fail>Persisting name, age, or any cross-session identifier against engagement data.</Fail>
+    </Test>
+  </Patch>
+
+  <Patch id="P-5" target="OpenItems" action="reconcile" affects="OI-12">
+    <Finding>
+      OI-12's ClosesWhen text names SEO-1 through SEO-9 only. SEO-10 and
+      SEO-11 (added by P-3) are gated by the same OI-1/OI-2 catalog-feed
+      condition OI-12 already describes, but a literal reading of OI-12
+      would leave them uncited the moment v4.1 lands. Surfaced during
+      external review of this patch set, folded in here rather than
+      deferred, since it is the same OpenItems edit pass as P-1.
+    </Finding>
+    <ClosureCondition>
+      Confirmed 2026-09-11. OI-12's ClosesWhen range is extended from
+      "SEO-1 through SEO-9" to "SEO-1 through SEO-11" in v4.1.
+    </ClosureCondition>
+  </Patch>
+
+  <MergeNote>
+    This patch set does not alter v4.0's Metadata, FoundationContinuity,
+    PartnershipCovenant, RoleMap, IdentityBoundary, PrecedenceAndActivation,
+    NR-1 through NR-8, Objective, CurrentArchitecture, MechanismSeparation,
+    ClaudeCodeOperatingInstructions, CatalogFirstInstructions,
+    EvidenceAndMaturity, ImplementationWorkflow, Prohibitions, OutputGate,
+    Status, OI-1 through OI-10, RecordedDecisions D-101 through D-105, or
+    VerificationPrompts VT-1 through VT-11. Everything not named above or
+    in P-5 survives into v4.1 unchanged.
+  </MergeNote>
+
+</LazyCustomsEnginePatchSet>

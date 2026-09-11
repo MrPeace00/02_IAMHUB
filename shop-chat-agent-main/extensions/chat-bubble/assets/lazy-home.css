@@ -80,6 +80,69 @@
   margin: 28px auto 0;
 }
 
+.lazy-home__quiz {
+  background: var(--lazy-soft);
+  border: 1px solid var(--lazy-line);
+  border-radius: 24px;
+  margin: 28px auto 0;
+  padding: 22px;
+  text-align: left;
+}
+
+.lazy-home__quiz-title {
+  font-size: 15px;
+  font-weight: 650;
+  margin: 0 0 16px;
+  text-align: center;
+}
+
+.lazy-home__quiz-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+
+.lazy-home__quiz-field {
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+  gap: 6px;
+}
+
+.lazy-home__quiz-field span {
+  color: var(--lazy-muted);
+  font-weight: 600;
+}
+
+.lazy-home__quiz-field input,
+.lazy-home__quiz-field select {
+  background: #fff;
+  border: 1px solid var(--lazy-line);
+  border-radius: 10px;
+  font: inherit;
+  padding: 10px 12px;
+}
+
+.lazy-home__quiz-submit {
+  background: var(--lazy-ink);
+  border: 0;
+  border-radius: 999px;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 650;
+  margin-top: 16px;
+  padding: 12px 20px;
+  width: 100%;
+}
+
+.lazy-home__or {
+  color: var(--lazy-muted);
+  font-size: 13px;
+  margin: 20px 0 0;
+  text-align: center;
+}
+
 .lazy-home__search-shell {
   align-items: center;
   background: #fff;
@@ -236,7 +299,7 @@
 .lazy-home__products {
   display: grid;
   gap: 16px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   margin-top: 24px;
 }
 

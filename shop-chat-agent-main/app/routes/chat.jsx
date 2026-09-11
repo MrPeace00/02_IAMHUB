@@ -10,6 +10,38 @@ import { createOpenAIService, formatConversationHistory } from "../services/open
 import { createToolService } from "../services/tool.server";
 import { getCorsHeaders, isAllowedOrigin } from "../services/cors.server";
 
+const QUIZ_AUDIENCES = new Set(["man", "woman", "child"]);
+const QUIZ_SEASONS = new Set(["summer", "winter", "fall", "spring"]);
+
+function sanitizeQuizText(value, maxLength) {
+  return typeof value === "string" ? value.trim().slice(0, maxLength) : "";
+}
+
+/**
+ * Turns the homepage quiz answers (name/age/audience/season/category) into an
+ * explicit context tag so the assistant filters search_catalog on structured
+ * facts instead of guessing them back out of prose.
+ */
+function buildQuizContext(quiz) {
+  if (!quiz || typeof quiz !== "object") return "";
+
+  const name = sanitizeQuizText(quiz.name, 60);
+  const parsedAge = Number.parseInt(quiz.age, 10);
+  const age = Number.isFinite(parsedAge) ? Math.min(Math.max(parsedAge, 0), 120) : null;
+  const audience = QUIZ_AUDIENCES.has(quiz.audience) ? quiz.audience : "";
+  const season = QUIZ_SEASONS.has(quiz.season) ? quiz.season : "";
+  const category = sanitizeQuizText(quiz.category, 60);
+
+  const parts = [];
+  if (name) parts.push(`name: ${name}`);
+  if (age !== null) parts.push(`age: ${age}`);
+  if (audience) parts.push(`audience: ${audience}`);
+  if (season) parts.push(`season: ${season}`);
+  if (category) parts.push(`category: ${category}`);
+
+  if (parts.length === 0) return "";
+  return `[Customer quiz — ${parts.join("; ")}. Filter search_catalog by these facts before answering.]`;
+}
 
 /**
  * Rract Router loader function for handling GET requests
@@ -97,6 +129,9 @@ async function handleChatRequest(request) {
       );
     }
 
+    const quizContext = buildQuizContext(body.quiz);
+    const contextualizedMessage = quizContext ? `${quizContext}\n${userMessage}` : userMessage;
+
     // Generate or use existing conversation ID
     const conversationId = body.conversation_id || Date.now().toString();
     const promptType = body.prompt_type || AppConfig.api.defaultPromptType;
@@ -105,7 +140,7 @@ async function handleChatRequest(request) {
     const responseStream = createSseStream(async (stream) => {
       await handleChatSession({
         request,
-        userMessage,
+        userMessage: contextualizedMessage,
         conversationId,
         promptType,
         stream

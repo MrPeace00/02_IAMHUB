@@ -67,6 +67,12 @@
   }
 
   function initialize(root) {
+    const quizForm = root.querySelector("[data-lazy-quiz-form]");
+    const quizName = root.querySelector("[data-quiz-name]");
+    const quizAge = root.querySelector("[data-quiz-age]");
+    const quizAudience = root.querySelector("[data-quiz-audience]");
+    const quizSeason = root.querySelector("[data-quiz-season]");
+    const quizCategory = root.querySelector("[data-quiz-category]");
     const form = root.querySelector("[data-lazy-form]");
     const input = root.querySelector("[data-lazy-input]");
     const send = root.querySelector("[data-lazy-send]");
@@ -162,7 +168,7 @@
     function renderProducts(items) {
       products.replaceChildren();
       if (!Array.isArray(items)) return;
-      items.slice(0, 3).forEach((product) => {
+      items.slice(0, 8).forEach((product) => {
         const destination = sameStoreUrl(product.url);
         const card = document.createElement(destination ? "a" : "article");
         card.className = "lazy-home__product";
@@ -257,7 +263,7 @@
       }
     }
 
-    async function streamChat(prompt) {
+    async function streamChat(prompt, quiz) {
       addMessage(prompt, "user");
       const assistant = addMessage("Thinking", "assistant", true);
       setBusy(true, "Looking through Lazy Customs…");
@@ -274,6 +280,7 @@
             message: prompt,
             conversation_id: sessionStorage.getItem(conversationKey),
             prompt_type: "systemShopping",
+            ...(quiz ? { quiz } : {}),
           }),
         });
 
@@ -342,6 +349,30 @@
         streamChat(prompt);
       }
     });
+
+    if (quizForm) {
+      quizForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        if (busy) return;
+
+        const quiz = {
+          name: quizName.value.trim().slice(0, 60),
+          age: quizAge.value ? Math.min(Math.max(Number.parseInt(quizAge.value, 10) || 0, 0), 120) : null,
+          audience: quizAudience.value,
+          season: quizSeason.value,
+          category: quizCategory.value,
+        };
+
+        const descriptor = [quiz.category || "something"];
+        if (quiz.audience === "child") descriptor.push(quiz.age ? `for a ${quiz.age}-year-old child` : "for a child");
+        else if (quiz.audience) descriptor.push(`for a ${quiz.audience}`);
+        if (quiz.season) descriptor.push(`for ${quiz.season}`);
+        const message = `Find ${descriptor.join(" ")}.`;
+
+        quizForm.hidden = true;
+        streamChat(message, quiz);
+      });
+    }
 
     window.addEventListener("beforeunload", () => objectUrls.forEach((url) => URL.revokeObjectURL(url)));
     renderChips(initialSuggestions);

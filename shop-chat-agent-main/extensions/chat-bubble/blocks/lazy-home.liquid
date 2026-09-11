@@ -11,6 +11,54 @@
       <h1 class="lazy-home__wordmark" aria-label="Lazy Customs">Lazy<span>.</span></h1>
       <p class="lazy-home__intro">Tell us what you have in mind.</p>
 
+      <form class="lazy-home__quiz" data-lazy-quiz-form>
+        <p class="lazy-home__quiz-title">A few quick details, then we'll find your picks.</p>
+        <div class="lazy-home__quiz-grid">
+          <label class="lazy-home__quiz-field">
+            <span>Name (optional)</span>
+            <input type="text" data-quiz-name maxlength="60" autocomplete="off">
+          </label>
+          <label class="lazy-home__quiz-field">
+            <span>Age (optional)</span>
+            <input type="number" data-quiz-age min="0" max="120">
+          </label>
+          <label class="lazy-home__quiz-field">
+            <span>Who's it for</span>
+            <select data-quiz-audience>
+              <option value="">Select…</option>
+              <option value="man">Man</option>
+              <option value="woman">Woman</option>
+              <option value="child">Child</option>
+            </select>
+          </label>
+          <label class="lazy-home__quiz-field">
+            <span>Season</span>
+            <select data-quiz-season>
+              <option value="">Select…</option>
+              <option value="summer">Summer</option>
+              <option value="fall">Fall</option>
+              <option value="winter">Winter</option>
+              <option value="spring">Spring</option>
+            </select>
+          </label>
+          <label class="lazy-home__quiz-field">
+            <span>Category</span>
+            <select data-quiz-category>
+              <option value="">Select…</option>
+              <option value="t-shirt">T-Shirt</option>
+              <option value="hoodie">Hoodie</option>
+              <option value="sweatshirt">Sweatshirt</option>
+              <option value="mug">Mug</option>
+              <option value="tote bag">Tote Bag</option>
+              <option value="other">Other</option>
+            </select>
+          </label>
+        </div>
+        <button class="lazy-home__quiz-submit" type="submit">Find my picks</button>
+      </form>
+
+      <p class="lazy-home__or">Or describe exactly what you want</p>
+
       <form class="lazy-home__form" data-lazy-form>
         <label class="lazy-home__sr-only" for="lazy-home-input-{{ block.id }}">
           Search products or describe custom artwork
