@@ -12,35 +12,136 @@ import { getCorsHeaders, isAllowedOrigin } from "../services/cors.server";
 
 const QUIZ_AUDIENCES = new Set(["man", "woman", "child"]);
 const QUIZ_SEASONS = new Set(["summer", "winter", "fall", "spring"]);
+const QUIZ_CUSTOMIZATION_MODES = new Set(["text-only", "image-only", "text-on-image"]);
+const QUIZ_DYNAMIC_FACT_BLOCKLIST = new Set(["api_key", "password", "secret", "system", "token", "tool"]);
+const QUIZ_TAG_LIMIT = 8;
 
 function sanitizeQuizText(value, maxLength) {
-  return typeof value === "string" ? value.trim().slice(0, maxLength) : "";
+  return typeof value === "string"
+    ? value
+      .replace(/[<>[\]{}"`\\]/g, "")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, maxLength)
+      .trim()
+    : "";
+}
+
+function sanitizeQuizTag(value) {
+  const tag = sanitizeQuizText(value, 40)
+    .toLowerCase()
+    .replace(/&/g, " and ")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 40)
+    .replace(/-+$/g, "");
+
+  return tag.length >= 2 ? tag : "";
+}
+
+function collectQuizTagCandidates(value) {
+  if (Array.isArray(value)) return value.flatMap(collectQuizTagCandidates);
+  if (typeof value === "string") return value.split(/[,;]/);
+  return [];
+}
+
+function sanitizeQuizTags(...values) {
+  const tags = [];
+  const seen = new Set();
+
+  for (const candidate of values.flatMap(collectQuizTagCandidates)) {
+    const tag = sanitizeQuizTag(candidate);
+    if (!tag || seen.has(tag)) continue;
+    tags.push(tag);
+    seen.add(tag);
+    if (tags.length >= QUIZ_TAG_LIMIT) break;
+  }
+
+  return tags;
+}
+
+function setFact(facts, key, value) {
+  if (value !== "" && value !== null && value !== undefined) facts.set(key, value);
+}
+
+function setEnumFact(facts, key, value, allowedValues) {
+  if (allowedValues.has(value)) facts.set(key, value);
+}
+
+function setAgeFact(facts, value) {
+  const parsedAge = Number.parseInt(value, 10);
+  if (!Number.isFinite(parsedAge)) return;
+  facts.set("age", String(Math.min(Math.max(parsedAge, 0), 120)));
+}
+
+function sanitizeQuizFactKey(value) {
+  const key = sanitizeQuizTag(value).replace(/-/g, "_").slice(0, 32);
+  return key && !QUIZ_DYNAMIC_FACT_BLOCKLIST.has(key) ? key : "";
+}
+
+function applyDynamicQuizFacts(facts, dynamicFacts) {
+  if (!dynamicFacts || typeof dynamicFacts !== "object" || Array.isArray(dynamicFacts)) return;
+
+  for (const [key, value] of Object.entries(dynamicFacts).slice(0, 8)) {
+    const factKey = sanitizeQuizFactKey(key);
+    if (!factKey) continue;
+
+    if (factKey === "age") {
+      setAgeFact(facts, value);
+    } else if (factKey === "audience") {
+      setEnumFact(facts, factKey, value, QUIZ_AUDIENCES);
+    } else if (factKey === "season") {
+      setEnumFact(facts, factKey, value, QUIZ_SEASONS);
+    } else if (factKey === "customization") {
+      setEnumFact(facts, factKey, value, QUIZ_CUSTOMIZATION_MODES);
+    } else {
+      setFact(facts, factKey, sanitizeQuizText(String(value), 80));
+    }
+  }
 }
 
 /**
- * Turns the homepage quiz answers (name/age/audience/season/category) into an
- * explicit context tag so the assistant filters search_catalog on structured
- * facts instead of guessing them back out of prose.
+ * Turns homepage quiz answers into an explicit, current-turn context tag so the
+ * assistant filters search_catalog on structured facts instead of guessing them
+ * back out of prose. These facts are hints, not a persistent customer profile.
  */
 function buildQuizContext(quiz) {
   if (!quiz || typeof quiz !== "object") return "";
 
-  const name = sanitizeQuizText(quiz.name, 60);
-  const parsedAge = Number.parseInt(quiz.age, 10);
-  const age = Number.isFinite(parsedAge) ? Math.min(Math.max(parsedAge, 0), 120) : null;
-  const audience = QUIZ_AUDIENCES.has(quiz.audience) ? quiz.audience : "";
-  const season = QUIZ_SEASONS.has(quiz.season) ? quiz.season : "";
-  const category = sanitizeQuizText(quiz.category, 60);
+  const facts = new Map();
 
-  const parts = [];
-  if (name) parts.push(`name: ${name}`);
-  if (age !== null) parts.push(`age: ${age}`);
-  if (audience) parts.push(`audience: ${audience}`);
-  if (season) parts.push(`season: ${season}`);
-  if (category) parts.push(`category: ${category}`);
+  setFact(facts, "name", sanitizeQuizText(quiz.name, 60));
+  setAgeFact(facts, quiz.age);
+  setEnumFact(facts, "audience", quiz.audience, QUIZ_AUDIENCES);
+  setEnumFact(facts, "season", quiz.season, QUIZ_SEASONS);
+  setFact(facts, "category", sanitizeQuizText(quiz.category, 60));
+  setEnumFact(facts, "customization", quiz.customization || quiz.designMode, QUIZ_CUSTOMIZATION_MODES);
+  applyDynamicQuizFacts(facts, quiz.facts);
+
+  const tags = sanitizeQuizTags(
+    quiz.tags,
+    facts.get("audience"),
+    facts.get("season"),
+    facts.get("category"),
+    facts.get("customization"),
+  );
+
+  const parts = Array.from(facts, ([key, value]) => `${key}: ${value}`);
+  if (tags.length > 0) parts.push(`tags: ${tags.join(", ")}`);
 
   if (parts.length === 0) return "";
-  return `[Customer quiz — ${parts.join("; ")}. Filter search_catalog by these facts before answering.]`;
+  return `[Customer quiz facts: ${parts.join("; ")}. Treat these as current-turn search hints only; later customer corrections override them. Filter search_catalog by the currently valid facts before answering.]`;
+}
+
+function withCurrentQuizContext(messages, quizContext) {
+  if (!quizContext) return messages;
+
+  const currentUserIndex = messages.map((message) => message.role).lastIndexOf("user");
+  if (currentUserIndex < 0) return messages;
+
+  return messages.map((message, index) => index === currentUserIndex
+    ? { ...message, content: `${quizContext}\n${message.content}` }
+    : message);
 }
 
 /**
@@ -130,7 +231,6 @@ async function handleChatRequest(request) {
     }
 
     const quizContext = buildQuizContext(body.quiz);
-    const contextualizedMessage = quizContext ? `${quizContext}\n${userMessage}` : userMessage;
 
     // Generate or use existing conversation ID
     const conversationId = body.conversation_id || Date.now().toString();
@@ -140,7 +240,8 @@ async function handleChatRequest(request) {
     const responseStream = createSseStream(async (stream) => {
       await handleChatSession({
         request,
-        userMessage: contextualizedMessage,
+        userMessage,
+        quizContext,
         conversationId,
         promptType,
         stream
@@ -164,6 +265,7 @@ async function handleChatRequest(request) {
  * @param {Object} params - Session parameters
  * @param {Request} params.request - The request object
  * @param {string} params.userMessage - The user's message
+ * @param {string} params.quizContext - Sanitized current-turn quiz facts
  * @param {string} params.conversationId - The conversation ID
  * @param {string} params.promptType - The prompt type
  * @param {Object} params.stream - Stream manager for sending responses
@@ -171,6 +273,7 @@ async function handleChatRequest(request) {
 async function handleChatSession({
   request,
   userMessage,
+  quizContext,
   conversationId,
   promptType,
   stream
@@ -213,7 +316,7 @@ async function handleChatSession({
   await saveMessage(conversationId, 'user', userMessage);
 
   // Fetch all messages from the database for this conversation
-  const dbMessages = await getConversationHistory(conversationId);
+  const dbMessages = withCurrentQuizContext(await getConversationHistory(conversationId), quizContext);
 
   let assistantText = "";
 

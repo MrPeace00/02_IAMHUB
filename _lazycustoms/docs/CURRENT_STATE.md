@@ -4,12 +4,12 @@
 **Operator:** Mr. Peace Elluvasun Allah Cush-El  
 **Store handle used in project:** `lazy-customs-2`  
 **Published UCP backing hostname:** `vbw9zu-f7.myshopify.com`  
-**Updated through:** September 10, 2026; production health independently verified
-**Governed by:** LAZY CUSTOMS — STORE AND AGENT ENGINE v3.0 · CHAMPION MASTER ENGINE v5.5
+**Updated through:** September 11, 2026; v4.1 provider-router and quiz-fact maintenance pass in local working tree
+**Governed by:** LAZY CUSTOMS — STORE AND AGENT ENGINE v4.1 · CHAMPION MASTER ENGINE v5.5
 
 ## 1. CURRENT POSITION
 
-UCP is published and catalog search works. The OpenAI chat-agent backend is deployed in the canonical Railway project `valiant-liberation`; `https://ai.lazycustoms.com/chat?health=true` independently returns HTTP 200. The published storefront widget points to this backend and renders. A complete customer message, Shopify tool call and OAuth flow still require end-to-end verification.
+UCP is published and catalog search works. The chat-agent backend is deployed in the canonical Railway project `valiant-liberation`; `https://ai.lazycustoms.com/chat?health=true` independently returns HTTP 200. In the local working tree, customer-facing text is routed through `AI_TEXT_PROVIDER`: Claude/Anthropic can serve storefront text, OpenAI remains available as text fallback, and OpenAI remains the artwork-generation rail. A complete customer message, selected text provider response, Shopify tool call and OAuth flow still require end-to-end verification after deployment of the current local changes.
 
 Two outcomes remain distinct:
 
@@ -24,7 +24,7 @@ Repository root: `C:\Users\P\Desktop\02_IAMHUB`.
 
 | Location | Contents |
 |---|---|
-| `shop-chat-agent-main/` | Active application fork: React Router v7, Shopify OAuth, Prisma, theme extension, OpenAI chat and OpenAI artwork generation |
+| `shop-chat-agent-main/` | Active application fork: React Router v7, Shopify OAuth, Prisma, theme extension, configurable Claude/OpenAI text chat and OpenAI artwork generation |
 | `_lazycustoms/` | Planning documents, operations scripts and staged additions within the same repository |
 
 **Constraint:** these folders remain siblings. `_lazycustoms` is not nested inside the application.
@@ -33,6 +33,8 @@ Key application files:
 
 - `app/mcp-client.js` — discovers tools and routes calls, including UCP agent-profile metadata.
 - `app/routes/chat.jsx` — chat route and `GET /chat?health=true` reachability check.
+- `app/services/ai.server.js` — text-provider router for Claude/Anthropic or OpenAI.
+- `app/services/anthropic.server.js` — streamed Anthropic Messages integration and Shopify tool-use loop.
 - `app/services/openai.server.js` and `openai-format.js` — streamed OpenAI Responses integration, history migration and Shopify tool schemas.
 - `app/routes/generate-image.jsx` — server-side OpenAI artwork generation with strict CORS and combined session/IP limits.
 - `app/services/tool.server.js` — tool results, errors and UCP product-card formatting.
@@ -46,7 +48,7 @@ Verification record: [`VERIFICATION_LOG.md`](VERIFICATION_LOG.md).
 
 ## 3. COMMIT RECORD — PUSHED
 
-Local `HEAD` and `origin/main` both resolve to `63b0d10`. The tracked tree was clean before this report update; untracked Claude review artifacts and a scratch image script remain outside the deployment commit.
+At the last pushed record, local `HEAD` and `origin/main` both resolved to `63b0d10`. The September 11 v4.1 maintenance pass is local working-tree work until committed, pushed and deployed.
 
 | Commit | Completed work |
 |---|---|
@@ -64,11 +66,11 @@ Pushing code does not deploy the application or update an existing merchant them
 
 | Check | Recorded result |
 |---|---|
-| Focused application tests | 15 passed |
-| ESLint and typecheck | Passed |
+| Focused application tests | 23 passed after the September 11 provider-router/quiz-fact maintenance pass |
+| ESLint, typecheck and production build | Passed |
 | Production client/SSR build | Passed |
 | Railway custom-domain health | HTTP 200; canonical GitHub deployment status successful |
-| OpenAI response, Shopify tool call and customer OAuth | Not verified end to end |
+| Selected text-provider response, Shopify tool call and customer OAuth | Not verified end to end |
 
 ### Catalog queries
 
@@ -87,7 +89,7 @@ The zero-match `baby` result is not evidence of an API outage, a store-wide empt
 
 The active theme chat backend and `shopify.app.toml` now point to `https://ai.lazycustoms.com`. Railway custom-domain DNS verification and TLS completed, the widget renders, and the health route returns the expected service identity.
 
-This supersedes the expired `plate-proprietary-bottles-cruz.trycloudflare.com` state recorded on September 8. The health route checks backend identity and reachability only; it does not prove OpenAI response generation, Shopify tool execution, database writes or OAuth readiness.
+This supersedes the expired `plate-proprietary-bottles-cruz.trycloudflare.com` state recorded on September 8. The health route checks backend identity and reachability only; it does not prove Claude/OpenAI response generation, Shopify tool execution, database writes or OAuth readiness.
 
 ## 5. COMMERCE MECHANISMS AND ACTUAL ROUTES
 
@@ -96,6 +98,7 @@ This supersedes the expired `plate-proprietary-bottles-cruz.trycloudflare.com` s
 | UCP publication | `https://lazycustoms.com/.well-known/ucp` returns HTTP 200 with cart, checkout, order, catalog search/lookup and Shopify catalog capabilities |
 | Storefront MCP | Implemented in the fork as a client of Shopify-hosted servers; policy discovery and lookup were successfully exercised |
 | Catalog over UCP MCP | Search, lookup and product-detail tools are advertised; catalog search returns products |
+| Claude/Anthropic text provider | Implemented locally behind `AI_TEXT_PROVIDER`; needs deployed end-to-end verification before live customer capability claims |
 | Cloud: Claude AI Assistant | Previously reported installed for merchant back-office work; not rechecked in this update and not the storefront chatbot |
 
 Both `lazycustoms.com` and `lazy-customs-2.myshopify.com` publish the same UCP backing endpoint: `https://vbw9zu-f7.myshopify.com/api/ucp/mcp`. The manifest advertises Google Pay, Shopify Card and Shop Pay handlers. Advertised handlers do not establish a tested payment flow.
@@ -152,15 +155,15 @@ Original item numbers are retained for continuity.
 - UCP calls place the profile at `params.arguments.meta.ucp-agent.profile`. The default remains Shopify's public example; `UCP_AGENT_PROFILE_URL` can select a hosted production profile.
 - Store policy answers use Shopify's policy tool. Shared assistant instructions do not edit merchant policies or enforce additional checkout rules.
 - Runtime prompt keys are `standardAssistant`, `systemShopping`, `systemDesignCoach` and `enthusiasticAssistant`. A standalone `guardrails` prompt key is not present; shared commerce instructions are supplied by the OpenAI service.
-- `.env` exists. Its contents and usable credentials were not inspected for this report; file existence is not proof of runtime readiness.
+- `.env` exists. Its contents and usable credentials were not inspected for this report; file existence is not proof of runtime readiness. `.env.example` documents `AI_TEXT_PROVIDER=anthropic`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, and `ai.lazycustoms.com` targets; examples are not proof of deployed secrets.
 - Printify public API availability was previously reported verified; Tapstitch API availability remains an open vendor question. Neither was rechecked here.
 - XML remains the recorded preference for Champion-facing modules; “project knowledge files” remains the recorded term for files uploaded into project context.
 - No live cart mutation, completed checkout, customer OAuth session or successful full storefront chat response has yet been verified.
 
 ## 10. NEXT ACTIONS
 
-1. Test the complete widget → `/chat` → OpenAI → Shopify tools → widget response path. Treat `/chat?health=true` as reachability only.
-2. Verify customer OAuth and database persistence in production, then run `shopify app deploy` to synchronize the committed application and redirect configuration if it has not already been deployed.
+1. Deploy the current provider-router/quiz-fact maintenance changes, then test the complete widget → `/chat` → selected text provider → Shopify tools → widget response path. Treat `/chat?health=true` as reachability only.
+2. Verify customer OAuth, cart handoff and database persistence in production, then run `shopify app deploy` to synchronize application and redirect configuration if it has not already been deployed.
 3. Inspect intended baby products individually, including current status and sales-channel assignment; repeat relevant search and lookup checks after any approved changes.
 4. Re-observe the Preferences toggle and Knowledge Base gaps; make the operator's intended changes based on current state.
 5. Record new evidence in `VERIFICATION_LOG.md`. UCP publication, initial log creation and the three completed pushes do not need to be repeated as unresolved tasks.

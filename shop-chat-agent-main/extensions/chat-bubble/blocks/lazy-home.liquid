@@ -42,15 +42,27 @@
             </select>
           </label>
           <label class="lazy-home__quiz-field">
-            <span>Category</span>
+            <span>Product type</span>
             <select data-quiz-category>
               <option value="">Select…</option>
-              <option value="t-shirt">T-Shirt</option>
+              <option value="shirt">Shirt</option>
               <option value="hoodie">Hoodie</option>
               <option value="sweatshirt">Sweatshirt</option>
               <option value="mug">Mug</option>
               <option value="tote bag">Tote Bag</option>
+              <option value="candle">Candle</option>
+              <option value="wall art">Wall Art</option>
+              <option value="baby">Baby / Nursery</option>
               <option value="other">Other</option>
+            </select>
+          </label>
+          <label class="lazy-home__quiz-field">
+            <span>Design type</span>
+            <select data-quiz-customization>
+              <option value="">Select…</option>
+              <option value="text-only">Text only</option>
+              <option value="image-only">Image only</option>
+              <option value="text-on-image">Text on top of image</option>
             </select>
           </label>
         </div>
@@ -74,7 +86,7 @@
             type="text"
             maxlength="1000"
             autocomplete="off"
-            placeholder="A cozy winter shirt for her…"
+            placeholder="A winter hoodie with text over an image…"
           >
           <button class="lazy-home__send" data-lazy-send type="submit" aria-label="Send">
             <svg aria-hidden="true" viewBox="0 0 24 24">

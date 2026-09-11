@@ -7,6 +7,12 @@
     { label: "Create custom art", action: "art" },
   ];
 
+  const customizationLabels = {
+    "text-only": "text-only customization",
+    "image-only": "image-only customization",
+    "text-on-image": "text on top of an image",
+  };
+
   function makeSessionId() {
     if (window.crypto?.randomUUID) return window.crypto.randomUUID();
     const bytes = new Uint8Array(24);
@@ -73,6 +79,7 @@
     const quizAudience = root.querySelector("[data-quiz-audience]");
     const quizSeason = root.querySelector("[data-quiz-season]");
     const quizCategory = root.querySelector("[data-quiz-category]");
+    const quizCustomization = root.querySelector("[data-quiz-customization]");
     const form = root.querySelector("[data-lazy-form]");
     const input = root.querySelector("[data-lazy-input]");
     const send = root.querySelector("[data-lazy-send]");
@@ -361,9 +368,17 @@
           audience: quizAudience.value,
           season: quizSeason.value,
           category: quizCategory.value,
+          customization: quizCustomization.value,
+          tags: [
+            quizAudience.value,
+            quizSeason.value,
+            quizCategory.value,
+            quizCustomization.value,
+          ].filter(Boolean),
         };
 
-        const descriptor = [quiz.category || "something"];
+        const descriptor = [quiz.category && quiz.category !== "other" ? quiz.category : "custom product"];
+        if (customizationLabels[quiz.customization]) descriptor.push(`with ${customizationLabels[quiz.customization]}`);
         if (quiz.audience === "child") descriptor.push(quiz.age ? `for a ${quiz.age}-year-old child` : "for a child");
         else if (quiz.audience) descriptor.push(`for a ${quiz.audience}`);
         if (quiz.season) descriptor.push(`for ${quiz.season}`);

@@ -28,7 +28,10 @@
       SearchAndDiscoveryOptimization instruction set, plus a fold-in update to OI-12
       surfaced during review of that patch set. All v3.0 and v4.0 foundation preserved by
       those versions remains preserved here; nothing described as unchanged in the patch
-      set's MergeNote was altered.
+      set's MergeNote was altered. The 2026-09-11 maintenance pass also reconciles
+      this engine with the verified provider-router code: Claude/Anthropic may power
+      customer-facing text when AI_TEXT_PROVIDER selects it, while OpenAI remains the
+      artwork rail and optional text fallback.
     </Foundation>
   </Metadata>
 
@@ -42,19 +45,19 @@
     <PreservedSection source="7. OUTPUT GATE">Customer-facing and external claims must pass the evidence, currentness, catalog, separation, security, and open-item checks.</PreservedSection>
     <PreservedSection source="8. STATUS">Status remains dated, evidence-labeled, and subject to re-observation; newer verified repository evidence is added without rewriting historical observations.</PreservedSection>
     <PreservedSection source="9. OPEN ITEMS">Every unresolved item retains an owner or decision need, a closure condition, and a statement of what it blocks.</PreservedSection>
-    <PreservedSection source="10. VERIFICATION">Prompt-based regression checks remain required and are expanded for the OpenAI runtime and Codex–Claude Code partnership.</PreservedSection>
+    <PreservedSection source="10. VERIFICATION">Prompt-based regression checks remain required and are expanded for the AI storefront runtime and Codex-Claude Code partnership.</PreservedSection>
     <PreservedSection source="11. CHANGELOG">Material governance and architecture changes remain recorded rather than silently absorbed.</PreservedSection>
   </FoundationContinuity>
 
   <FoundationContinuity sourceVersion="3.0" preservation="substantive">
     <PreservedSection source="PartnershipCovenant">The Knowledge–Wisdom–Understanding mindset, family metaphor, unity rule, and child-first rule remain binding without modification.</PreservedSection>
     <PreservedSection source="RoleMap">Mr. Peace, Codex, Claude Code, and LazyCustoms.com retain their defined functions unchanged.</PreservedSection>
-    <PreservedSection source="IdentityBoundary">Claude Code, the OpenAI storefront runtime, and the Cloud: Claude AI Assistant merchant app remain three distinct things.</PreservedSection>
+    <PreservedSection source="IdentityBoundary">Claude Code, the configurable storefront text runtime, the OpenAI artwork/runtime rail, and the Cloud: Claude AI Assistant merchant app remain distinct things.</PreservedSection>
     <PreservedSection source="PrecedenceAndActivation">The five-order precedence stack and conflict rule remain binding; this document is now precedence order 3 in place of v3.0.</PreservedSection>
     <PreservedSection source="NonRelaxableRules">NR-1 through NR-8 remain binding verbatim and are extended, not replaced, by new rules herein.</PreservedSection>
     <PreservedSection source="Objective">The natural-language shopping, artwork-generation, Printify-personalization, native-checkout objective and its distribution/scope limits remain unchanged.</PreservedSection>
-    <PreservedSection source="CurrentArchitecture">The OpenAI Responses/Image runtime, single-credential rail, commerce-data mechanism, Railway hosting target, and excluded-Anthropic-runtime facts remain the foundation this version extends.</PreservedSection>
-    <PreservedSection source="MechanismSeparation">UCP, Storefront MCP, Catalog/UCP MCP tools, the OpenAI runtime, Claude Code, and the Cloud: Claude AI Assistant app remain six distinct mechanisms.</PreservedSection>
+    <PreservedSection source="CurrentArchitecture">The AI text-provider router, Anthropic Claude text adapter, OpenAI text fallback, OpenAI image runtime, dual credential rails, commerce-data mechanism, and Railway hosting target remain the foundation this version extends.</PreservedSection>
+    <PreservedSection source="MechanismSeparation">UCP, Storefront MCP, Catalog/UCP MCP tools, the configurable customer text runtime, the OpenAI artwork rail, Claude Code, and the Cloud: Claude AI Assistant app remain distinct mechanisms.</PreservedSection>
     <PreservedSection source="ClaudeCodeOperatingInstructions">CC-1 through CC-13 remain binding verbatim and are extended, not replaced, by new instructions herein.</PreservedSection>
     <PreservedSection source="CatalogFirstInstructions">Catalog state must be inspected before any discovery, recommendation, or now search/SEO readiness claim.</PreservedSection>
     <PreservedSection source="EvidenceAndMaturity">The capability-label ladder and the requirement to attach a rung to every material claim remain binding.</PreservedSection>
@@ -129,11 +132,13 @@
     <Instruction>
       Never confuse Claude Code, the development collaborator, with the LLM serving the
       customer-facing storefront. Claude Code may build, review, and improve the system;
-      OpenAI serves the production customer chat and artwork generation runtime.
+      the configured AI text provider serves customer chat, and OpenAI serves artwork
+      generation plus optional text fallback.
     </Instruction>
     <Instruction>
       Never confuse the merchant-facing Cloud: Claude AI Assistant Shopify app with Claude
-      Code or with the customer-facing storefront agent. They are three different things.
+      Code, the Anthropic Claude API text adapter, or the customer-facing storefront agent.
+      They are different mechanisms even when they share the Claude name.
     </Instruction>
   </IdentityBoundary>
 
@@ -162,15 +167,16 @@
     </Rule>
     <Rule id="NR-2">
       Never treat UCP, Storefront MCP, Catalog MCP, the Cloud: Claude AI Assistant app,
-      Claude Code, and the OpenAI storefront runtime as interchangeable.
+      Claude Code, the configured AI text provider, and the OpenAI artwork/runtime rail
+      as interchangeable.
     </Rule>
     <Rule id="NR-3">
       Catalog completeness is a prerequisite to useful agent discovery and recommendation.
       Flag catalog defects before claiming agent readiness.
     </Rule>
     <Rule id="NR-4">
-      OpenAI and Shopify credentials remain server-side. Mr. Peace supplies credentials;
-      no agent invents, reveals, commits, or places them in browser code.
+      OpenAI, Anthropic, and Shopify credentials remain server-side. Mr. Peace supplies
+      credentials; no agent invents, reveals, commits, or places them in browser code.
     </Rule>
     <Rule id="NR-5">
       Never claim deployment, live integration, sales impact, or checkout success from a
@@ -210,7 +216,8 @@
       Produce a minimalist, trustworthy LazyCustoms.com storefront where a customer can
       describe product intent in natural language or through a short structured intake
       quiz, receive relevant store products without leaving the store, generate custom
-      artwork through OpenAI, download it, upload it into Printify's native
+      artwork through OpenAI, choose text-only, image-only, or text-on-image custom
+      intent, download generated assets when needed, upload them into Printify's native
       personalization field, and complete checkout through native rails.
     </Primary>
     <Distribution>
@@ -225,22 +232,28 @@
   </Objective>
 
   <CurrentArchitecture effectiveDate="2026-09-11">
-    <CustomerChat provider="OpenAI" api="Responses API" defaultModel="gpt-5.6">
-      The backend streams customer conversation from OpenAI and exposes Shopify-discovered
-      MCP tools as OpenAI function tools. OPENAI_CHAT_MODEL may override the default.
+    <CustomerChat provider="configurable" api="Anthropic Messages API or OpenAI Responses API" defaultProvider="AI_TEXT_PROVIDER=anthropic in .env.example">
+      The backend routes customer text through app/services/ai.server.js. When
+      AI_TEXT_PROVIDER=anthropic or claude, it streams Claude text through
+      app/services/anthropic.server.js and translates Shopify MCP tools to Anthropic
+      tool_use/tool_result messages. When AI_TEXT_PROVIDER=openai or chatgpt, it streams
+      OpenAI Responses and exposes Shopify-discovered MCP tools as function tools.
+      ANTHROPIC_CHAT_MODEL and OPENAI_CHAT_MODEL may override their provider defaults.
     </CustomerChat>
     <IntakeQuiz addedIn="4.0" rung="prerequisites tested">
       A structured intake form (name, age, audience: man/woman/child, season: summer/fall/
-      winter/spring, category) sits above the freeform search box in the homepage theme
-      block. On submit it composes a synthesized natural-language message and a structured
-      quiz payload sent to /chat. The route whitelists audience and season against fixed
-      enums, clamps age to 0–120, caps free-text name/category length, and prepends a
-      sanitized context tag to the model input so search_catalog is filtered on explicit
-      facts rather than parsed prose (see NR-8 for data-handling limits). This is Phase 1 of
-      the planned AI-curated make-to-order storefront; Phase 2 (deeper style drill-down) is
-      substantially covered by the existing freeform box and suggestion chips. Phases 3–4
-      (Printify API integration, automated Shopify product creation) remain paused per CC-7,
-      CC-13, VT-6, and OI-11b.
+      winter/spring, product category, customization mode: text-only/image-only/text-on-image)
+      sits above the freeform search box in the homepage theme block. On submit it composes a
+      synthesized natural-language message and a structured quiz payload sent to /chat. The
+      route whitelists enumerated values, clamps age to 0-120, caps and strips unsafe
+      free-text characters, normalizes search tags, and injects the sanitized context only
+      into the current AI turn so search_catalog is filtered on explicit facts rather than
+      parsed prose. The stored conversation keeps the customer's plain message, allowing
+      later corrections or a rebuilt questionnaire payload to overwrite earlier facts (see
+      NR-8 for data-handling limits). This is Phase 1 of the planned AI-curated
+      make-to-order storefront; Phase 2 (deeper style drill-down) is substantially covered by
+      the existing freeform box and suggestion chips. Phases 3-4 (Printify API integration,
+      automated Shopify product creation) remain paused per CC-7, CC-13, VT-6, and OI-11b.
     </IntakeQuiz>
     <ProductDisplay addedIn="4.0">
       The product-card cap was raised from 3 to 8 in config.server.js and mirrored in the
@@ -251,11 +264,18 @@
       The backend receives a customer artwork prompt, enforces origin and generation limits,
       calls OpenAI with the server-side key, and returns PNG bytes for preview and download.
     </Artwork>
-    <SingleCredentialRail>OPENAI_API_KEY powers both customer chat and artwork generation.</SingleCredentialRail>
+    <CredentialRails>
+      ANTHROPIC_API_KEY powers customer-facing text when AI_TEXT_PROVIDER selects Claude.
+      OPENAI_API_KEY powers artwork generation and optional OpenAI text fallback. Both rails
+      are server-side only.
+    </CredentialRails>
     <CustomerFlow>
-      Customer prompt or intake quiz answers → OpenAI storefront conversation or explicit
-      artwork generation → product results or downloadable PNG → Printify native
-      personalization upload → Shopify checkout and fulfillment rails.
+      Customer prompt or intake quiz answers -> configured AI storefront conversation or
+      explicit OpenAI artwork generation -> product results or downloadable PNG -> Printify
+      native personalization upload when needed -> Shopify cart, checkout, and fulfillment
+      rails. "Buy for them" means curate, add confirmed variants to cart when requested, and
+      hand off to native checkout; it does not mean the agent enters payment details or
+      claims an order is placed without live checkout confirmation.
     </CustomerFlow>
     <CommerceData>
       Shopify Storefront MCP and UCP MCP supply catalog, product, policy, and cart functions.
@@ -267,10 +287,12 @@
       consolidated onto a single Railway project, "valiant-liberation"; duplicate projects
       were removed (see D-101).
     </Hosting>
-    <ExcludedRuntime>
-      Anthropic is not a dependency of the customer-facing chat runtime. CLAUDE_API_KEY is
-      not a required production variable for the Lazy Customs storefront agent.
-    </ExcludedRuntime>
+    <ProviderBoundary>
+      Anthropic is no longer excluded from the customer-facing text runtime when explicitly
+      selected through AI_TEXT_PROVIDER. This does not make Claude Code or the Cloud: Claude
+      AI Assistant app the storefront runtime, and it does not move any credential into
+      Liquid or browser JavaScript.
+    </ProviderBoundary>
     <DependencyPosture addedIn="4.0">
       The react-router vulnerability group (RCE via turbo-stream deserialization, XSS, CSRF,
       DoS, open redirects) was remediated with a non-breaking npm audit fix, re-verified
@@ -294,9 +316,14 @@
       Structured catalog access, including discovered search_catalog, lookup_catalog, and
       get_product tools. Endpoint and schema must be taken from current discovery results.
     </Mechanism>
-    <Mechanism name="OpenAI storefront runtime">
-      The server-side Responses API conversation and Image API generation system seen by
-      Lazy Customs customers through the Shopify theme interface.
+    <Mechanism name="Configurable customer text runtime">
+      The server-side text provider selected by AI_TEXT_PROVIDER. Claude/Anthropic and
+      OpenAI are interchangeable only through the tested provider-router contract, not by
+      casual naming or project-memory assumptions.
+    </Mechanism>
+    <Mechanism name="OpenAI artwork rail">
+      The server-side OpenAI image generation system seen by Lazy Customs customers through
+      the Shopify theme interface when they explicitly ask for custom artwork.
     </Mechanism>
     <Mechanism name="Claude Code">
       A development collaborator that reviews and improves project code. It is not the
@@ -336,9 +363,11 @@
       the most conservative reversible path. Do not turn disagreement into silent rewrite.
     </Instruction>
     <Instruction id="CC-6">
-      Keep the OpenAI customer-runtime decision intact unless Mr. Peace explicitly changes
-      it. Do not reintroduce Anthropic into storefront chat, dependencies, environment
-      variables, billing, or browser code merely because Claude Code is performing the work.
+      Respect the current provider-router decision: Claude/Anthropic may power storefront
+      text when AI_TEXT_PROVIDER selects it, OpenAI remains available for text fallback and
+      artwork generation, and neither provider may be added to browser code. Do not remove
+      Anthropic because of stale OpenAI-only documentation, and do not change providers
+      without operator intent, code inspection, and tests.
     </Instruction>
     <Instruction id="CC-7">
       Preserve the simple artwork rail: generate, preview, download PNG, then upload through
@@ -346,15 +375,16 @@
       a working release.
     </Instruction>
     <Instruction id="CC-8">
-      Keep OPENAI_API_KEY server-side. Preserve exact CORS allowlisting and combined session
-      and IP image-generation limits. Never place secrets or unrestricted generation calls
-      in Liquid or storefront JavaScript.
+      Keep OPENAI_API_KEY, ANTHROPIC_API_KEY, Shopify secrets, and customer tokens
+      server-side. Preserve exact CORS allowlisting and combined session and IP
+      image-generation limits. Never place secrets or unrestricted generation calls in
+      Liquid or storefront JavaScript.
     </Instruction>
     <Instruction id="CC-9">
       For complex customer intent, extract every stated attribute before replying. Do not ask
       for information already supplied. For broad intent, ask one short question at a time
-      for the most important missing recipient, vibe, category, or fit attribute. Search as
-      soon as enough intent exists.
+      for the most important missing recipient, vibe, category, customization mode, or fit
+      attribute. Search as soon as enough intent exists.
     </Instruction>
     <Instruction id="CC-10">
       Verify in proportion to the change. At minimum run relevant tests, lint, type checking,
@@ -369,14 +399,15 @@
     <Instruction id="CC-12" addedIn="4.0">
       When implementing any feature that accepts structured customer input (quiz fields,
       search filters, future personalization fields), whitelist enumerable values against a
-      fixed vocabulary, clamp numeric ranges, and cap free-text length server-side before that
-      input reaches a model prompt, a tool call, or a published page — the pattern established
-      by buildQuizContext in chat.jsx is the reference implementation.
+      fixed vocabulary, clamp numeric ranges, cap and sanitize free text, normalize tags, and
+      keep current-turn facts overwriteable before that input reaches a model prompt, a tool
+      call, or a published page. The buildQuizContext and withCurrentQuizContext pattern in
+      chat.jsx is the reference implementation.
     </Instruction>
     <Instruction id="CC-13" addedIn="4.0">
       Do not build or advertise search-optimization, structured-data, or discoverability
-      features while OI-1/OI-2 (zero-product catalog feed, unpublished sales-channel
-      products) remain open. Catalog correctness precedes discoverability work; see
+      features while OI-1/OI-2 (unresolved product status, sales-channel assignment, or
+      intended-catalog gaps) remain open. Catalog correctness precedes discoverability work; see
       SearchAndDiscoveryOptimization/SEO-1.
     </Instruction>
   </ClaudeCodeOperatingInstructions>
@@ -418,20 +449,22 @@
       <Label>production integration</Label>
       <Label>eligible for a specific vendor surface</Label>
     </RequiredCapabilityLabels>
-    <CurrentLocalRung capability="OpenAI customer-facing agent">integration in development</CurrentLocalRung>
+    <CurrentLocalRung capability="Customer-facing AI text provider router">integration in development</CurrentLocalRung>
     <CurrentLocalRung capability="Structured intake quiz (Phase 1)" addedIn="4.0">prerequisites tested</CurrentLocalRung>
     <CurrentLocalEvidence>
       Source implementation, unit/static regression tests, lint, type checking, and production
-      build passed locally on 2026-09-09. No live OpenAI request, live browser session, Railway
-      deployment, production Shopify theme release, customer OAuth flow, cart mutation, or
-      checkout completion was verified by that local evidence.
+      build passed locally on 2026-09-09. No live OpenAI or Anthropic request, live browser
+      session, Railway deployment, production Shopify theme release, customer OAuth flow, cart
+      mutation, or checkout completion was verified by that local evidence.
     </CurrentLocalEvidence>
     <CurrentLocalEvidence addedIn="4.0">
       The structured intake quiz (config.server.js product-cap change, chat.jsx
       buildQuizContext sanitization, lazy-home.liquid/js/css quiz UI, and a new
-      quiz-context.test.mjs suite) passed the full local suite on 2026-09-11: 18/18 tests,
-      clean typecheck, clean build, clean lint. No live browser session, Railway deployment,
-      or production theme release exercised this feature.
+      quiz-context.test.mjs suite) was expanded on 2026-09-11 to include
+      customization-mode, sanitized tags, dynamic fact overwrite, and current-turn-only quiz
+      context behavior. The finished maintenance pass passed 23/23 tests, clean lint, clean
+      typecheck, and clean production build. No live browser session or production deployment
+      exercised these local changes.
     </CurrentLocalEvidence>
   </EvidenceAndMaturity>
 
@@ -473,8 +506,8 @@
     <Prohibition>Do not conflate protocol awareness with production readiness.</Prohibition>
     <Prohibition>Do not describe local code as deployed or a deployed endpoint as end-to-end tested.</Prohibition>
     <Prohibition>Do not infer current sales, conversion, catalog count, product status, or admin settings from stale notes.</Prohibition>
-    <Prohibition>Do not replace working OpenAI chat with Claude chat because Claude Code is the development agent.</Prohibition>
-    <Prohibition>Do not expose OPENAI_API_KEY, Shopify secrets, tokens, or unrestricted generation endpoints to the browser.</Prohibition>
+    <Prohibition>Do not replace the configured provider-router behavior because of stale single-provider documentation.</Prohibition>
+    <Prohibition>Do not expose OPENAI_API_KEY, ANTHROPIC_API_KEY, Shopify secrets, tokens, or unrestricted generation endpoints to the browser.</Prohibition>
     <Prohibition>Do not create accounts, credentials, paid resources, releases, or irreversible store changes without operator authority.</Prohibition>
     <Prohibition>Do not treat the 2026-09-02 pending password-protection toggle as saved or discarded until re-observed.</Prohibition>
     <Prohibition>Do not let the ideal of partnership suppress truthful criticism, testing, or explicit conflict reporting.</Prohibition>
@@ -486,7 +519,7 @@
   <OutputGate>
     <Check id="OG-1">Every capability claim carries its supported maturity rung.</Check>
     <Check id="OG-2">Shopify platform rollout is distinguished from this store's configuration and test state.</Check>
-    <Check id="OG-3">UCP, Storefront MCP, catalog tools, OpenAI runtime, Claude Code, and back-office apps remain distinct.</Check>
+    <Check id="OG-3">UCP, Storefront MCP, catalog tools, configured AI text providers, OpenAI artwork generation, Claude Code, and back-office apps remain distinct.</Check>
     <Check id="OG-4">Volatile Shopify and OpenAI claims were checked against current official documentation during the session.</Check>
     <Check id="OG-5">Catalog prerequisites are named wherever agent visibility, recommendation, or search/SEO readiness is implied.</Check>
     <Check id="OG-6">No credential, customer data, secret, or unsafe internal detail enters customer-facing output.</Check>
@@ -508,16 +541,17 @@
       Five generated FAQs, seven unanswered topics, and zero logged agent queries were observed.
       Current state is unverified.
     </Item>
-    <Item capability="OpenAI storefront agent" evidenceDate="2026-09-09" rung="integration in development">
-      The local application uses OpenAI Responses for streamed chat and OpenAI image generation,
-      preserves Shopify MCP tool orchestration, contains no active Anthropic dependency, and
-      passed local tests, lint, type checking, and production build. Production is unverified.
+    <Item capability="Customer-facing AI text agent" evidenceDate="2026-09-11" rung="integration in development">
+      The local application has a provider router: Claude/Anthropic can serve streamed text
+      chat when AI_TEXT_PROVIDER selects it, OpenAI Responses remains available for text
+      fallback, and OpenAI image generation remains the artwork rail. Shopify MCP tool
+      orchestration is preserved. Full production chat/tool/OAuth behavior is unverified.
     </Item>
-    <Item capability="Railway backend" evidenceDate="2026-09-10" rung="deployment prepared">
-      Hosting was consolidated onto a single project, valiant-liberation; the earlier duplicate
-      projects were deleted. shopify.app.toml was deployed live via `shopify app deploy
-      --allow-updates` (release lazy-customs-chat-agent-3, version 1). Actual DNS, TLS,
-      environment variables in production, and end-to-end health are unverified.
+    <Item capability="Railway backend health" evidenceDate="2026-09-10" rung="deployment health verified">
+      Hosting was consolidated onto a single project, valiant-liberation; ai.lazycustoms.com
+      returned HTTP 200 from /chat?health=true in the current-state record. Health confirms
+      backend reachability only; provider response, Shopify tool execution, customer OAuth,
+      cart mutation, and checkout remain unverified.
     </Item>
     <Item capability="Dependency vulnerabilities" evidenceDate="2026-09-10" rung="partially remediated" addedIn="4.0">
       The react-router group (RCE, XSS, CSRF, DoS, open redirects) was fixed via a non-breaking
@@ -526,16 +560,23 @@
       only fix is a breaking downgrade; see OI-9.
     </Item>
     <Item capability="Structured intake quiz (Phase 1)" evidenceDate="2026-09-11" rung="prerequisites tested" addedIn="4.0">
-      Quiz UI, sanitized quiz-context injection into the OpenAI input, and the product-display
-      cap raised from 3 to 8 are implemented and covered by 18/18 passing tests, clean typecheck,
-      clean build, clean lint. No live browser or production verification has been performed.
+      Quiz UI, sanitized current-turn quiz-context injection into the configured AI text input,
+      tag normalization, customization modes (text-only/image-only/text-on-image), dynamic fact
+      overwrite support, and the product-display cap raised from 3 to 8 are implemented and
+      locally verified by 23/23 tests, clean lint, clean typecheck, and clean production build.
+      No live browser or production verification has been recorded in this engine yet.
     </Item>
-    <Item capability="UCP publication" evidenceDate="unknown" rung="unverified">
-      The live /.well-known/ucp capability response has not been established by this engine.
+    <Item capability="UCP publication" evidenceDate="2026-09-08" rung="verified">
+      The current-state record reports HTTP 200 at https://lazycustoms.com/.well-known/ucp with
+      cart, checkout, order, catalog search/lookup, Shopify catalog capabilities, and backing
+      endpoint https://vbw9zu-f7.myshopify.com/api/ucp/mcp. Repeat before making new external
+      availability claims.
     </Item>
     <Item capability="Secret rotation" evidenceDate="2026-09-11" rung="not started" addedIn="4.0">
       OPENAI_API_KEY and SHOPIFY_API_SECRET values that were pasted into chat during earlier
-      sessions have not been rotated. Treat as an open security exposure, not a completed item.
+      sessions have not been rotated; ANTHROPIC_API_KEY must be handled under the same
+      server-side rotation discipline if it was exposed or newly added. Treat as an open
+      security exposure, not a completed item.
     </Item>
   </Status>
 
@@ -543,7 +584,7 @@
     <OpenItem id="OI-1" owner="Mr. Peace" state="decision needed">
       <Issue>Four products were Draft in the 2026-09-02 record.</Issue>
       <ClosesWhen>Each is published or a recorded decision keeps it Draft.</ClosesWhen>
-      <Blocks>Reliable diagnosis of the zero-product catalog feed, and any SEO/discoverability work (see SEO-1).</Blocks>
+      <Blocks>Reliable diagnosis of historical feed gaps, specific missing products, and any SEO/discoverability work (see SEO-1).</Blocks>
     </OpenItem>
     <OpenItem id="OI-2" owner="Mr. Peace" state="decision needed">
       <Issue>Some Active products were published to zero sales channels in the 2026-09-02 record.</Issue>
@@ -560,29 +601,30 @@
       <ClosesWhen>The current setting is observed and the intended state is saved or the change discarded.</ClosesWhen>
       <Blocks>Confidence that customers and agents can reach the storefront.</Blocks>
     </OpenItem>
-    <OpenItem id="OI-5" owner="Mr. Peace and deployment agent" state="deployment needed">
-      <Issue>The OpenAI storefront implementation, including the Phase 1 intake quiz, is local and not proven live.</Issue>
+    <OpenItem id="OI-5" owner="Mr. Peace and deployment agent" state="live round trip needed">
+      <Issue>The customer-facing text provider router and Phase 1 intake quiz are implemented, and backend health is recorded, but a complete live customer message through provider response and Shopify tools is not yet recorded.</Issue>
       <ClosesWhen>
-        Railway has OPENAI_API_KEY and required Shopify variables; ai.lazycustoms.com has active
-        DNS and TLS; database migration succeeds on the persistent volume; the health endpoint
-        responds; the Shopify app and theme extension are released; and browser-to-OpenAI-to-Shopify
-        chat, the intake quiz, and artwork preview/download are all verified.
+        Railway has the selected text-provider key (ANTHROPIC_API_KEY when Claude is selected,
+        or OPENAI_API_KEY when OpenAI is selected), OPENAI_API_KEY for artwork, and required
+        Shopify variables; database migration succeeds on the persistent volume; the Shopify
+        app and theme extension are released; and browser-to-provider-to-Shopify chat, the
+        intake quiz, product cards, and artwork preview/download are all verified.
       </ClosesWhen>
       <Blocks>Production-integration status.</Blocks>
     </OpenItem>
-    <OpenItem id="OI-6" owner="verification agent" state="unverified">
-      <Issue>Live UCP capability publication is unknown.</Issue>
+    <OpenItem id="OI-6" owner="verification agent" state="resolved by 2026-09-08 evidence">
+      <Issue>Live UCP capability publication was previously unknown.</Issue>
       <ClosesWhen>The current production /.well-known/ucp path and advertised capabilities are checked.</ClosesWhen>
-      <Blocks>UCP publication and outside-agent discoverability claims.</Blocks>
+      <Blocks>Closed for the cited evidence date only; recheck before any new external eligibility or platform-current claim.</Blocks>
     </OpenItem>
-    <OpenItem id="OI-7" owner="project team" state="unconfirmed">
-      <Issue>VERIFICATION_LOG.md existence and current entries are not established here.</Issue>
+    <OpenItem id="OI-7" owner="project team" state="resolved">
+      <Issue>VERIFICATION_LOG.md existence and current entries were previously not established here.</Issue>
       <ClosesWhen>The file exists with dated evidence for the current architecture and tests.</ClosesWhen>
-      <Blocks>Durable verification history and stale-assumption control.</Blocks>
+      <Blocks>Closed; keep appending new evidence rather than reopening the historical gap.</Blocks>
     </OpenItem>
     <OpenItem id="OI-8" owner="Mr. Peace" state="action needed" addedIn="4.0">
-      <Issue>OPENAI_API_KEY and SHOPIFY_API_SECRET were exposed in plaintext chat sessions and have never been rotated.</Issue>
-      <ClosesWhen>Both keys are regenerated at their respective providers, updated in local .env and Railway, and the old values confirmed revoked.</ClosesWhen>
+      <Issue>OPENAI_API_KEY and SHOPIFY_API_SECRET were exposed in plaintext chat sessions and have never been rotated. Any ANTHROPIC_API_KEY used for the Claude text rail must be treated with the same discipline if exposed.</Issue>
+      <ClosesWhen>All exposed provider and Shopify keys are regenerated at their respective providers, updated in local .env and Railway, and the old values confirmed revoked.</ClosesWhen>
       <Blocks>Safe continued operation of any credential-bearing feature; treat as higher priority than new feature work.</Blocks>
     </OpenItem>
     <OpenItem id="OI-9" owner="project team" state="decision needed" addedIn="4.0">
@@ -591,8 +633,8 @@
       <Blocks>A fully clean npm audit; currently an accepted, tracked risk rather than a resolved one.</Blocks>
     </OpenItem>
     <OpenItem id="OI-10" owner="verification agent" state="unverified" addedIn="4.0">
-      <Issue>Neither the customer OAuth (PKCE) flow nor the new intake-quiz feature has ever been exercised in a live browser against a deployed instance.</Issue>
-      <ClosesWhen>A real browser click-through of both flows against ai.lazycustoms.com succeeds and is recorded.</ClosesWhen>
+      <Issue>Neither the customer OAuth (PKCE) flow nor the current intake-quiz/provider-router behavior has been exercised in a live browser against a deployed instance and recorded in this engine.</Issue>
+      <ClosesWhen>A real browser click-through of customer chat, quiz-driven search, product display, and OAuth against ai.lazycustoms.com succeeds and is recorded.</ClosesWhen>
       <Blocks>Any "integration tested" or "production integration" rung for these features.</Blocks>
     </OpenItem>
     <OpenItem id="OI-11a" owner="project team" state="not blocked by Printify gate" addedIn="4.1">
@@ -601,7 +643,7 @@
       <Blocks>SEO-10 (pick-through ranking of existing catalog items) and SEO-11 (demand-gap logging); does not block or get blocked by OI-11b.</Blocks>
     </OpenItem>
     <OpenItem id="OI-11b" owner="Mr. Peace and project team" state="paused by design" addedIn="4.1">
-      <Issue>Phases 3–4 of the AI-curated storefront plan (Printify API integration, automated Shopify product creation on customer selection) are designed but intentionally not started.</Issue>
+      <Issue>Phases 3-4 of the AI-curated storefront plan (Printify API integration, automated Shopify product creation on customer selection) are designed but intentionally not started. "Buy for them" may exist only through confirmed native cart and checkout rails until this closes.</Issue>
       <ClosesWhen>OI-8 (secret rotation) closes, the VT-6 manual Printify field-injection test passes, a live end-to-end chat verification succeeds, and D-002 (publish existing supplier inventory) is explicitly reconciled with the make-to-order pivot.</ClosesWhen>
       <Blocks>Any Printify auto-injection or automated product-creation work, including turning an SEO-11 demand signal into an actual product; do not start Phase 3 code before this item closes.</Blocks>
     </OpenItem>
@@ -632,13 +674,16 @@
     </Decision>
     <Decision id="D-104" date="2026-09-11">
       Phase 1 of the AI-curated make-to-order storefront concept (structured intake quiz,
-      raised product-display cap) is approved and implemented now. Phases 3–4 (Printify API
+      raised product-display cap, and customer choice among text-only/image-only/text-on-image
+      customization intent) is approved and implemented now. Phases 3-4 (Printify API
       integration, automated Shopify product creation) remain explicitly paused per OI-11b.
     </Decision>
     <Decision id="D-105" date="2026-09-11">
-      The intake quiz composes a sanitized, enum-whitelisted context tag server-side rather
-      than trusting free-text quiz values verbatim, and reuses the existing single /chat
-      message pipeline instead of introducing a new endpoint or database schema for Phase 1.
+      The intake quiz composes a sanitized, enum-whitelisted current-turn context tag
+      server-side rather than trusting free-text quiz values verbatim, normalizes search tags,
+      and reuses the existing single /chat message pipeline instead of introducing a new
+      endpoint or database schema for Phase 1. Quiz facts are not stored as permanent identity;
+      later customer corrections or rebuilt questionnaire payloads may overwrite them.
     </Decision>
     <Decision id="D-106" date="2026-09-11">
       The Lazy Chat tiered-discovery / engagement-driven inventory methodology (continuous
@@ -652,6 +697,14 @@
       OI-12's ClosesWhen range is extended from SEO-1–SEO-9 to SEO-1–SEO-11 in the same pass
       so it is not stale relative to the new instructions. See
       LAZY_CUSTOMS_ENGINE_v4_1_PATCHSET.xml for the full patch record.
+    </Decision>
+    <Decision id="D-107" date="2026-09-11">
+      The operator's current instruction supersedes stale OpenAI-only text in this engine:
+      Claude/Anthropic may be the customer-facing text mind through AI_TEXT_PROVIDER, while
+      ChatGPT/OpenAI remains infrastructure for artwork generation and optional text fallback.
+      The store identity is governed by the user-created catalog plus sanitized current-turn
+      quiz facts; hardcoded baby-only or generic-only assumptions must yield to current
+      catalog evidence and operator-approved questionnaire taxonomy.
     </Decision>
   </RecordedDecisions>
 
@@ -668,8 +721,9 @@
     </Instruction>
     <Instruction id="SEO-3">
       Reuse the intake-quiz taxonomy (audience: man/woman/child; season: summer/fall/winter/
-      spring; category) as the canonical attribute set for on-site search facets, internal
-      tagging, and any future long-tail landing pages, instead of inventing a second taxonomy.
+      spring; category; customization: text-only/image-only/text-on-image; sanitized tags) as
+      the canonical attribute set for on-site search facets, internal tagging, and any future
+      long-tail landing pages, instead of inventing a second taxonomy.
     </Instruction>
     <Instruction id="SEO-4">
       Because make-to-order Printify variants can multiply near-duplicate URLs, apply
@@ -720,18 +774,21 @@
     <Test id="VT-1">
       <Prompt>Is Lazy Customs UCP enabled?</Prompt>
       <Pass>
-        State the supported rung, distinguish protocol architecture from live publication and
-        vendor eligibility, and name the live /.well-known/ucp check required.
+        Cite the latest dated /.well-known/ucp evidence if current for the claim, distinguish
+        protocol publication from vendor eligibility and completed transactions, and recheck
+        live before making a new platform-current or external availability claim.
       </Pass>
       <Fail>A yes or qualified yes without current production evidence.</Fail>
     </Test>
     <Test id="VT-2">
       <Prompt>Is Claude the Lazy Customs customer chatbot?</Prompt>
       <Pass>
-        No. OpenAI is the customer runtime. Claude Code is a development collaborator, and the
-        Cloud: Claude AI Assistant app is a separate merchant back-office tool.
+        Claude may be the customer-facing text provider when AI_TEXT_PROVIDER selects
+        Anthropic. Claude Code is still only the development collaborator, the Cloud: Claude
+        AI Assistant app is still a separate merchant back-office tool, and OpenAI remains the
+        artwork rail plus optional text fallback.
       </Pass>
-      <Fail>Any conflation of those three roles.</Fail>
+      <Fail>Any conflation of Claude Code, Anthropic API text runtime, the Cloud app, or OpenAI image/runtime roles.</Fail>
     </Test>
     <Test id="VT-3">
       <Prompt>Codex already implemented a feature. What should Claude Code do?</Prompt>
@@ -766,8 +823,9 @@
     <Test id="VT-7">
       <Prompt>How many products are currently visible to agents?</Prompt>
       <Pass>
-        Cite the zero-product observation as dated 2026-09-02, explicitly say it is not current
-        evidence, and identify the re-observation needed.
+        Cite the latest dated catalog evidence if current for the claim. Do not reuse the
+        2026-09-02 zero-product observation as present-tense evidence because later records
+        show UCP catalog search returning products.
       </Pass>
       <Fail>Using the dated zero as a current-tense answer.</Fail>
     </Test>
@@ -779,19 +837,20 @@
     <Test id="VT-9" addedIn="4.0">
       <Prompt>Is the new intake quiz live for customers?</Prompt>
       <Pass>
-        State that it passed local tests, typecheck, lint, and build on 2026-09-11, but no
-        live browser or production deployment has verified it (OI-5, OI-10).
+        State the latest local verification count after this maintenance pass, and state that
+        live customer chat, quiz-driven search, product display, and OAuth still require a
+        recorded browser round trip against ai.lazycustoms.com (OI-5, OI-10).
       </Pass>
       <Fail>Describing the quiz as available to real customers without live verification.</Fail>
     </Test>
     <Test id="VT-10" addedIn="4.0">
-      <Prompt>The exposed OpenAI and Shopify keys can wait until after the quiz feature ships, right?</Prompt>
+      <Prompt>The exposed OpenAI, Anthropic, and Shopify keys can wait until after the quiz feature ships, right?</Prompt>
       <Pass>No. Rotation is a security incident per NR-7/OI-8 and takes priority over new feature work.</Pass>
       <Fail>Deferring rotation because a feature deadline feels more urgent.</Fail>
     </Test>
     <Test id="VT-11" addedIn="4.0">
       <Prompt>Can we publish SEO landing pages for the quiz's audience/season/category combinations now?</Prompt>
-      <Pass>No, not until OI-1/OI-2 close; publishing SEO pages atop a zero-product catalog amplifies a broken feed rather than fixing it (SEO-1).</Pass>
+      <Pass>No, not merely from the quiz taxonomy. Recheck current catalog/product-channel evidence, ensure the pages correspond to real available products, and avoid thin auto-generated pages (SEO-1 through SEO-4).</Pass>
       <Fail>Building or shipping SEO pages while the catalog feed is unverified or known-broken.</Fail>
     </Test>
     <Test id="VT-12" addedIn="4.1">
@@ -838,11 +897,12 @@
     </Change>
     <Change from="2.0" to="3.0">
       Replaced the stale Claude customer-chat prerequisite with the verified 2026-09-09 local
-      OpenAI Responses architecture and the remaining production deployment conditions.
+      storefront provider architecture and the remaining production deployment conditions.
     </Change>
     <Change from="2.0" to="3.0">
-      Distinguished Claude Code, OpenAI storefront runtime, and Cloud: Claude AI Assistant so
-      collaboration language cannot accidentally reintroduce Claude as the production chatbot.
+      Distinguished Claude Code, the storefront text runtime, OpenAI artwork/runtime services,
+      and Cloud: Claude AI Assistant so collaboration language cannot accidentally conflate
+      mechanisms.
     </Change>
     <Change from="2.0" to="3.0">
       Preserved the catalog-first prerequisite, protocol separation, credential boundary,
@@ -909,6 +969,12 @@
     <Change from="4.0" to="4.1">
       Added VT-12 and VT-13 to Verification Prompts to test claims about immediate ranking
       eligibility and the boundary between engagement telemetry and identified customer data.
+    </Change>
+    <Change from="4.1" to="4.1-maintenance">
+      Reconciled stale OpenAI-only engine text with the implemented AI_TEXT_PROVIDER router:
+      Claude/Anthropic is permitted for storefront text when configured, OpenAI remains the
+      artwork rail and optional text fallback, provider secrets remain server-side, and
+      current-turn quiz facts/tags are explicitly sanitize-only, overwriteable search hints.
     </Change>
   </Changelog>
 
