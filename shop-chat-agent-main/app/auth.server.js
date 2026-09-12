@@ -8,8 +8,6 @@
  * @returns {Promise<Object>} - Object containing the auth URL and conversation ID
  */
 export async function generateAuthUrl(conversationId, shopId) {
-  const { storeCodeVerifier } = await import('./db.server');
-
   // Generate authorization URL for the customer
   const clientId = process.env.SHOPIFY_API_KEY;
   const scope = "customer-account-mcp-api:full";
@@ -17,6 +15,17 @@ export async function generateAuthUrl(conversationId, shopId) {
 
   // Use the actual app URL for redirect
   const redirectUri = process.env.REDIRECT_URL;
+
+  if (!redirectUri) {
+    throw new Error("REDIRECT_URL is required");
+  }
+
+  const parsedRedirectUri = new URL(redirectUri);
+  if (parsedRedirectUri.protocol !== "https:") {
+    throw new Error("REDIRECT_URL must use HTTPS");
+  }
+
+  const { storeCodeVerifier } = await import('./db.server');
 
   // Include the conversation ID and shop ID in the state parameter for tracking
   const state = `${conversationId}-${shopId}`;
