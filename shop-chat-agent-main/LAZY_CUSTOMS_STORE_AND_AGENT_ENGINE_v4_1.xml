@@ -418,8 +418,10 @@
       inspect current catalog state first. The 2026-09-02 record showed a zero-product Shopify
       Catalog feed, four Draft products, and Active products published to zero sales channels.
       These are dated observations and must be re-observed before current use. The 2026-09-11
-      live recheck showed storefront password protection active, making public catalog and
-      discovery paths ineligible until the password gate is removed.
+      live recheck showed storefront password protection active, but the 2026-09-12 UTC
+      recheck superseded it: password protection was inactive, discovery was open, the feed
+      returned 8 products, and UCP/catalog searches responded. The current blocker is not
+      password access; it is catalog completeness plus live customer-flow verification.
     </Instruction>
     <Instruction>
       A completed checklist beside a locked, empty, or unsearchable feed is not proof of
@@ -511,7 +513,7 @@
     <Prohibition>Do not replace the configured provider-router behavior because of stale single-provider documentation.</Prohibition>
     <Prohibition>Do not expose OPENAI_API_KEY, ANTHROPIC_API_KEY, Shopify secrets, tokens, or unrestricted generation endpoints to the browser.</Prohibition>
     <Prohibition>Do not create accounts, credentials, paid resources, releases, or irreversible store changes without operator authority.</Prohibition>
-    <Prohibition>Do not treat the storefront as public while the September 11 password-gate evidence remains current.</Prohibition>
+    <Prohibition>Do not reuse stale password-gate evidence after a newer live recheck supersedes it, and do not inflate public catalog reachability into full customer chat, cart, OAuth, checkout, or sales verification.</Prohibition>
     <Prohibition>Do not let the ideal of partnership suppress truthful criticism, testing, or explicit conflict reporting.</Prohibition>
     <Prohibition addedIn="4.0">Do not publish SEO or structured-data claims, or auto-generated landing pages, while the catalog feed shows zero published products (OI-1/OI-2).</Prohibition>
     <Prohibition addedIn="4.0">Do not retain, export, or use customer quiz answers (name, age, audience) as an identified profile beyond the immediate search request (see NR-8).</Prohibition>
@@ -535,10 +537,11 @@
       Added and configured for Shopify-managed surfaces according to the dated admin observation;
       current platform and store-specific live status require re-observation.
     </Item>
-    <Item capability="Catalog feed" evidenceDate="2026-09-11" rung="blocked by password">
-      A live check showed password protection active and catalog/discovery ineligible while the
-      storefront password is set. Earlier product-count observations are historical until the
-      password gate is removed and probes pass again.
+    <Item capability="Catalog feed" evidenceDate="2026-09-12" rung="public feed reachable">
+      A live recheck showed password protection inactive, homepage HTTP 200, /products.json
+      HTTP 200, and 8 products across 1 page. UCP search_catalog also responded with status
+      success for test queries. Catalog completeness and intended product/channel coverage
+      remain open; this evidence closes the password-gate blocker only.
     </Item>
     <Item capability="Knowledge Base" evidenceDate="2026-09-02" rung="installed, content incomplete">
       Five generated FAQs, seven unanswered topics, and zero logged agent queries were observed.
@@ -569,12 +572,13 @@
       locally verified by 23/23 tests, clean lint, clean typecheck, and clean production build.
       No live browser or production verification has been recorded in this engine yet.
     </Item>
-    <Item capability="UCP publication" evidenceDate="2026-09-11" rung="blocked by password">
-      The September 8 current-state record reported HTTP 200 at
+    <Item capability="UCP publication" evidenceDate="2026-09-12" rung="protocol publication verified">
+      The September 12 UTC recheck returned HTTP 200 at
       https://lazycustoms.com/.well-known/ucp with cart, checkout, order, catalog search/lookup,
-      Shopify catalog capabilities, and backing endpoint https://vbw9zu-f7.myshopify.com/api/ucp/mcp.
-      The September 11 recheck returned HTTP 302 to https://lazycustoms.com/password, so UCP
-      publication must be re-verified after password removal before any current claim.
+      Shopify catalog capabilities, payment handlers, and backing endpoint
+      https://vbw9zu-f7.myshopify.com/api/ucp/mcp. This supersedes the September 11 HTTP 302
+      password-gate regression for current UCP publication claims. It does not prove completed
+      payment, checkout, outside-agent transaction, or customer chatbot behavior.
     </Item>
     <Item capability="Secret rotation" evidenceDate="2026-09-11" rung="not started" addedIn="4.0">
       OPENAI_API_KEY and SHOPIFY_API_SECRET values that were pasted into chat during earlier
@@ -600,27 +604,27 @@
       <ClosesWhen>Approved answers are written and published.</ClosesWhen>
       <Blocks>Reliable answers to store questions not settled by catalog data.</Blocks>
     </OpenItem>
-    <OpenItem id="OI-4" owner="Mr. Peace" state="action needed">
-      <Issue>A Preferences password-protection toggle was left unsaved and undiscarded on 2026-09-02; September 11 live probes now show password protection active.</Issue>
-      <ClosesWhen>The storefront password is removed or a recorded decision keeps the store password-gated.</ClosesWhen>
-      <Blocks>Confidence that customers and agents can reach the storefront.</Blocks>
+    <OpenItem id="OI-4" owner="Mr. Peace" state="resolved for current state">
+      <Issue>A Preferences password-protection toggle was left unsaved and undiscarded on 2026-09-02; September 11 live probes later showed password protection active, but September 12 UTC probes show password protection inactive.</Issue>
+      <ClosesWhen>Closed by the September 12 UTC recheck: storefront homepage HTTP 200, password protection inactive, catalog feed HTTP 200, and discovery unrestricted. Reopen only if a newer probe or admin observation shows the gate active again.</ClosesWhen>
+      <Blocks>Closed for current storefront access claims; does not close live chat, cart, OAuth, checkout, or catalog-completeness verification.</Blocks>
     </OpenItem>
     <OpenItem id="OI-5" owner="Mr. Peace and deployment agent" state="live round trip needed">
-      <Issue>The customer-facing text provider router and Phase 1 intake quiz are implemented, and backend health is recorded, but the storefront password gate currently blocks public catalog/discovery and a complete live customer message through provider response and Shopify tools is not yet recorded.</Issue>
+      <Issue>The customer-facing text provider router and Phase 1 intake quiz are implemented, backend health is recorded, and the September 12 UTC recheck shows public catalog/UCP access reachable. A complete live customer message through provider response, Shopify tools, product-card return, cart handoff, database persistence, and OAuth is still not recorded.</Issue>
       <ClosesWhen>
         Railway has the selected text-provider key (ANTHROPIC_API_KEY when Claude is selected,
         or OPENAI_API_KEY when OpenAI is selected), OPENAI_API_KEY for artwork, and required
         Shopify variables; database migration succeeds on the persistent volume; the Shopify
-        app and theme extension are released; storefront password protection is removed unless
-        intentionally retained; and browser-to-provider-to-Shopify chat, the intake quiz,
+        app and theme extension are released; storefront password protection remains removed unless
+        intentionally retained later; and browser-to-provider-to-Shopify chat, the intake quiz,
         product cards, and artwork preview/download are all verified.
       </ClosesWhen>
       <Blocks>Production-integration status.</Blocks>
     </OpenItem>
-    <OpenItem id="OI-6" owner="verification agent" state="recheck needed after password removal">
-      <Issue>Live UCP capability publication was verified on 2026-09-08, but the 2026-09-11 recheck redirects /.well-known/ucp to /password.</Issue>
-      <ClosesWhen>The current production /.well-known/ucp path and advertised capabilities are checked.</ClosesWhen>
-      <Blocks>Current UCP publication and outside-agent discoverability claims until the password gate is removed and the manifest is rechecked.</Blocks>
+    <OpenItem id="OI-6" owner="verification agent" state="resolved for current state">
+      <Issue>Live UCP capability publication was verified on 2026-09-08, regressed to a September 11 redirect to /password, and was reverified on September 12 UTC with HTTP 200 at /.well-known/ucp.</Issue>
+      <ClosesWhen>Closed by the September 12 UTC manifest check showing advertised catalog/cart/checkout/order capabilities and the current backing endpoint.</ClosesWhen>
+      <Blocks>Closed for current UCP publication claims; still does not establish completed outside-agent transactions, checkout/payment success, or customer chatbot readiness.</Blocks>
     </OpenItem>
     <OpenItem id="OI-7" owner="project team" state="resolved">
       <Issue>VERIFICATION_LOG.md existence and current entries were previously not established here.</Issue>
@@ -644,7 +648,7 @@
     </OpenItem>
     <OpenItem id="OI-11a" owner="project team" state="not blocked by Printify gate" addedIn="4.1">
       <Issue>The Lazy Chat tiered-discovery methodology's engagement-logging and ranking side — showing tiered results against the existing catalog and logging which items were chosen, shown-and-passed-over, or unmatched — creates no new products and needs no Printify write access.</Issue>
-      <ClosesWhen>OI-1, OI-2, and the September 11 password gate close, per the existing catalog-first gate (CatalogFirstInstructions, SEO-1); ranking and logging need a public, searchable catalog.</ClosesWhen>
+      <ClosesWhen>OI-1 and OI-2 close, per the existing catalog-first gate (CatalogFirstInstructions, SEO-1); the September 11 password gate was superseded by September 12 open-catalog evidence, but ranking and logging still need a complete, public, searchable catalog.</ClosesWhen>
       <Blocks>SEO-10 (pick-through ranking of existing catalog items) and SEO-11 (demand-gap logging); does not block or get blocked by OI-11b.</Blocks>
     </OpenItem>
     <OpenItem id="OI-11b" owner="Mr. Peace and project team" state="paused by design" addedIn="4.1">
@@ -779,9 +783,10 @@
     <Test id="VT-1">
       <Prompt>Is Lazy Customs UCP enabled?</Prompt>
       <Pass>
-        Cite the September 11 password-gate recheck as the current blocker unless newer
-        evidence supersedes it, distinguish protocol publication from vendor eligibility and
-        completed transactions, and recheck live before making a new platform-current or
+        Cite the latest dated live evidence. As of the September 12 UTC recheck, UCP protocol
+        publication is reachable and catalog search responds; still distinguish protocol
+        publication from vendor eligibility, customer chatbot readiness, payment, checkout,
+        and completed transactions, and recheck live before making a new platform-current or
         external availability claim.
       </Pass>
       <Fail>A yes or qualified yes without current production evidence.</Fail>
@@ -829,10 +834,11 @@
     <Test id="VT-7">
       <Prompt>How many products are currently visible to agents?</Prompt>
       <Pass>
-        Cite the latest dated catalog evidence if current for the claim. As of September 11,
-        password protection blocks public catalog/discovery; do not reuse the 2026-09-02
-        zero-product observation or the September 8 visible-catalog result as present-tense
-        evidence without rechecking.
+        Cite the latest dated catalog evidence if current for the claim. As of the September
+        12 UTC recheck, /products.json returns 8 products, and UCP search_catalog returns
+        success with baby=0, shirt=4, hoodie=4, and empty query=8. Do not reuse the 2026-09-02
+        zero-product observation or September 11 password-gate result as present-tense evidence
+        without rechecking.
       </Pass>
       <Fail>Using the dated zero as a current-tense answer.</Fail>
     </Test>
@@ -988,6 +994,12 @@
       passes, but lazycustoms.com catalog/UCP discovery redirects to /password, so "publish the
       catalog" and OI-5/OI-10 live round-trip closure are blocked until the storefront password
       gate is removed and probes pass again.
+    </Change>
+    <Change from="4.1-maintenance" to="4.1-maintenance">
+      Reconciled the September 11 password-gate regression forward with September 12 UTC live
+      evidence: password protection inactive, catalog feed HTTP 200 with 8 products, discovery
+      unrestricted, UCP manifest HTTP 200, search_catalog responding, OI-4/OI-6 resolved for
+      current state, and OI-5/OI-10 still open for full live customer-flow verification.
     </Change>
   </Changelog>
 

@@ -7,7 +7,7 @@ Each entry: objective, constraint, options, **decision rule**, reversibility, an
 ---
 
 ## D1 — Password protection removal date
-**Status: OPEN. Highest priority. Everything downstream depends on this.**
+**Status: DECIDED 2026-09-08; current access state reverified 2026-09-12 UTC.**
 
 **Objective:** AI-channel and organic visibility for Q4.
 
@@ -38,6 +38,8 @@ Q4 opens 2026-10-01. Today is 2026-09-02.
 **Session note (2026-09-08):** dev environment setup for `shop-chat-agent-main` hit the store password gate exactly as this entry predicted — `shopify app dev` prompted for the storefront visitor password against the dev store. This confirms the prediction but does not close the decision.
 
 **Decision:** Password protection removed from the production store (`lazy-customs-2`). See D10 for verification method and access-state details.  **Date:** 2026-09-08
+
+**Reverification (2026-09-12 UTC):** `check_catalog.py --label 20260912_recheck` reports password protection inactive, homepage HTTP 200, `/products.json` HTTP 200, and 8 products. `check_discovery.py --label 20260912_recheck` reports discovery open. This supersedes the September 11 password-gate regression for current access-state claims.
 
 ---
 
@@ -117,6 +119,8 @@ Closes D1's access gate. Production store `lazy-customs-2` (`lazycustoms.com`) h
 **Consequence:** retail customers can access `lazycustoms.com` directly; AI crawlers and shopping agents can reach the storefront. The catalog *feed* is a separate blocker — this decision only clears the access side (§9.4). Draft products (D2) and zero-channel Active products (D3) remain open and block full catalog visibility (§9.1, §9.2).
 
 **Decision:** Password protection OFF, B2B restriction OFF, verified by settings toggle + live storefront load.  **Date:** 2026-09-08
+
+**Reconfirmation (2026-09-12 UTC):** live catalog/discovery probes show password protection inactive and discovery unrestricted; `/.well-known/ucp` returns HTTP 200. Keep the September 11 password-gate evidence as a historical regression, not the current access state.
 
 ---
 
