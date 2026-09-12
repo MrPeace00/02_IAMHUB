@@ -268,3 +268,23 @@ While independently verifying the ToS-audit report (S4 gate), a live read of `la
 **Fix:** added a shared `AGENT_USER_AGENT = "Agent/LazyCustomsChatAssistant"` constant and included it in all four header objects in `mcp-client.js`.
 
 **Decision:** All outbound MCP requests now self-identify per Section 14.4(i). No ToS changes needed — the policy text is already correct and standard.  **Date:** 2026-09-08
+
+---
+
+## D18 — Claude vision uses one sibling endpoint for uploaded and generated images
+**Status: DECIDED 2026-09-12 — Implemented locally; live verification pending.**
+
+The existing `/chat` route remains the streaming text-and-Shopify-tool contract, and `/generate-image` remains the OpenAI PNG creation contract. Image analysis uses the sibling `/vision-copy` route because it must accept multipart uploads, structured JSON responses, and a generated-image reference without complicating the established chat/tool loop.
+
+Both front doors converge after server-side validation: customer uploads send PNG/JPEG/WebP bytes, while successful OpenAI generations expose an opaque 15-minute reference bound to the same browser session. The server verifies MIME and dimensions, strips container metadata before base64 encoding, and supplies Claude's documented image block before the text block. Claude returns text only; no Shopify Admin writes or image rendering are permitted.
+
+**Decision:** Preserve `/chat` and `/generate-image`; add `/vision-copy` as the shared image-to-text endpoint. Local rung is `prerequisites tested` until the deployed browser path is recorded.  **Date:** 2026-09-12
+
+---
+
+## D19 — Credential rotation is operator-reported complete; provider revocation remains unverified
+**Status: OPERATOR-REPORTED 2026-09-11 — External death check not independently observed.**
+
+Mr. Peace reports that the exposed OpenAI, Anthropic if applicable, and Shopify values were rotated. This closes the action item for planning purposes, but the engine must not describe provider-side revocation as independently verified until the old values are confirmed unusable at their providers.
+
+**Decision:** Record OI-8 as operator-reported closed with provider-side revocation confirmation pending.  **Date:** 2026-09-11

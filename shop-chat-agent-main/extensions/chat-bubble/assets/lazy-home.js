@@ -88,6 +88,8 @@
     const results = root.querySelector("[data-lazy-results]");
     const messages = root.querySelector("[data-lazy-messages]");
     const products = root.querySelector("[data-lazy-products]");
+    const artStart = root.querySelector("[data-lazy-art-start]");
+    const imageUpload = root.querySelector("[data-lazy-image-upload]");
     const sessionKey = "lazyCustomsGenerationSession";
     const conversationKey = "shopAiConversationId";
     let backend;
@@ -115,7 +117,22 @@
       busy = value;
       input.disabled = value;
       send.disabled = value;
+      artStart.disabled = value;
+      imageUpload.disabled = value;
+      root.querySelectorAll("[data-lazy-vision-action]").forEach((button) => {
+        button.disabled = value;
+      });
       status.textContent = message || "";
+    }
+
+    function startArtworkMode() {
+      if (busy) return;
+      artMode = true;
+      input.value = "";
+      input.placeholder = "Describe the artwork you want…";
+      status.textContent = "Artwork mode — your PNG will be ready to download.";
+      renderChips(suggestionsFor("art", true));
+      input.focus();
     }
 
     function showResults() {
@@ -144,12 +161,7 @@
         button.addEventListener("click", () => {
           if (busy) return;
           if (item.action === "art") {
-            artMode = true;
-            input.value = "";
-            input.placeholder = "Describe the artwork you want…";
-            status.textContent = "Artwork mode — your PNG will be ready to download.";
-            renderChips(suggestionsFor("art", true));
-            input.focus();
+            startArtworkMode();
             return;
           }
           if (item.action === "shop") {
@@ -205,7 +217,113 @@
       });
     }
 
-    function renderArtwork(blob, prompt) {
+    function renderVisionCopy(copy) {
+      const result = document.createElement("section");
+      result.className = "lazy-home__copy-result";
+      const title = document.createElement("h2");
+      title.textContent = "Claude image copy";
+      const fields = [
+        ["Description", copy.description],
+        ["Tags", Array.isArray(copy.tags) ? copy.tags.join(", ") : ""],
+        ["Alt text", copy.altText],
+        ["Caption", copy.caption],
+      ];
+      const list = document.createElement("dl");
+      fields.forEach(([label, value]) => {
+        const term = document.createElement("dt");
+        const detail = document.createElement("dd");
+        term.textContent = label;
+        detail.textContent = value || "";
+        list.append(term, detail);
+      });
+      result.append(title, list);
+      messages.appendChild(result);
+      result.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+
+    async function readVisionStream(response, assistant) {
+      if (!response.body) throw new Error("Image advice is temporarily unavailable");
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let answer = "";
+
+      for (;;) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const events = buffer.split("\n\n");
+        buffer = events.pop() || "";
+        events.forEach((event) => {
+          const line = event.split("\n").find((item) => item.startsWith("data: "));
+          if (!line) return;
+          let data;
+          try {
+            data = JSON.parse(line.slice(6));
+          } catch {
+            return;
+          }
+          if (data.type === "chunk") {
+            answer += data.chunk || "";
+            assistant.classList.remove("lazy-home__message--pending");
+            assistant.textContent = answer;
+          }
+          if (data.type === "error" || data.type === "rate_limit_exceeded") {
+            throw new Error(data.details || data.error || "Image advice is temporarily unavailable");
+          }
+        });
+      }
+
+      assistant.classList.remove("lazy-home__message--pending");
+      if (!answer) assistant.textContent = "I couldn't produce image advice this time.";
+    }
+
+    async function requestVision(source, task, context) {
+      if (busy) return;
+      const label = task === "copy" ? "Writing product copy" : "Reviewing product options";
+      const pending = addMessage(label, "assistant", true);
+      setBusy(true, task === "copy" ? "Claude is writing from your image…" : "Claude is reviewing your image…");
+
+      try {
+        const headers = { "X-Lazy-Session": generationSession };
+        let body;
+        if (source.kind === "generated") {
+          if (!source.reference) throw new Error("Generate the artwork again before sending it to Claude");
+          headers["Content-Type"] = "application/json";
+          body = JSON.stringify({ image_reference: source.reference, task, context });
+        } else {
+          body = new FormData();
+          body.append("image", source.file);
+          body.append("task", task);
+          body.append("context", context || "");
+        }
+
+        const response = await fetch(`${backend}/vision-copy`, {
+          method: "POST",
+          headers,
+          body,
+        });
+        if (!response.ok) {
+          const payload = await response.json().catch(() => ({}));
+          throw new Error(payload.error || "Image analysis failed");
+        }
+
+        if (task === "copy") {
+          const payload = await response.json();
+          pending.remove();
+          renderVisionCopy(payload.copy || {});
+        } else {
+          await readVisionStream(response, pending);
+        }
+        setBusy(false, "Claude returned text for your image. Your artwork was not changed.");
+      } catch (error) {
+        pending.classList.remove("lazy-home__message--pending");
+        pending.textContent = error.message || "Image analysis failed. Please try again.";
+        setBusy(false, "");
+      }
+    }
+
+    function renderArtwork(blob, prompt, source, generated) {
       showResults();
       const objectUrl = URL.createObjectURL(blob);
       objectUrls.push(objectUrl);
@@ -214,19 +332,37 @@
       card.className = "lazy-home__art-card";
       const image = document.createElement("img");
       image.src = objectUrl;
-      image.alt = `Generated artwork: ${prompt}`;
+      image.alt = generated ? `Generated artwork: ${prompt}` : "Uploaded artwork preview";
 
       const actions = document.createElement("div");
       actions.className = "lazy-home__art-actions";
-      const download = document.createElement("a");
-      download.className = "lazy-home__download";
-      download.href = objectUrl;
-      download.download = "lazy-custom-art.png";
-      download.textContent = "Download PNG";
+      const commands = document.createElement("div");
+      commands.className = "lazy-home__art-commands";
+      if (generated) {
+        const download = document.createElement("a");
+        download.className = "lazy-home__download";
+        download.href = objectUrl;
+        download.download = "lazy-custom-art.png";
+        download.textContent = "Download PNG";
+        commands.appendChild(download);
+      }
+      const copyButton = document.createElement("button");
+      copyButton.className = "lazy-home__vision-action";
+      copyButton.dataset.lazyVisionAction = "copy";
+      copyButton.type = "button";
+      copyButton.textContent = "Write product copy";
+      copyButton.addEventListener("click", () => requestVision(source, "copy", prompt));
+      const guidanceButton = document.createElement("button");
+      guidanceButton.className = "lazy-home__vision-action lazy-home__vision-action--secondary";
+      guidanceButton.dataset.lazyVisionAction = "guidance";
+      guidanceButton.type = "button";
+      guidanceButton.textContent = "Get product advice";
+      guidanceButton.addEventListener("click", () => requestVision(source, "guidance", prompt));
+      commands.append(copyButton, guidanceButton);
       const note = document.createElement("p");
       note.className = "lazy-home__art-note";
-      note.textContent = "Next: upload this file in the product’s personalization field.";
-      actions.append(download, note);
+      note.textContent = "Claude returns text about the image. It does not alter the artwork or update the catalog.";
+      actions.append(commands, note);
       card.append(image, actions);
       messages.appendChild(card);
       card.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -252,9 +388,10 @@
           throw new Error(body.error || "Artwork generation failed");
         }
 
+        const imageReference = response.headers.get("X-Lazy-Image-Reference");
         const blob = await response.blob();
         pending.remove();
-        renderArtwork(blob, prompt);
+        renderArtwork(blob, prompt, { kind: "generated", reference: imageReference }, true);
         artMode = false;
         input.placeholder = "Find a product for this artwork…";
         renderChips([
@@ -268,6 +405,22 @@
         pending.textContent = error.message || "Artwork generation failed. Please try again.";
         setBusy(false, "");
       }
+    }
+
+    function handleImageUpload(file) {
+      const allowedTypes = new Set(["image/png", "image/jpeg", "image/webp"]);
+      if (!allowedTypes.has(file.type)) {
+        status.textContent = "Choose a PNG, JPEG, or WebP image.";
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        status.textContent = "Choose an image that is 5 MB or smaller.";
+        return;
+      }
+
+      addMessage(`Uploaded ${file.name || "an image"} for Claude`, "user");
+      renderArtwork(file, file.name || "Customer-uploaded artwork", { kind: "upload", file }, false);
+      status.textContent = "Image ready. Choose the text you want Claude to create.";
     }
 
     async function streamChat(prompt, quiz) {
@@ -355,6 +508,13 @@
       } else {
         streamChat(prompt);
       }
+    });
+
+    artStart.addEventListener("click", startArtworkMode);
+    imageUpload.addEventListener("change", () => {
+      const file = imageUpload.files?.[0];
+      imageUpload.value = "";
+      if (file) handleImageUpload(file);
     });
 
     if (quizForm) {

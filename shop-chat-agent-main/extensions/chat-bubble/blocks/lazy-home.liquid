@@ -11,6 +11,28 @@
       <h1 class="lazy-home__wordmark" aria-label="Lazy Customs">Lazy<span>.</span></h1>
       <p class="lazy-home__intro">Tell us what you have in mind.</p>
 
+      <div class="lazy-home__image-doors" aria-label="Custom image options">
+        <button class="lazy-home__image-door" data-lazy-art-start type="button">
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M18.4 5.6l-2.8 2.8M8.4 15.6l-2.8 2.8"></path>
+          </svg>
+          <span>Create with OpenAI</span>
+        </button>
+        <label class="lazy-home__image-door" for="lazy-home-upload-{{ block.id }}">
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path d="M12 16V4M7 9l5-5 5 5M5 20h14"></path>
+          </svg>
+          <span>Upload for Claude</span>
+        </label>
+        <input
+          class="lazy-home__sr-only"
+          id="lazy-home-upload-{{ block.id }}"
+          data-lazy-image-upload
+          type="file"
+          accept="image/png,image/jpeg,image/webp"
+        >
+      </div>
+
       <form class="lazy-home__quiz" data-lazy-quiz-form>
         <p class="lazy-home__quiz-title">A few quick details, then we'll find your picks.</p>
         <div class="lazy-home__quiz-grid">

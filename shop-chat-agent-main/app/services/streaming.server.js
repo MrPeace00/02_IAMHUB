@@ -55,7 +55,7 @@ export function createStreamManager(encoder, controller) {
     if (error.status === 401 || error.message.includes('auth') || error.message.includes('key')) {
       sendError({
         type: 'error',
-        error: 'Authentication failed with OpenAI API',
+        error: 'Authentication failed with the AI provider',
         details: 'Please check your API key in environment variables'
       });
     } else if (error.status === 429 || error.message.includes('rate limit')) {
@@ -67,7 +67,7 @@ export function createStreamManager(encoder, controller) {
     } else {
       sendError({
         type: 'error',
-        error: 'Failed to get response from OpenAI',
+        error: 'Failed to get response from the AI provider',
         details: error.message
       });
     }

@@ -10,11 +10,61 @@ export { formatConversationHistory as formatAnthropicHistory };
 
 const ANTHROPIC_MESSAGES_URL = "https://api.anthropic.com/v1/messages";
 const DEFAULT_ANTHROPIC_MODEL = "claude-sonnet-5";
+const ANTHROPIC_IMAGE_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+]);
 
 function createApiError(message, status) {
   const error = new Error(message);
   error.status = status;
   return error;
+}
+
+export function buildAnthropicMessages(messages = [], image) {
+  const nextMessages = messages.map((message) => ({ ...message }));
+  if (!image) return nextMessages;
+
+  const mediaType = image.mediaType || image.media_type;
+  const data = typeof image.data === "string" ? image.data.trim() : "";
+  if (!ANTHROPIC_IMAGE_TYPES.has(mediaType) || !data) {
+    throw createApiError("Anthropic image input is invalid", 400);
+  }
+
+  let userIndex = -1;
+  for (let index = nextMessages.length - 1; index >= 0; index -= 1) {
+    if (nextMessages[index]?.role === "user") {
+      userIndex = index;
+      break;
+    }
+  }
+  if (userIndex < 0) {
+    throw createApiError("Anthropic image input requires a user message", 400);
+  }
+
+  const userMessage = nextMessages[userIndex];
+  const existingContent = Array.isArray(userMessage.content)
+    ? [...userMessage.content]
+    : [{ type: "text", text: String(userMessage.content || "") }];
+
+  nextMessages[userIndex] = {
+    ...userMessage,
+    content: [
+      {
+        type: "image",
+        source: {
+          type: "base64",
+          media_type: mediaType,
+          data,
+        },
+      },
+      ...existingContent,
+    ],
+  };
+
+  return nextMessages;
 }
 
 function parseEventData(eventBlock) {
@@ -186,21 +236,32 @@ export function createAnthropicService(apiKey = process.env.ANTHROPIC_API_KEY) {
     return `${basePrompt}\n\nIntent rules: Extract every useful attribute from the customer's natural-language request before replying. Never ask them to repeat details they already supplied. When a request is broad, ask only one short question at a time for the most important missing detail among recipient profile, seasonal or aesthetic vibe, product category, customization mode, and fit or size. Once there is enough information to search, search immediately instead of continuing a questionnaire.\n\nQuestionnaire rules: When the current user turn starts with [Customer quiz facts:], treat those facts and tags as sanitized search hints for this turn only, not as permanent identity or profile claims. Later customer corrections override earlier quiz facts. Rebuild the search_catalog query around the currently valid facts, including text-only, image-only, or text-on-image customization mode when supplied.\n\nCommerce rules: Use discovered search_catalog, lookup_catalog, and get_product tools for catalog information, preserving their catalog argument wrapper. Use search_shop_policies_and_faqs for store policy questions and follow its returned policies; never invent policies or promise exceptions. Use discovered get_cart, create_cart, and update_cart tools for cart state and changes, following their live schemas and using actual variant IDs returned by the catalog. Treat "buy for them" as curating products, adding confirmed variants to a Shopify cart when requested, and handing the customer to native checkout; do not enter payment details or claim an order was placed unless the live checkout flow confirms it. Only claim a cart change succeeded when the tool confirms success. If a required tool is unavailable or fails, explain that limitation instead of inventing results. Keep responses concise and conversational.`;
   };
 
-  const streamResponse = async ({ messages, promptType, tools }, handlers = {}) => {
-    if (!apiKey) {
-      throw createApiError("ANTHROPIC_API_KEY is not configured on the server", 401);
-    }
-
+  const buildRequestBody = ({
+    messages,
+    promptType,
+    tools = [],
+    image,
+    systemAddon,
+    maxTokens = AppConfig.api.maxTokens,
+    stream,
+  }) => {
     const formattedTools = formatAnthropicTools(tools);
     const body = {
       model: process.env.ANTHROPIC_CHAT_MODEL || DEFAULT_ANTHROPIC_MODEL,
-      max_tokens: AppConfig.api.maxTokens,
-      system: getSystemPrompt(promptType),
-      messages,
-      stream: true,
+      max_tokens: maxTokens,
+      system: [getSystemPrompt(promptType), systemAddon].filter(Boolean).join("\n\n"),
+      messages: buildAnthropicMessages(messages, image),
+      stream,
     };
 
     if (formattedTools.length > 0) body.tools = formattedTools;
+    return body;
+  };
+
+  const sendRequest = async (body) => {
+    if (!apiKey) {
+      throw createApiError("ANTHROPIC_API_KEY is not configured on the server", 401);
+    }
 
     const response = await fetch(ANTHROPIC_MESSAGES_URL, {
       method: "POST",
@@ -220,10 +281,38 @@ export function createAnthropicService(apiKey = process.env.ANTHROPIC_API_KEY) {
       );
     }
 
+    return response;
+  };
+
+  const streamResponse = async (options, handlers = {}) => {
+    const body = buildRequestBody({ ...options, stream: true });
+    const response = await sendRequest(body);
+
     return readAnthropicStream(response, handlers.onText);
   };
 
-  return { getSystemPrompt, streamResponse };
+  const completeResponse = async (options) => {
+    const body = buildRequestBody({ ...options, stream: false });
+    const response = await sendRequest(body);
+    const payload = await response.json().catch(() => ({}));
+    const contentBlocks = Array.isArray(payload.content) ? payload.content : [];
+    const outputText = contentBlocks
+      .filter((block) => block?.type === "text")
+      .map((block) => block.text || "")
+      .join("");
+
+    if (!outputText.trim()) {
+      throw createApiError("Anthropic returned no text", 502);
+    }
+
+    return {
+      contentBlocks,
+      outputText,
+      stopReason: payload.stop_reason || "",
+    };
+  };
+
+  return { getSystemPrompt, streamResponse, completeResponse };
 }
 
 export default { createAnthropicService };

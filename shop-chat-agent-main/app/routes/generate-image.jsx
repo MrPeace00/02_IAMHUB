@@ -7,6 +7,7 @@ import {
   validateGenerationSession,
 } from "../services/generation-rate-limit.server";
 import { getCorsHeaders, isAllowedOrigin } from "../services/cors.server";
+import { storeGeneratedVisionImage } from "../services/vision-image.server";
 
 const OPENAI_IMAGE_URL = "https://api.openai.com/v1/images/generations";
 const MAX_BODY_BYTES = 8 * 1024;
@@ -114,6 +115,7 @@ export async function action({ request }) {
     }
 
     const imageBytes = Buffer.from(base64Image, "base64");
+    const imageReference = storeGeneratedVisionImage(sessionId, imageBytes);
     return new Response(imageBytes, {
       status: 200,
       headers: {
@@ -122,6 +124,8 @@ export async function action({ request }) {
         "Content-Disposition": 'inline; filename="lazy-custom-art.png"',
         "Cache-Control": "private, no-store, max-age=0",
         "X-Content-Type-Options": "nosniff",
+        "Access-Control-Expose-Headers": "X-Lazy-Image-Reference",
+        "X-Lazy-Image-Reference": imageReference,
       },
     });
   } catch (error) {

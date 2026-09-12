@@ -8,12 +8,13 @@ function loadAnthropicServiceSource(fetch) {
   const source = readFileSync(new URL("../app/services/anthropic.server.js", import.meta.url), "utf8")
     .replace(/^import .*;\r?\n/gm, "")
     .replace(/^export \{.*;\r?\n/gm, "")
+    .replace(/export function buildAnthropicMessages/, "function buildAnthropicMessages")
     .replace(/export async function readAnthropicStream/, "async function readAnthropicStream")
     .replace(/export function formatAnthropicTools/, "function formatAnthropicTools")
     .replace(/export function createAnthropicService/, "function createAnthropicService")
     .replace(
       /export default \{[\s\S]*$/,
-      "globalThis.readAnthropicStream = readAnthropicStream;\nglobalThis.formatAnthropicTools = formatAnthropicTools;\nglobalThis.createAnthropicService = createAnthropicService;",
+      "globalThis.buildAnthropicMessages = buildAnthropicMessages;\nglobalThis.readAnthropicStream = readAnthropicStream;\nglobalThis.formatAnthropicTools = formatAnthropicTools;\nglobalThis.createAnthropicService = createAnthropicService;",
     );
 
   const context = vm.createContext({
@@ -65,6 +66,24 @@ test("Shopify MCP schemas become Anthropic client tools", () => {
   assert.equal(tools[0].description, "Search products");
   assert.equal(tools[0].input_schema.properties.catalog.type, "object");
   assert.equal("strict" in tools[0], false);
+});
+
+test("Anthropic vision messages place a base64 image before the text turn", () => {
+  const { buildAnthropicMessages } = loadAnthropicServiceSource(async () => assert.fail("Unexpected network request"));
+  const messages = [{ role: "user", content: "Describe this artwork" }];
+  const built = buildAnthropicMessages(messages, {
+    mediaType: "image/png",
+    data: "aW1hZ2U=",
+  });
+
+  assert.equal(messages[0].content, "Describe this artwork");
+  assert.deepEqual(JSON.parse(JSON.stringify(built[0].content)), [
+    {
+      type: "image",
+      source: { type: "base64", media_type: "image/png", data: "aW1hZ2U=" },
+    },
+    { type: "text", text: "Describe this artwork" },
+  ]);
 });
 
 test("Anthropic streaming parser preserves text and tool inputs", async () => {
@@ -122,6 +141,31 @@ test("Anthropic service sends Messages API requests with system prompt and tools
   assert.match(request.body.system, /Base prompt/);
   assert.equal(request.body.tools[0].name, "search_catalog");
   assert.equal(result.outputText, "Done");
+});
+
+test("Anthropic non-streaming vision requests preserve the documented image block shape", async () => {
+  let request;
+  const { createAnthropicService } = loadAnthropicServiceSource(async (url, options) => {
+    request = { url, body: JSON.parse(options.body) };
+    return Response.json({
+      content: [{ type: "text", text: '{"description":"A design"}' }],
+      stop_reason: "end_turn",
+    });
+  });
+
+  const result = await createAnthropicService("test-key").completeResponse({
+    messages: [{ role: "user", content: "Return JSON" }],
+    promptType: "standardAssistant",
+    image: { mediaType: "image/png", data: "aW1hZ2U=" },
+    systemAddon: "Vision only",
+  });
+
+  assert.equal(request.url, "https://api.anthropic.com/v1/messages");
+  assert.equal(request.body.stream, false);
+  assert.equal(request.body.messages[0].content[0].type, "image");
+  assert.equal(request.body.messages[0].content[1].text, "Return JSON");
+  assert.match(request.body.system, /Vision only/);
+  assert.equal(result.outputText, '{"description":"A design"}');
 });
 
 test("active chat route uses provider router and keeps both tool protocols", () => {

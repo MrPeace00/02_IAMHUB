@@ -4,9 +4,10 @@ import prisma from "../db.server";
 
 export class GenerationRateLimitError extends Error {
   constructor(retryAfter) {
-    super("Image generation limit reached");
+    super("Image request limit reached");
     this.name = "GenerationRateLimitError";
     this.retryAfter = retryAfter;
+    this.status = 429;
   }
 }
 
@@ -44,12 +45,7 @@ export function validateGenerationSession(value) {
   return typeof value === "string" && /^[A-Za-z0-9_-]{16,128}$/.test(value);
 }
 
-export async function enforceGenerationRateLimit({ sessionId, ipAddress }) {
-  const windowSeconds = boundedInteger(process.env.IMAGE_RATE_WINDOW_SECONDS, 3600, 60, 86400);
-  const limits = [
-    { key: bucketKey("session", sessionId), limit: boundedInteger(process.env.IMAGE_SESSION_LIMIT, 3, 1, 20) },
-    { key: bucketKey("ip", ipAddress), limit: boundedInteger(process.env.IMAGE_IP_LIMIT, 10, 1, 100) },
-  ];
+async function enforceImageRateLimit({ limits, windowSeconds }) {
   const now = new Date();
   const windowMilliseconds = windowSeconds * 1000;
 
@@ -81,5 +77,25 @@ export async function enforceGenerationRateLimit({ sessionId, ipAddress }) {
         data: { count: { increment: 1 } },
       });
     }
+  });
+}
+
+export async function enforceGenerationRateLimit({ sessionId, ipAddress }) {
+  return enforceImageRateLimit({
+    windowSeconds: boundedInteger(process.env.IMAGE_RATE_WINDOW_SECONDS, 3600, 60, 86400),
+    limits: [
+      { key: bucketKey("session", sessionId), limit: boundedInteger(process.env.IMAGE_SESSION_LIMIT, 3, 1, 20) },
+      { key: bucketKey("ip", ipAddress), limit: boundedInteger(process.env.IMAGE_IP_LIMIT, 10, 1, 100) },
+    ],
+  });
+}
+
+export async function enforceVisionRateLimit({ sessionId, ipAddress }) {
+  return enforceImageRateLimit({
+    windowSeconds: boundedInteger(process.env.VISION_RATE_WINDOW_SECONDS, 3600, 60, 86400),
+    limits: [
+      { key: bucketKey("vision-session", sessionId), limit: boundedInteger(process.env.VISION_SESSION_LIMIT, 12, 1, 50) },
+      { key: bucketKey("vision-ip", ipAddress), limit: boundedInteger(process.env.VISION_IP_LIMIT, 40, 1, 200) },
+    ],
   });
 }
