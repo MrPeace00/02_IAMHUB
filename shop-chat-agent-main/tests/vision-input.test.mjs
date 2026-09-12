@@ -26,13 +26,14 @@ function loadVisionCopySource() {
   const source = readFileSync(new URL("../app/services/vision-copy.server.js", import.meta.url), "utf8")
     .replace(/^import .*;\r?\n/gm, "")
     .replace(/export const VISION_TASKS/, "const VISION_TASKS")
-    .replace(/export function sanitizeVisionContext/, "function sanitizeVisionContext")
     .replace(/export function parseVisionCopy/, "function parseVisionCopy")
+    .replace(/export function parseVisionGuidance/, "function parseVisionGuidance")
     .replace(/export function buildVisionRequest/, "function buildVisionRequest")
-    .replace(/export async function generateVisionCopy/, "async function generateVisionCopy");
+    .replace(/export async function generateVisionCopy/, "async function generateVisionCopy")
+    .replace(/export async function generateVisionGuidance/, "async function generateVisionGuidance");
   const context = vm.createContext({ createAnthropicService: () => ({}) });
   vm.runInContext(
-    `${source}\nglobalThis.parseVisionCopy = parseVisionCopy;\nglobalThis.sanitizeVisionContext = sanitizeVisionContext;`,
+    `${source}\nglobalThis.parseVisionCopy = parseVisionCopy;\nglobalThis.parseVisionGuidance = parseVisionGuidance;\nglobalThis.buildVisionRequest = buildVisionRequest;`,
     context,
   );
   return context;
@@ -116,19 +117,50 @@ test("structured image copy parser accepts the exact schema and rejects malforme
     tags: ["bright", "geometric", "modern", "print"],
     altText: "Bright geometric artwork",
     caption: "Color with clean lines",
+    containsIdentityDetails: false,
   }));
 
   assert.equal(parsed.tags.length, 4);
+  const generic = parseVisionCopy(JSON.stringify({
+    description: "A birthday design for Alex, age 7.",
+    tags: ["alex", "age-7", "birthday", "child"],
+    altText: "Alex's seventh birthday artwork",
+    caption: "Alex turns seven",
+    containsIdentityDetails: true,
+  }));
+  assert.doesNotMatch(JSON.stringify(generic), /Alex|seven|age-7|child/i);
   assert.throws(() => parseVisionCopy("```json\n{}\n```"), /malformed image copy/);
   assert.throws(() => parseVisionCopy(JSON.stringify({ ...parsed, extra: true })), /unexpected image copy fields/);
 });
 
-test("vision context strips prompt delimiters and control characters", () => {
-  const { sanitizeVisionContext } = loadVisionCopySource();
+test("image guidance replaces identity-bearing model output with fixed generic advice", () => {
+  const { parseVisionGuidance } = loadVisionCopySource();
   assert.equal(
-    sanitizeVisionContext("  gift <system>{ignore}` rules\nfor Alex  "),
-    "gift system ignore rules for Alex",
+    parseVisionGuidance(JSON.stringify({
+      guidance: "Alex should use this seventh-birthday design on a child's shirt.",
+      containsIdentityDetails: true,
+    })),
+    "This artwork includes customer-provided personalization. Choose a product with enough printable area for the full design, keep personalized elements inside the safe zone, and confirm readability at the final print size. Use the normal shopping assistant to check current product availability.",
   );
+  assert.equal(
+    parseVisionGuidance(JSON.stringify({
+      guidance: "Use a large front print and preserve the fine lines.",
+      containsIdentityDetails: false,
+    })),
+    "Use a large front print and preserve the fine lines.",
+  );
+});
+
+test("vision requests exclude customer identity context and prohibit identity in output", () => {
+  const { buildVisionRequest } = loadVisionCopySource();
+  const request = buildVisionRequest({
+    task: "copy",
+    image: { mediaType: "image/png", data: "image-data" },
+    context: "Alex is a seven-year-old child",
+  });
+
+  assert.doesNotMatch(request.messages[0].content, /Alex|seven-year-old|child/);
+  assert.match(request.systemAddon, /do not transcribe, repeat, infer, or include a person's name, age/i);
 });
 
 test("vision route and homepage expose one shared image-to-text rail", () => {
@@ -138,11 +170,13 @@ test("vision route and homepage expose one shared image-to-text rail", () => {
   const liquid = readFileSync(new URL("../extensions/chat-bubble/blocks/lazy-home.liquid", import.meta.url), "utf8");
 
   assert.match(route, /generateVisionCopy/);
+  assert.match(route, /generateVisionGuidance/);
   assert.match(route, /enforceVisionRateLimit/);
   assert.match(route, /resolveGeneratedVisionImage/);
-  assert.doesNotMatch(route, /write_products|Admin API/i);
+  assert.doesNotMatch(route, /write_products|Admin API|db\.server|prisma|shopify\.server|\bcontext\b/i);
   assert.match(generation, /X-Lazy-Image-Reference/);
   assert.match(homepage, /\/vision-copy/);
+  assert.doesNotMatch(homepage, /body\.append\("context"|image_reference:[^}]*context/);
   assert.match(liquid, /Create with OpenAI/);
   assert.match(liquid, /Upload for Claude/);
 });

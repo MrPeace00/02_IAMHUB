@@ -278,13 +278,34 @@ The existing `/chat` route remains the streaming text-and-Shopify-tool contract,
 
 Both front doors converge after server-side validation: customer uploads send PNG/JPEG/WebP bytes, while successful OpenAI generations expose an opaque 15-minute reference bound to the same browser session. The server verifies MIME and dimensions, strips container metadata before base64 encoding, and supplies Claude's documented image block before the text block. Claude returns text only; no Shopify Admin writes or image rendering are permitted.
 
+NR-8 is encoded at this sibling route by accepting no customer text context at all: the browser and server exchange only the image source and the selected task. Copy and guidance use strict internal JSON with an identity-detail flag; when Claude flags a name, age, birthday, audience category, or other identity-linked detail, the server discards the model-written fields and returns fixed generic text. The identity flag is not returned, and neither output path imports a Shopify Admin or Prisma write surface.
+
 **Decision:** Preserve `/chat` and `/generate-image`; add `/vision-copy` as the shared image-to-text endpoint. Local rung is `prerequisites tested` until the deployed browser path is recorded.  **Date:** 2026-09-12
 
 ---
 
-## D19 — Credential rotation is operator-reported complete; provider revocation remains unverified
-**Status: OPERATOR-REPORTED 2026-09-11 — External death check not independently observed.**
+## D19 — OI-8 credential rotation and revocation confirmation closed
+**Status: CLOSED 2026-09-12 — Provider confirmations operator-stated; no secrets recorded.**
 
-Mr. Peace reports that the exposed OpenAI, Anthropic if applicable, and Shopify values were rotated. This closes the action item for planning purposes, but the engine must not describe provider-side revocation as independently verified until the old values are confirmed unusable at their providers.
+Mr. Peace reports that the exposed OpenAI, Anthropic if applicable, and Shopify values were rotated and that old values are now dead. Confirmation is status-only; no credential values are recorded here.
 
-**Decision:** Record OI-8 as operator-reported closed with provider-side revocation confirmation pending.  **Date:** 2026-09-11
+OI-8 CLOSED — 2026-09-12
+
+- Shopify: old app secret rotated as of 2026-09-12; Railway env updated with new value; prior secret no longer active for the app.
+- OpenAI: old exposed value confirmed revoked/inactive as of 2026-09-12; new value live in Railway.
+- Anthropic: old exposed value confirmed inactive as of 2026-09-12; new value live in Railway.
+
+All three provider confirmations are operator-stated. Old values are treated as dead. New values are live in Railway `valiant-liberation`. No secrets recorded here — confirmation of status only.
+
+**Decision:** Close OI-8 based on dated operator-stated provider confirmations.  **Date:** 2026-09-12
+
+---
+
+## D20 — React Router audit conflict is corrected forward and remediated
+**Status: DECIDED 2026-09-12 — Compatible fix verified locally.**
+
+The `package-lock.json` at D-103-era commit `70395ac` and immediately before this correction has the same Git blob (`fcd6ec05722c8d9e82769e5f3e6b590d9eab777d`) and resolves React Router to `7.11.0`. The September 9 verification row also retained React Router findings. This rules out a later dependency rollback and shows that D-103's blanket statement that the React Router chain was remediated was overbroad.
+
+The five directly declared React Router packages were upgraded as one matched family to `7.18.3`, which satisfies the official `7.18.0` patched-version floor for GHSA-chx6-hx7r-mcp5. A normal clean install, tests, lint, typecheck, and production build pass. The post-remediation production audit contains four high package entries, all in the existing Prisma/deepmerge chain; OI-9 remains open only for that narrower chain.
+
+**Decision:** Correct D-103 forward without erasing it, accept the compatible React Router remediation, and retain only the Prisma/deepmerge chain under OI-9. Evidence: `ops/evidence/dependency_audit_reconciliation_20260912_20260912T034713Z.md`.  **Date:** 2026-09-12

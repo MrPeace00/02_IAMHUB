@@ -4,12 +4,12 @@
 **Operator:** Mr. Peace Elluvasun Allah Cush-El  
 **Store handle used in project:** `lazy-customs-2`  
 **Last verified UCP backing hostname:** `vbw9zu-f7.myshopify.com` (reverified September 12, 2026 UTC)
-**Updated through:** September 12, 2026 UTC; shared Claude image-to-text rail implemented and locally verified, plus public catalog/UCP recheck
+**Updated through:** September 12, 2026 UTC; NR-8-hardened Claude image-to-text rail and React Router 7.18.3 remediation locally verified, plus public catalog/UCP recheck
 **Governed by:** LAZY CUSTOMS — STORE AND AGENT ENGINE v4.1 · CHAMPION MASTER ENGINE v5.5
 
 ## 1. CURRENT POSITION
 
-The chat-agent backend is deployed in the canonical Railway project `valiant-liberation`; `https://ai.lazycustoms.com/chat?health=true` returned HTTP 200 through the published/configured backend checks on September 12, 2026 UTC. In the local working tree, customer-facing text is routed through `AI_TEXT_PROVIDER`: Claude/Anthropic can serve storefront text, OpenAI remains available as text fallback, and OpenAI remains the artwork-generation rail. A new sibling `/vision-copy` route gives uploaded images and just-generated OpenAI artwork one Claude image-to-text path for structured copy or streamed product guidance; it is locally tested but not deployed or live-verified.
+The chat-agent backend is deployed in the canonical Railway project `valiant-liberation`; `https://ai.lazycustoms.com/chat?health=true` returned HTTP 200 through the published/configured backend checks on September 12, 2026 UTC. In the local working tree, customer-facing text is routed through `AI_TEXT_PROVIDER`: Claude/Anthropic can serve storefront text, OpenAI remains available as text fallback, and OpenAI remains the artwork-generation rail. A sibling `/vision-copy` route gives uploaded images and just-generated OpenAI artwork one Claude image-to-text path for structured copy or product guidance. It accepts no customer text context, returns fixed generic output when Claude flags identity details, and is locally tested but not deployed or live-verified.
 
 The public storefront/catalog side is no longer password-blocked as of the September 12, 2026 UTC recheck. `check_catalog.py --label 20260912_recheck` reports homepage HTTP 200, password protection inactive, `/products.json` HTTP 200, and 8 products across 1 page. `check_discovery.py --label 20260912_recheck` reports discovery open: homepage HTTP 200, robots.txt HTTP 200 with no blanket disallow, and no homepage noindex. `https://lazycustoms.com/.well-known/ucp` returns HTTP 200 and advertises UCP shopping/catalog/cart/checkout/order capabilities backed by `https://vbw9zu-f7.myshopify.com/api/ucp/mcp`. This supersedes the September 11 password-gate finding for present-tense claims while preserving it as historical evidence.
 
@@ -43,19 +43,19 @@ Key application files:
 - `app/routes/generate-image.jsx` — server-side OpenAI artwork generation with strict CORS and combined session/IP limits.
 - `app/routes/vision-copy.jsx` — hardened Claude vision endpoint for structured image copy and streamed product guidance.
 - `app/services/vision-image.server.js` — MIME/dimension validation, container metadata stripping and short-lived session-bound generated-image references.
-- `app/services/vision-copy.server.js` — Claude vision prompts, current-turn context sanitization and strict structured-copy parsing.
+- `app/services/vision-copy.server.js` — Claude vision prompts, strict copy/guidance parsing and generic identity-detail fallbacks; no customer text context is accepted.
 - `app/services/tool.server.js` — tool results, errors and UCP product-card formatting.
 - `extensions/chat-bubble/assets/chat.js` — HTTPS backend validation and bounded health check before enabling chat.
 - `extensions/chat-bubble/blocks/chat-interface.liquid` — merchant backend setting; expired default removed from source.
 - `scripts/check-connections.mjs` — read-only published/configured backend and catalog diagnostics.
-- `tests/*.test.mjs` — 31 focused chat, image-generation, vision-input, MCP-routing, quiz-context and widget/backend tests.
+- `tests/*.test.mjs` — 32 focused chat, image-generation, vision-input, MCP-routing, quiz-context and widget/backend tests.
 - `connection-check.json` and `MCP-CONNECTION-AUDIT.md` — saved live evidence and audit details.
 
 Verification record: [`VERIFICATION_LOG.md`](VERIFICATION_LOG.md).
 
 ## 3. COMMIT RECORD — PUSHED
 
-At the last pushed record, local `HEAD` and `origin/main` both resolved to `7bd9d01`. The September 12 Claude vision work is local working-tree work until committed, pushed and deployed.
+Local `HEAD` and `origin/main` both resolve to `84180b2`, which contains the initial September 12 Claude vision implementation. The NR-8 hardening and React Router audit remediation described here remain local working-tree changes until committed, pushed, and deployed.
 
 | Commit | Completed work |
 |---|---|
@@ -73,7 +73,7 @@ Pushing code does not deploy the application or update an existing merchant them
 
 | Check | Recorded result |
 |---|---|
-| Focused application tests | 31 passed after the September 12 shared Claude vision pass |
+| Focused application tests | 32 passed after the September 12 NR-8 and dependency reconciliation pass |
 | ESLint, typecheck and production build | Passed |
 | Production client/SSR build | Passed |
 | Railway custom-domain health | HTTP 200; canonical GitHub deployment status successful |
@@ -109,7 +109,7 @@ This supersedes the expired `plate-proprietary-bottles-cruz.trycloudflare.com` s
 | Storefront MCP | Implemented in the fork as a client of Shopify-hosted servers; policy discovery and lookup were successfully exercised |
 | Catalog over UCP MCP | Reverified September 12, 2026 UTC: `search_catalog` calls return `status: success`; empty browse returns 8 products |
 | Claude/Anthropic text provider | Implemented locally behind `AI_TEXT_PROVIDER`; needs deployed end-to-end verification before live customer capability claims |
-| Claude/Anthropic image-to-text | Implemented locally at `/vision-copy`; uploaded and generated images converge on one validated, metadata-stripped base64 Messages API input. Structured copy returns parsed JSON; product guidance streams. Not deployed or live-verified |
+| Claude/Anthropic image-to-text | Implemented locally at `/vision-copy`; uploaded and generated images converge on one validated, metadata-stripped base64 Messages API input. The route accepts no customer text context; strict internal copy/guidance JSON carries an identity flag, and flagged model text is replaced by fixed generic output before return. No Shopify Admin writes. Not deployed or live-verified |
 | OpenAI artwork generation | Existing `/generate-image` PNG behavior is preserved; successful responses now also carry an opaque, 15-minute, session-bound image reference for the Claude vision handoff |
 | Cloud: Claude AI Assistant | Previously reported installed for merchant back-office work; not rechecked in this update and not the storefront chatbot |
 
@@ -168,16 +168,16 @@ Original item numbers are retained for continuity.
 - Store policy answers use Shopify's policy tool. Shared assistant instructions do not edit merchant policies or enforce additional checkout rules.
 - Runtime prompt keys are `standardAssistant`, `systemShopping`, `systemDesignCoach` and `enthusiasticAssistant`. A standalone `guardrails` prompt key is not present; shared commerce instructions are supplied by the OpenAI service.
 - `.env` exists. Its contents and usable credentials were not inspected for this report; file existence is not proof of runtime readiness. `.env.example` documents `AI_TEXT_PROVIDER=anthropic`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, and `ai.lazycustoms.com` targets; examples are not proof of deployed secrets.
-- Engine OI-8 is operator-reported rotated as of September 11. Provider-side confirmation that every old value is revoked/dead was not independently verified, so the report is recorded separately from full external verification.
-- `npm audit --omit=dev` on September 12 reports 12 high-severity package entries across the existing React Router and Prisma/deepmerge dependency chains, with no compatible automated fix currently offered. This remains the accepted tracked risk in OI-9; the image-to-text work adds no image-decoder package.
+- OI-8 is closed as of September 12 by operator-stated provider-dashboard confirmations: Shopify old app secret rotated and Railway updated, OpenAI old exposed value revoked/inactive with new value live in Railway, and Anthropic old exposed value inactive with new value live in Railway. No secret values are recorded.
+- The D-103-era and pre-remediation lockfiles were identical and both held React Router 7.11.0, so the later audit finding was not a rollback; D-103's wording was overbroad. The matched React Router family now resolves to 7.18.3. `npm audit --omit=dev --json` reports 4 high package entries, all in the remaining Prisma/deepmerge chain, whose offered fix is semver-major. OI-9 now tracks only that chain.
 - Printify public API availability was previously reported verified; Tapstitch API availability remains an open vendor question. Neither was rechecked here.
 - XML remains the recorded preference for Champion-facing modules; “project knowledge files” remains the recorded term for files uploaded into project context.
 - No live cart mutation, completed checkout, customer OAuth session or successful full storefront chat response has yet been verified.
 
 ## 10. NEXT ACTIONS
 
-1. Confirm at the providers that every previously exposed OpenAI, Anthropic if applicable, and Shopify value is revoked or unusable. Rotation is operator-reported complete; the old-value death check is not independently verified.
-2. Commit and deploy the current shared vision changes, then test both front doors: uploaded image → `/vision-copy` → Claude text and generated OpenAI PNG → opaque reference → `/vision-copy` → Claude text. Also test the complete widget → `/chat` → selected text provider → Shopify tools → widget response path. Treat `/chat?health=true` as reachability only.
+1. Commit and deploy the current shared vision and React Router changes, then test both front doors: uploaded image → `/vision-copy` → Claude text and generated OpenAI PNG → opaque reference → `/vision-copy` → Claude text. Also test the complete widget → `/chat` → selected text provider → Shopify tools → widget response path. Treat `/chat?health=true` as reachability only.
+2. Record the live verification results with timestamps; a clean pass on `/chat`, both `/vision-copy` front doors, and an identity-bearing image fixture closes OI-5/OI-10 and advances both rails to `integration tested`.
 3. Verify customer OAuth, cart handoff and database persistence in production, then run `shopify app deploy` to synchronize application and redirect configuration if it has not already been deployed.
 4. Inspect intended baby products individually, including current status and sales-channel assignment; repeat relevant search and lookup checks after any approved changes.
 5. Re-observe Knowledge Base gaps; make the operator's intended changes based on current state.

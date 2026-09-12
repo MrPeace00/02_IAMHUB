@@ -278,7 +278,7 @@
       if (!answer) assistant.textContent = "I couldn't produce image advice this time.";
     }
 
-    async function requestVision(source, task, context) {
+    async function requestVision(source, task) {
       if (busy) return;
       const label = task === "copy" ? "Writing product copy" : "Reviewing product options";
       const pending = addMessage(label, "assistant", true);
@@ -290,12 +290,11 @@
         if (source.kind === "generated") {
           if (!source.reference) throw new Error("Generate the artwork again before sending it to Claude");
           headers["Content-Type"] = "application/json";
-          body = JSON.stringify({ image_reference: source.reference, task, context });
+          body = JSON.stringify({ image_reference: source.reference, task });
         } else {
           body = new FormData();
           body.append("image", source.file);
           body.append("task", task);
-          body.append("context", context || "");
         }
 
         const response = await fetch(`${backend}/vision-copy`, {
@@ -351,13 +350,13 @@
       copyButton.dataset.lazyVisionAction = "copy";
       copyButton.type = "button";
       copyButton.textContent = "Write product copy";
-      copyButton.addEventListener("click", () => requestVision(source, "copy", prompt));
+      copyButton.addEventListener("click", () => requestVision(source, "copy"));
       const guidanceButton = document.createElement("button");
       guidanceButton.className = "lazy-home__vision-action lazy-home__vision-action--secondary";
       guidanceButton.dataset.lazyVisionAction = "guidance";
       guidanceButton.type = "button";
       guidanceButton.textContent = "Get product advice";
-      guidanceButton.addEventListener("click", () => requestVision(source, "guidance", prompt));
+      guidanceButton.addEventListener("click", () => requestVision(source, "guidance"));
       commands.append(copyButton, guidanceButton);
       const note = document.createElement("p");
       note.className = "lazy-home__art-note";

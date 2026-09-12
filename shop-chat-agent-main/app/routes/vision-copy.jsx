@@ -6,18 +6,12 @@ import {
   getClientIp,
   validateGenerationSession,
 } from "../services/generation-rate-limit.server.js";
-import { createAnthropicService } from "../services/anthropic.server.js";
 import { createSseStream } from "../services/streaming.server.js";
 import {
   prepareVisionImage,
   resolveGeneratedVisionImage,
 } from "../services/vision-image.server.js";
-import {
-  buildVisionRequest,
-  generateVisionCopy,
-  sanitizeVisionContext,
-  VISION_TASKS,
-} from "../services/vision-copy.server.js";
+import { generateVisionCopy, generateVisionGuidance, VISION_TASKS } from "../services/vision-copy.server.js";
 
 const MAX_REQUEST_BYTES = 5 * 1024 * 1024 + 32 * 1024;
 
@@ -45,7 +39,6 @@ function errorResponse(request, error) {
 async function readVisionInput(request, sessionId) {
   const contentType = request.headers.get("Content-Type") || "";
   let task;
-  let context;
   let imageBytes;
   let claimedMediaType;
 
@@ -58,13 +51,11 @@ async function readVisionInput(request, sessionId) {
       throw error;
     }
     task = form.get("task");
-    context = form.get("context");
     claimedMediaType = image.type;
     imageBytes = Buffer.from(await image.arrayBuffer());
   } else if (contentType.toLowerCase().startsWith("application/json")) {
     const payload = await request.json();
     task = payload?.task;
-    context = payload?.context;
     imageBytes = resolveGeneratedVisionImage(payload?.image_reference, sessionId);
   } else {
     const error = new Error("Use JSON for generated artwork or multipart form data for an upload");
@@ -80,7 +71,6 @@ async function readVisionInput(request, sessionId) {
 
   return {
     task,
-    context: sanitizeVisionContext(context),
     image: await prepareVisionImage(imageBytes, claimedMediaType),
   };
 }
@@ -124,12 +114,9 @@ export async function action({ request }) {
       return jsonResponse(request, { copy, source: "anthropic" });
     }
 
-    const aiService = createAnthropicService();
     const responseStream = createSseStream(async (stream) => {
-      await aiService.streamResponse(
-        buildVisionRequest({ ...input, task: "guidance" }),
-        { onText: (chunk) => stream.sendMessage({ type: "chunk", chunk }) },
-      );
+      const guidance = await generateVisionGuidance(input);
+      stream.sendMessage({ type: "chunk", chunk: guidance });
       stream.sendMessage({ type: "message_complete" });
     });
 
