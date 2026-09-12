@@ -1,0 +1,21 @@
+{
+  "startedAt": "2026-09-12T07:05:08.761Z",
+  "finishedAt": "2026-09-12T07:05:12.848Z",
+  "status": 200,
+  "body": {
+    "copy": {
+      "description": "A minimalist graphic featuring a solid teal circle beside a mustard-yellow rectangle with a white circle cutout, paired with bold pixel-style text reading 'WILD BLOOM'. Clean geometric shapes and a retro typographic treatment give this design a playful, nature-inspired feel suitable for apparel, packaging, or decor accents.",
+      "tags": [
+        "geometric design",
+        "pixel typography",
+        "teal and mustard",
+        "minimalist graphic",
+        "nature-inspired",
+        "retro style"
+      ],
+      "altText": "Teal circle and mustard rectangle with white circle cutout above pixel-style text reading WILD BLOOM.",
+      "caption": "Wild Bloom - bold shapes, retro pixel type."
+    },
+    "source": "anthropic"
+  }
+}

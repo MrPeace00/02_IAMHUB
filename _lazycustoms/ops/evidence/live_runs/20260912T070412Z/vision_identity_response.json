@@ -1,0 +1,19 @@
+{
+  "startedAt": "2026-09-12T07:05:28.387Z",
+  "finishedAt": "2026-09-12T07:05:31.817Z",
+  "status": 200,
+  "body": {
+    "copy": {
+      "description": "Custom artwork featuring customer-provided personalization, ready to adapt to a suitable product.",
+      "tags": [
+        "customizable",
+        "personalized",
+        "custom-design",
+        "gift-ready"
+      ],
+      "altText": "Custom artwork with customer-provided personalized details",
+      "caption": "A design made personal for the occasion"
+    },
+    "source": "anthropic"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-09-12T07:04:28.774Z",
+  "generator": "create_live_verification_fixtures_20260912.mjs",
+  "renderer": "dependency-free RGB PNG with embedded 5x7 bitmap glyphs",
+  "dimensions": {
+    "width": 640,
+    "height": 400
+  },
+  "files": [
+    {
+      "name": "vision_upload_fixture.png",
+      "purpose": "non-identity upload path",
+      "byteLength": 768578,
+      "sha256": "a1d15bb1ebd2a7305a09eb574eed23926ec22080954ab4e0f78b00400223e06a"
+    },
+    {
+      "name": "vision_identity_fixture.png",
+      "purpose": "printed-name and birthday identity boundary",
+      "byteLength": 768578,
+      "sha256": "97ae2aa6deec768c76e7ea937b81d9494e7f9167cc1010b1302a37d55eff7ea4"
+    }
+  ]
+}

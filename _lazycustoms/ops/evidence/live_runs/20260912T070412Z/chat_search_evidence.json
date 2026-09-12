@@ -1,0 +1,26 @@
+{
+  "startedAt": "2026-09-12T07:04:35.767Z",
+  "finishedAt": "2026-09-12T07:05:08.755Z",
+  "status": 200,
+  "completed": true,
+  "toolNames": [
+    "search_catalog",
+    "search_catalog",
+    "get_product",
+    "create_cart"
+  ],
+  "productCount": 2,
+  "productTitles": [
+    "Geometric Coffee Beans Hoodie — Brown Espresso Pattern Pullover",
+    "Unisex Garment-Dyed T-shirt"
+  ],
+  "authRequired": false,
+  "assistantConfirmedCart": true,
+  "checkoutHandoff": {
+    "returned": true,
+    "origin": "https://vbw9zu-f7.myshopify.com",
+    "path": "/cart/c/[redacted]",
+    "credentialPresentInLiveResponse": true
+  },
+  "assistantText": "## Live catalog results\n\n### **Selected: Unisex Garment-Dyed T-shirt**\n![White customizable T-shirt](https://cdn.shopify.com/s/files/1/1025/6626/5154/files/41107881754190080_2048.jpg?v=1786675401)\n\n- **Customizable surface:** Supports personalized designs\n- **Chosen variant:** White / XL—the first available variant\n- **Price:** **$33.99 USD**\n- **Fit:** Relaxed unisex\n- [View product](https://lazycustoms.com/products/unisex-garment-dyed-t-shirt)\n\n### **Closest winter alternative: Geometric Coffee Beans Hoodie**\n![Geometric Coffee Beans Hoodie](https://cdn.shopify.com/s/files/1/1025/6626/5154/files/14971022746232644059_2048.jpg?v=1786675409)\n\n- **Price:** From **$35.97 USD**\n- **Features:** Midweight pullover, double-lined hood, kangaroo pocket\n- **Note:** The live listing does **not explicitly confirm text-on-image personalization**, so I did not select it.\n- [View product](https://lazycustoms.com/products/geometric-coffee-beans-hoodie-brown-espresso-pattern-pullover)\n\n**Cart created successfully:** 1 customizable T-shirt, White / XL, subtotal **$33.99 USD**.\n\nThe catalog confirms a customizable design surface but does not expose a dedicated text-on-image field, so please verify personalization details in the native store flow before paying. You can [click here to proceed to checkout](https://vbw9zu-f7.myshopify.com/cart/c/[redacted]?credential=[redacted])."
+}

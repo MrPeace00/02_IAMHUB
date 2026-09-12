@@ -1,0 +1,22 @@
+{
+  "startedAt": "2026-09-12T07:05:24.811Z",
+  "finishedAt": "2026-09-12T07:05:28.383Z",
+  "status": 200,
+  "body": {
+    "copy": {
+      "description": "A charming hand-illustrated wildflower bouquet featuring daisies, cornflowers, coneflowers, lavender sprigs, buttercups, and delicate white blossoms, tied together with a rustic twine bow. This artwork brings a fresh, garden-inspired look perfect for custom prints, cards, or decorative items.",
+      "tags": [
+        "wildflower bouquet",
+        "floral illustration",
+        "daisy art",
+        "rustic twine bow",
+        "botanical design",
+        "spring florals",
+        "hand-drawn flowers"
+      ],
+      "altText": "Illustrated wildflower bouquet with daisies, cornflowers, coneflowers, and lavender tied with a twine bow",
+      "caption": "A rustic wildflower bouquet illustration bursting with color"
+    },
+    "source": "anthropic"
+  }
+}

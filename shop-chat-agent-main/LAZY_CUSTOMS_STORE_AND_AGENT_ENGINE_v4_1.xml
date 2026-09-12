@@ -233,7 +233,7 @@
     </ScopeLimit>
   </Objective>
 
-  <CurrentArchitecture effectiveDate="2026-09-11">
+  <CurrentArchitecture effectiveDate="2026-09-12">
     <CustomerChat provider="configurable" api="Anthropic Messages API or OpenAI Responses API" defaultProvider="AI_TEXT_PROVIDER=anthropic in .env.example">
       The backend routes customer text through app/services/ai.server.js. When
       AI_TEXT_PROVIDER=anthropic or claude, it streams Claude text through
@@ -242,7 +242,7 @@
       OpenAI Responses and exposes Shopify-discovered MCP tools as function tools.
       ANTHROPIC_CHAT_MODEL and OPENAI_CHAT_MODEL may override their provider defaults.
     </CustomerChat>
-    <IntakeQuiz addedIn="4.0" rung="prerequisites tested">
+    <IntakeQuiz addedIn="4.0" rung="integration tested">
       A structured intake form (name, age, audience: man/woman/child, season: summer/fall/
       winter/spring, product category, customization mode: text-only/image-only/text-on-image)
       sits above the freeform search box in the homepage theme block. On submit it composes a
@@ -472,9 +472,9 @@
       <Label>production integration</Label>
       <Label>eligible for a specific vendor surface</Label>
     </RequiredCapabilityLabels>
-    <CurrentLocalRung capability="Customer-facing AI text provider router">integration in development</CurrentLocalRung>
-    <CurrentLocalRung capability="Structured intake quiz (Phase 1)" addedIn="4.0">prerequisites tested</CurrentLocalRung>
-    <CurrentLocalRung capability="Shared Claude image-to-text rail" addedIn="4.1-maintenance">prerequisites tested</CurrentLocalRung>
+    <CurrentLocalRung capability="Customer-facing AI text provider router">integration tested</CurrentLocalRung>
+    <CurrentLocalRung capability="Structured intake quiz (Phase 1)" addedIn="4.0">integration tested</CurrentLocalRung>
+    <CurrentLocalRung capability="Shared Claude image-to-text rail" addedIn="4.1-maintenance">integration tested</CurrentLocalRung>
     <CurrentLocalEvidence>
       Source implementation, unit/static regression tests, lint, type checking, and production
       build passed locally on 2026-09-09. No live OpenAI or Anthropic request, live browser
@@ -501,6 +501,22 @@
       Anthropic request, deployed storefront image handoff, customer browser round trip,
       cart/OAuth flow, or checkout was verified.
     </CurrentLocalEvidence>
+    <CurrentLiveEvidence evidenceDate="2026-09-12" addedIn="4.1-maintenance">
+      Four UTC-stamped direct-endpoint checks passed while origin/main matched expected source
+      commit f258473. The health route did not expose an exact Railway runtime SHA. The /chat
+      flow used sanitized quiz context, Claude, search_catalog, two product cards, exact
+      create_cart invocation, assistant cart confirmation, and a native checkout handoff. The
+      SSE contract did not expose the raw Shopify tool result. A deterministic uploaded PNG
+      returned structured Claude copy. A validated OpenAI-generated PNG was accepted by Claude
+      through its session-bound reference and returned structured copy. A deterministic image
+      containing ALEX and BIRTHDAY CREW returned none of those terms and exactly matched every
+      field of the fixed NR-8 fallback. OI-5 and OI-10 close under this operator-defined
+      direct-endpoint integration gate, and the text/quiz and vision rails advance to
+      integration tested at that scope. This does not establish browser/widget behavior, an
+      independently persisted cart tool result, completed purchase, authenticated customer
+      OAuth, database persistence, third-party agent visibility, catalog completeness, or exact
+      runtime-SHA attestation.
+    </CurrentLiveEvidence>
   </EvidenceAndMaturity>
 
   <ImplementationWorkflow>
@@ -584,33 +600,40 @@
       fallback, and OpenAI image generation remains the artwork rail. Shopify MCP tool
       orchestration is preserved. Full production chat/tool/OAuth behavior is unverified.
     </Item>
-    <Item capability="Railway backend health" evidenceDate="2026-09-10" rung="deployment health verified">
+    <Item capability="Railway backend health" evidenceDate="2026-09-12" rung="deployment health verified">
       Hosting was consolidated onto a single project, valiant-liberation; ai.lazycustoms.com
       returned HTTP 200 from /chat?health=true in the current-state record. Health confirms
-      backend reachability only; provider response, Shopify tool execution, customer OAuth,
-      cart mutation, and checkout remain unverified.
+      backend reachability only. Separate September 12 direct-endpoint evidence verifies provider
+      response, Shopify catalog tool invocation, product cards, create_cart invocation, assistant
+      cart confirmation, and checkout handoff. Raw Shopify tool result, browser/widget behavior,
+      authenticated customer OAuth, database persistence, completed checkout/payment, and exact
+      runtime SHA remain unverified.
     </Item>
     <Item capability="Dependency vulnerabilities" evidenceDate="2026-09-12" rung="accepted tracked risk" addedIn="4.0">
       The matched React Router family now resolves to 7.18.3 and no Router finding remains.
       npm audit --omit=dev --json reports four high-severity package entries, all in the current
       deepmerge-ts → prisma dependency chain. The offered fix is semver-major; see OI-9.
     </Item>
-    <Item capability="Structured intake quiz (Phase 1)" evidenceDate="2026-09-11" rung="prerequisites tested" addedIn="4.0">
+    <Item capability="Structured intake quiz (Phase 1)" evidenceDate="2026-09-12" rung="integration tested" addedIn="4.0">
       Quiz UI, sanitized current-turn quiz-context injection into the configured AI text input,
       tag normalization, customization modes (text-only/image-only/text-on-image), dynamic fact
       overwrite support, and the product-display cap raised from 3 to 8 are implemented and
-      locally verified by 23/23 tests, clean lint, clean typecheck, and clean production build.
-      No live browser or production verification has been recorded in this engine yet.
+      locally verified by 32/32 tests, clean lint, clean typecheck, and clean production build.
+      The live direct-endpoint run passed quiz-context Claude catalog search, product-card return,
+      create_cart invocation, assistant cart confirmation, and native checkout handoff. It did
+      not exercise the browser/widget UI or expose a raw Shopify tool-result event.
     </Item>
-    <Item capability="Shared Claude image-to-text rail" evidenceDate="2026-09-12" rung="prerequisites tested" addedIn="4.1-maintenance">
+    <Item capability="Shared Claude image-to-text rail" evidenceDate="2026-09-12" rung="integration tested" addedIn="4.1-maintenance">
       The local theme presents Create with OpenAI and Upload for Claude front doors. Uploaded
       images and short-lived references to generated PNGs converge at /vision-copy, where
       input validation, metadata removal, Claude message assembly, and strict copy/guidance
       parsing are implemented. The route accepts no customer text context. Identity-bearing
       model output is replaced with fixed generic text and no Shopify Admin/Prisma write surface
       is imported. The full local suite passes 32/32 tests with clean lint, typecheck, and
-      production build. Deployment
-      and a real browser/provider round trip remain unverified under OI-5 and OI-10.
+      production build. Live direct-endpoint upload and OpenAI-generated-image handoff requests both
+      returned HTTP 200 structured Claude copy. The identity-bearing fixture returned no name
+      or birthday terms and exactly matched every field of the fixed generic fallback. Fixture,
+      script, and response hashes are recorded in the run evidence manifest.
     </Item>
     <Item capability="UCP publication" evidenceDate="2026-09-12" rung="protocol publication verified">
       The September 12 UTC recheck returned HTTP 200 at
@@ -649,18 +672,10 @@
       <ClosesWhen>Closed by the September 12 UTC recheck: storefront homepage HTTP 200, password protection inactive, catalog feed HTTP 200, and discovery unrestricted. Reopen only if a newer probe or admin observation shows the gate active again.</ClosesWhen>
       <Blocks>Closed for current storefront access claims; does not close live chat, cart, OAuth, checkout, or catalog-completeness verification.</Blocks>
     </OpenItem>
-    <OpenItem id="OI-5" owner="Mr. Peace and deployment agent" state="live round trip needed">
-      <Issue>The customer-facing text provider router, Phase 1 intake quiz, and shared Claude image-to-text rail are implemented, backend health is recorded, and the September 12 UTC recheck shows public catalog/UCP access reachable. A complete live customer message through provider response, Shopify tools, product-card return, uploaded-image or generated-image Claude handoff, cart handoff, database persistence, and OAuth is still not recorded.</Issue>
-      <ClosesWhen>
-        Railway has the selected text-provider key (ANTHROPIC_API_KEY when Claude is selected,
-        or OPENAI_API_KEY when OpenAI is selected), OPENAI_API_KEY for artwork, and required
-        Shopify variables; database migration succeeds on the persistent volume; the Shopify
-        app and theme extension are released; storefront password protection remains removed unless
-        intentionally retained later; and browser-to-provider-to-Shopify chat, the intake quiz,
-        product cards, artwork preview/download, uploaded-image Claude copy/guidance, and
-        generated-image-reference Claude copy/guidance are all verified.
-      </ClosesWhen>
-      <Blocks>Production-integration status.</Blocks>
+    <OpenItem id="OI-5" owner="Mr. Peace and deployment agent" state="closed 2026-09-12">
+      <Issue>Before closure, the customer-facing text provider router, Phase 1 intake quiz, and shared Claude image-to-text rail had only local prerequisites evidence; provider response, Shopify tools, product-card return, vision handoffs, and cart handoff still needed a deployed live run.</Issue>
+      <ClosesWhen>Closed by the operator-defined four-check direct-endpoint gate recorded at 2026-09-12T07:04:35Z through 07:05:31Z: live chat/quiz to Claude and Shopify catalog/create_cart/checkout handoff, uploaded-image Claude copy, OpenAI-generated-image Claude copy, and the NR-8 identity fixture all passed.</ClosesWhen>
+      <Blocks>Closed for direct-endpoint integration-tested status. Raw Shopify cart tool result, browser/widget behavior, completed purchase, authenticated OAuth, database persistence, exact Railway runtime SHA, third-party agent visibility, and catalog completeness remain separate claims.</Blocks>
     </OpenItem>
     <OpenItem id="OI-6" owner="verification agent" state="resolved for current state">
       <Issue>Live UCP capability publication was verified on 2026-09-08, regressed to a September 11 redirect to /password, and was reverified on September 12 UTC with HTTP 200 at /.well-known/ucp.</Issue>
@@ -675,17 +690,17 @@
     <OpenItem id="OI-8" owner="Mr. Peace" state="closed 2026-09-12" addedIn="4.0">
       <Issue>Previously exposed OpenAI, Anthropic, and Shopify values were rotated, and their old values were confirmed inactive or revoked through dated operator-stated provider-dashboard checks.</Issue>
       <ClosesWhen>Closed 2026-09-12: Shopify, OpenAI, and Anthropic old-value status was confirmed, and replacement values were confirmed live in Railway valiant-liberation.</ClosesWhen>
-      <Blocks>Closed; no longer a deploy blocker. OI-5 and OI-10 remain the separate live-verification gates.</Blocks>
+      <Blocks>Closed; no longer a deploy blocker.</Blocks>
     </OpenItem>
     <OpenItem id="OI-9" owner="project team" state="accepted tracked risk" addedIn="4.0">
       <Issue>The post-remediation production audit reports four high-severity package entries, all in the deepmerge-ts → prisma dependency chain. React Router was remediated compatibly at 7.18.3; the offered fix for the remaining chain is semver-major.</Issue>
       <ClosesWhen>Compatible upstream fixes ship and are verified, or the project schedules and verifies the required framework/dependency migration.</ClosesWhen>
       <Blocks>A fully clean npm audit; currently an accepted, tracked risk rather than a resolved one.</Blocks>
     </OpenItem>
-    <OpenItem id="OI-10" owner="verification agent" state="unverified" addedIn="4.0">
-      <Issue>The customer OAuth (PKCE) flow, current intake-quiz/provider-router behavior, and shared Claude image-to-text front doors have not been exercised in a live browser against a deployed instance and recorded in this engine.</Issue>
-      <ClosesWhen>A real browser click-through of customer chat, quiz-driven search, product display, uploaded-image Claude text, generated-image-to-Claude text, and OAuth against ai.lazycustoms.com succeeds and is recorded.</ClosesWhen>
-      <Blocks>Any "integration tested" or "production integration" rung for these features.</Blocks>
+    <OpenItem id="OI-10" owner="verification agent" state="closed 2026-09-12" addedIn="4.0">
+      <Issue>Before closure, current intake-quiz/provider-router behavior and both shared Claude image-to-text front doors had not been exercised against a deployed instance and recorded in this engine.</Issue>
+      <ClosesWhen>Closed by the recorded four-check direct-endpoint run while origin/main matched expected source commit f258473: quiz-driven chat, product display, create_cart invocation, checkout handoff, uploaded-image Claude text, generated-image-to-Claude text, and the identity fixture passed.</ClosesWhen>
+      <Blocks>Closed for direct-endpoint integration-tested status. Exact runtime SHA, browser/widget UI, raw cart tool result, and authenticated OAuth remain unverified rather than inferred.</Blocks>
     </OpenItem>
     <OpenItem id="OI-11a" owner="project team" state="not blocked by Printify gate" addedIn="4.1">
       <Issue>The Lazy Chat tiered-discovery methodology's engagement-logging and ranking side — showing tiered results against the existing catalog and logging which items were chosen, shown-and-passed-over, or unmatched — creates no new products and needs no Printify write access.</Issue>
@@ -701,6 +716,11 @@
       <Issue>No SEO, structured-data, sitemap, or search-optimization work has begun, and none should begin while OI-1/OI-2 remain open.</Issue>
       <ClosesWhen>OI-1 and OI-2 close, then SearchAndDiscoveryOptimization/SEO-1 through SEO-11 can be actioned against a real, published catalog.</ClosesWhen>
       <Blocks>Any credible discoverability or ranking claim.</Blocks>
+    </OpenItem>
+    <OpenItem id="OI-13" owner="verification agent" state="closed 2026-09-12" addedIn="4.1-maintenance">
+      <Issue>The repository's earlier v4.1 engine did not assign an open-item identifier to the NR-8 model-mediated identity-image residual; the operator's September 12 reconciliation names that residual OI-13.</Issue>
+      <ClosesWhen>Closed by the live identity-bearing PNG check: the printed name ALEX was absent from the response and the fixed generic copy object was returned exactly.</ClosesWhen>
+      <Blocks>Closed; NR-8's model-mediated image residual passed live verification.</Blocks>
     </OpenItem>
   </OpenItems>
 
@@ -907,11 +927,14 @@
     <Test id="VT-9" addedIn="4.0">
       <Prompt>Is the new intake quiz live for customers?</Prompt>
       <Pass>
-        State the latest local verification count after this maintenance pass, and state that
-        live customer chat, quiz-driven search, product display, and OAuth still require a
-        recorded browser round trip against ai.lazycustoms.com (OI-5, OI-10).
+        State that the September 12 direct-endpoint request passed while origin/main matched
+        expected source commit f258473: quiz-driven Claude search_catalog, two product cards,
+        create_cart invocation, assistant cart confirmation, and native checkout handoff,
+        earning integration tested at that scope. Keep exact runtime SHA, browser/widget UI, raw
+        cart tool result, authenticated OAuth, database persistence, and completed checkout or
+        payment outside that claim.
       </Pass>
-      <Fail>Describing the quiz as available to real customers without live verification.</Fail>
+      <Fail>Inflating the live result into authenticated OAuth, database-persistence, completed-payment, or catalog-completeness proof.</Fail>
     </Test>
     <Test id="VT-10" addedIn="4.0">
       <Prompt>Are the previously exposed OpenAI, Anthropic, and Shopify keys now verified dead?</Prompt>
@@ -1093,6 +1116,20 @@
       its audit findings and narrowing OI-9 to four Prisma/deepmerge package entries. Also
       encoded NR-8 at /vision-copy: no customer text context, strict identity flags, fixed generic
       fallback output, no Shopify Admin writes, VT-15, and 32/32 local tests.
+    </Change>
+    <Change from="4.1-maintenance" to="4.1-maintenance">
+      Recorded four UTC-stamped direct-endpoint checks while origin/main matched expected source
+      commit f258473; exact Railway runtime SHA was unavailable. Claude completed quiz-driven
+      Shopify catalog search, two product cards, create_cart invocation, assistant cart
+      confirmation, and native checkout handoff; uploaded and OpenAI-generated PNG endpoints
+      both returned structured Claude copy; and the ALEX/BIRTHDAY CREW fixture returned no
+      identity terms and exactly matched every fixed NR-8 fallback field. Deterministic fixtures,
+      exclusive-create run directories, full SHA-256 manifests, reconstructed-text redaction,
+      and structural assertions replace the superseded pre-publication evidence. Closed OI-5 and
+      OI-10 under this defined direct-endpoint gate, reconciled OI-13 as closed, and advanced the
+      text/quiz and vision rails to integration tested at that scope without claiming browser UI,
+      raw cart tool-result persistence, authenticated OAuth, database persistence, completed
+      checkout/payment, exact runtime SHA, third-party agent visibility, or catalog completeness.
     </Change>
   </Changelog>
 

@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "createdAt": "2026-09-12T07:05:31.824Z",
+  "runDirectory": "20260912T070412Z",
+  "sourceFiles": {
+    "runner": {
+      "path": "run_live_verification_20260912.mjs",
+      "sha256": "d7907a0327bf1d3091893c4f99544775e7f903ccb5a6adb883c11092672dc153"
+    },
+    "fixtureGenerator": {
+      "path": "create_live_verification_fixtures_20260912.mjs",
+      "sha256": "2c8ca3ec697de877174f68c68c8e5dca05f6f2d5f5ec1c84b605600b6ff1b991"
+    }
+  },
+  "files": [
+    {
+      "name": "chat_search_evidence.json",
+      "byteLength": 2046,
+      "sha256": "c7f43979570987a0a48cd38994b81c912e08a095d723f52e617c487a6efa0e18"
+    },
+    {
+      "name": "fixture_manifest.json",
+      "byteLength": 729,
+      "sha256": "b0c1e74082ecc01ec6e20f02bdf9de546f7da5bd645d7daf0ee7b17ff9c345d9"
+    },
+    {
+      "name": "generated_openai.png",
+      "byteLength": 1651937,
+      "sha256": "92b88f6719e6e3610313120a234299feae38873f23ecaa35446bffd0fa131ee6"
+    },
+    {
+      "name": "generated_openai_metadata.json",
+      "byteLength": 303,
+      "sha256": "85f9f20a1fa877aeb1eecd41a0ccd176c0c96c0e4c041e76d646cafbbe74ba34"
+    },
+    {
+      "name": "live_verification_summary.json",
+      "byteLength": 3677,
+      "sha256": "fd62de61a23ef812bf7b968be094158661765a915c6d2d9c29f2649ce37ebc85"
+    },
+    {
+      "name": "vision_generated_handoff_response.json",
+      "byteLength": 913,
+      "sha256": "604a0706912538d15e4d39ce86ef4d283d9893a2ad5d5a89794d9a0dfdad16ba"
+    },
+    {
+      "name": "vision_identity_fixture.png",
+      "byteLength": 768578,
+      "sha256": "97ae2aa6deec768c76e7ea937b81d9494e7f9167cc1010b1302a37d55eff7ea4"
+    },
+    {
+      "name": "vision_identity_response.json",
+      "byteLength": 550,
+      "sha256": "75f5dfe4630732134e6efcbd27f201663aabe7fe2b38d92fa6017958d2735889"
+    },
+    {
+      "name": "vision_upload_fixture.png",
+      "byteLength": 768578,
+      "sha256": "a1d15bb1ebd2a7305a09eb574eed23926ec22080954ab4e0f78b00400223e06a"
+    },
+    {
+      "name": "vision_upload_response.json",
+      "byteLength": 894,
+      "sha256": "911c4b07672148f8ff048bac2429a91a7fe992e995a338350276a21e8341100f"
+    }
+  ]
+}

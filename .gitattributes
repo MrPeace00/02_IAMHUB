@@ -1,0 +1,4 @@
+# Evidence manifests hash exact bytes; preserve LF while keeping text reviewable.
+_lazycustoms/ops/evidence/live_runs/** text eol=lf
+_lazycustoms/ops/evidence/create_live_verification_fixtures_20260912.mjs text eol=lf
+_lazycustoms/ops/evidence/run_live_verification_20260912.mjs text eol=lf

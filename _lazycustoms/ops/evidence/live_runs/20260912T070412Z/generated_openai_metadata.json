@@ -1,0 +1,10 @@
+{
+  "startedAt": "2026-09-12T07:05:12.853Z",
+  "finishedAt": "2026-09-12T07:05:24.804Z",
+  "status": 200,
+  "contentType": "image/png",
+  "byteLength": 1651937,
+  "sha256": "92b88f6719e6e3610313120a234299feae38873f23ecaa35446bffd0fa131ee6",
+  "validPngSignature": true,
+  "imageReferenceIssued": true
+}
