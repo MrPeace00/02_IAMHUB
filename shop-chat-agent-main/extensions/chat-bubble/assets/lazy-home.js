@@ -1,12 +1,13 @@
 (function () {
   "use strict";
 
-  const globalFulfillmentPrompt = "Show me available Printify products suited to global fulfillment first. Ask for my delivery country only if you need it to confirm availability.";
+  const STARTER_INTENTS = ['global_fulfillment', 'shopify_catalog'];
+  const globalFulfillmentPrompt = "Check verified Printify Choice global fulfillment options.";
   const shopifyPrompt = "Show me the Lazy Customs Shopify catalog from any provider.";
 
   const initialSuggestions = [
-    { label: "Global fulfillment", prompt: globalFulfillmentPrompt },
-    { label: "Shopify", prompt: shopifyPrompt },
+    { label: "Global fulfillment", prompt: globalFulfillmentPrompt, intent: 'global_fulfillment' },
+    { label: "Shopify", prompt: shopifyPrompt, intent: 'shopify_catalog' },
     { label: "Find a thoughtful gift", prompt: "I need a thoughtful gift" },
     { label: "Something cozy", prompt: "Show me something cozy" },
     { label: "Create custom art", action: "art" },
@@ -165,6 +166,12 @@
         button.textContent = item.label;
         button.addEventListener("click", () => {
           if (busy) return;
+          if (item.intent) {
+            artMode = false;
+            if (quizForm) quizForm.hidden = true;
+            streamChat(item.prompt, undefined, item.intent);
+            return;
+          }
           if (item.action === "art") {
             startArtworkMode();
             return;
@@ -432,12 +439,14 @@
       status.textContent = "Image ready. Choose the text you want Claude to create.";
     }
 
-    async function streamChat(prompt, quiz) {
+    async function streamChat(prompt, quiz, intent) {
       addMessage(prompt, "user");
       const assistant = addMessage("Thinking", "assistant", true);
       setBusy(true, "Looking through Lazy Customs…");
 
       try {
+        if (intent !== undefined && !STARTER_INTENTS.includes(intent)) throw new Error('Unsupported starter intent');
+        if (intent) products.replaceChildren();
         const response = await fetch(`${backend}/chat`, {
           method: "POST",
           headers: {
@@ -447,6 +456,7 @@
           },
           body: JSON.stringify({
             message: prompt,
+            ...(intent ? { intent } : {}),
             conversation_id: sessionStorage.getItem(conversationKey),
             prompt_type: "systemShopping",
             ...(quiz ? { quiz } : {}),
@@ -478,6 +488,9 @@
 
             if (data.type === "id" && data.conversation_id) {
               sessionStorage.setItem(conversationKey, data.conversation_id);
+            } else if (data.type === "starter_result") {
+              assistant.dataset.starterIntent = data.intent;
+              assistant.dataset.verificationState = data.state;
             } else if (data.type === "chunk") {
               answer += data.chunk || "";
               assistant.classList.remove("lazy-home__message--pending");
@@ -492,7 +505,7 @@
 
         assistant.classList.remove("lazy-home__message--pending");
         if (!answer) assistant.textContent = "Tell me one more detail and I’ll narrow it down.";
-        renderChips(suggestionsFor(prompt, false));
+        renderChips(intent === 'global_fulfillment' ? initialSuggestions : suggestionsFor(prompt, false));
         setBusy(false, "");
       } catch (error) {
         assistant.classList.remove("lazy-home__message--pending");
@@ -524,13 +537,13 @@
       if (busy) return;
       artMode = false;
       if (quizForm) quizForm.hidden = true;
-      streamChat(globalFulfillmentPrompt);
+      streamChat(globalFulfillmentPrompt, undefined, 'global_fulfillment');
     });
     root.querySelector('[data-lazy-shopify-start]')?.addEventListener('click', () => {
       if (busy) return;
       artMode = false;
       if (quizForm) quizForm.hidden = true;
-      streamChat(shopifyPrompt);
+      streamChat(shopifyPrompt, undefined, 'shopify_catalog');
     });
     imageUpload.addEventListener("change", () => {
       const file = imageUpload.files?.[0];
