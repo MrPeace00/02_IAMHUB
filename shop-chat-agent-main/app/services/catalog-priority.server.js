@@ -65,7 +65,12 @@ export function addProviderPreference(tools) {
 }
 
 export function requestedProviderPreference(message, preference) {
-  return /\b(?:not|no|exclude|excluding|except|without)\s+printify\b|\bnon[- ]printify\b|\b(?:another|other|different)\s+(?:print\s+)?provider\b/i.test(message || '') ? 'exclude_printify' : preference;
+  const text = message || '';
+  if (/\b(?:not|no|exclude|excluding|except|without)\s+printify\b|\bnon[- ]printify\b|\b(?:another|other|different)\s+(?:print\s+)?provider\b/i.test(text)) {
+    return 'exclude_printify';
+  }
+  if (/\b(?:any|all)\s+(?:print\s+)?providers?\b/i.test(text)) return 'any';
+  return preference;
 }
 
 export function catalogArgsForRequest(message, args = {}) {

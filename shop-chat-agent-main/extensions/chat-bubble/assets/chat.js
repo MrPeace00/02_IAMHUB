@@ -969,10 +969,17 @@
       chatInput.disabled = false;
       sendButton.disabled = false;
 
-      const printifyStart = container.querySelector('[data-shop-ai-printify]');
-      if (printifyStart) printifyStart.addEventListener('click', () => {
+      const globalStart = container.querySelector('[data-shop-ai-global]');
+      if (globalStart) globalStart.addEventListener('click', () => {
         if (chatInput.disabled || sendButton.disabled) return;
-        chatInput.value = 'Show me available Printify shirts first.';
+        chatInput.value = 'Show me available Printify products suited to global fulfillment first. Ask for my delivery country only if you need it to confirm availability.';
+        sendButton.click();
+      });
+
+      const shopifyStart = container.querySelector('[data-shop-ai-shopify]');
+      if (shopifyStart) shopifyStart.addEventListener('click', () => {
+        if (chatInput.disabled || sendButton.disabled) return;
+        chatInput.value = 'Show me the Lazy Customs Shopify catalog from any provider.';
         sendButton.click();
       });
 

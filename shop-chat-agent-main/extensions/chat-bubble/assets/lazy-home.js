@@ -1,8 +1,12 @@
 (function () {
   "use strict";
 
+  const globalFulfillmentPrompt = "Show me available Printify products suited to global fulfillment first. Ask for my delivery country only if you need it to confirm availability.";
+  const shopifyPrompt = "Show me the Lazy Customs Shopify catalog from any provider.";
+
   const initialSuggestions = [
-    { label: "Shop Printify shirts", prompt: "Show me available Printify shirts first." },
+    { label: "Global fulfillment", prompt: globalFulfillmentPrompt },
+    { label: "Shopify", prompt: shopifyPrompt },
     { label: "Find a thoughtful gift", prompt: "I need a thoughtful gift" },
     { label: "Something cozy", prompt: "Show me something cozy" },
     { label: "Create custom art", action: "art" },
@@ -516,11 +520,17 @@
     });
 
     artStart.addEventListener("click", startArtworkMode);
-    root.querySelector('[data-lazy-printify-start]')?.addEventListener('click', () => {
+    root.querySelector('[data-lazy-global-start]')?.addEventListener('click', () => {
       if (busy) return;
       artMode = false;
       if (quizForm) quizForm.hidden = true;
-      streamChat('Show me available Printify shirts first.');
+      streamChat(globalFulfillmentPrompt);
+    });
+    root.querySelector('[data-lazy-shopify-start]')?.addEventListener('click', () => {
+      if (busy) return;
+      artMode = false;
+      if (quizForm) quizForm.hidden = true;
+      streamChat(shopifyPrompt);
     });
     imageUpload.addEventListener("change", () => {
       const file = imageUpload.files?.[0];

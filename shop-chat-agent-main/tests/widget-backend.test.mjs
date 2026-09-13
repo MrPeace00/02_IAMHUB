@@ -58,3 +58,19 @@ test('chat CORS rejects unlisted storefront origins', async () => {
   assert.equal(response.status, 403);
   assert.equal(response.headers.get('access-control-allow-origin'), null);
 });
+
+test('shopping starters lead with global fulfillment and keep Shopify as the store catalog', () => {
+  const homeLiquid = readFileSync(new URL('../extensions/chat-bubble/blocks/lazy-home.liquid', import.meta.url), 'utf8');
+  const chatLiquid = readFileSync(new URL('../extensions/chat-bubble/blocks/chat-interface.liquid', import.meta.url), 'utf8');
+  const homeScript = readFileSync(new URL('../extensions/chat-bubble/assets/lazy-home.js', import.meta.url), 'utf8');
+  const chatScript = readFileSync(new URL('../extensions/chat-bubble/assets/chat.js', import.meta.url), 'utf8');
+
+  for (const source of [homeLiquid, chatLiquid]) {
+    assert.ok(source.indexOf('Global fulfillment') < source.indexOf('Shopify'));
+    assert.doesNotMatch(source, /Shopify search/i);
+  }
+  for (const source of [homeScript, chatScript]) {
+    assert.match(source, /Printify products suited to global fulfillment first/);
+    assert.match(source, /Shopify catalog from any provider/);
+  }
+});

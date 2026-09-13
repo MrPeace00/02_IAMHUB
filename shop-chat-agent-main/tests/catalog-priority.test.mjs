@@ -60,6 +60,7 @@ test('explicit provider exclusion removes conflicting cards and unverified provi
   const result=await service.prepare({structuredContent:{products:[product(2),product(1),product(9)]}},origin,preference);
   assert.deepEqual(result.structuredContent.products.map(p=>p.id),[product(1).id]);
   assert.equal(result.structuredContent.recommendation_policy.excluded_vendor,'Printify');
+  assert.equal(requestedProviderPreference('Show me the Shopify catalog from any provider.','printify'),'any');
   assert.equal(requestedProviderPreference('Show me shirts.','printify'),'printify');
 });
 
