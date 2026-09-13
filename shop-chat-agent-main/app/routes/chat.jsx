@@ -8,6 +8,7 @@ import AppConfig from "../services/config.server";
 import { createSseStream } from "../services/streaming.server";
 import { createAIService } from "../services/ai.server";
 import { createToolService } from "../services/tool.server";
+import { createCatalogPriority, addProviderPreference } from "../services/catalog-priority.server.js";
 import { getCorsHeaders, isAllowedOrigin } from "../services/cors.server";
 
 const QUIZ_AUDIENCES = new Set(["man", "woman", "child"]);
@@ -294,6 +295,16 @@ async function handleChatSession({
     mcpApiUrl,
   );
 
+  // Apply the same ordered, enriched result to the model and product cards.
+  const catalogPriority = createCatalogPriority();
+  const callTool = mcpClient.callTool.bind(mcpClient);
+  mcpClient.callTool = async (name, args) => {
+    if (name !== 'search_catalog') return callTool(name, args);
+    const {provider_preference = 'printify', ...catalogArgs} = args || {};
+    const result = await callTool(name, catalogArgs);
+    return catalogPriority.prepare(result, new URL(shopDomain).origin, provider_preference);
+  };
+
   // Send conversation ID to client
   stream.sendMessage({ type: 'id', conversation_id: conversationId });
 
@@ -310,6 +321,7 @@ async function handleChatSession({
     console.warn('Failed to connect to MCP servers, continuing without tools:', error.message);
   }
 
+  mcpClient.tools = addProviderPreference(mcpClient.tools);
   const productsToDisplay = [];
 
   // Save user message to the database

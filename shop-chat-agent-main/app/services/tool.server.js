@@ -24,6 +24,7 @@ export function createToolService() {
     return {
       id: product.id || product.product_id || `product-${Math.random().toString(36).substring(7)}`,
       title: product.title || "Product",
+      vendor: typeof product.vendor === 'string' ? product.vendor : '',
       price,
       image_url: product.image_url || product.media?.find((item) => item.type === "image")?.url || "",
       description: typeof product.description === "string"
