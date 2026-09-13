@@ -2,16 +2,34 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
 <div class="shop-ai-chat-container">
-  <div class="shop-ai-chat-bubble" style="background-color: {{ block.settings.chat_bubble_color }}">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-    </svg>
-  </div>
+  <button
+    type="button"
+    class="shop-ai-chat-bubble"
+    style="background-color: {{ block.settings.chat_bubble_color }}"
+    aria-label="Open Lazy Chat"
+  >
+    <img
+      class="shop-ai-chat-hub shop-ai-chat-hub--launcher"
+      src="{{ 'lazy-chat-hub.png' | asset_url }}"
+      alt=""
+      width="48"
+      height="48"
+    >
+  </button>
 
   <div class="shop-ai-chat-window">
     <div class="shop-ai-chat-header">
-      <div>{{ 'chat.title' | t }}</div>
-      <button class="shop-ai-chat-close">✕</button>
+      <div class="shop-ai-chat-brand">
+        <img
+          class="shop-ai-chat-hub shop-ai-chat-hub--header"
+          src="{{ 'lazy-chat-hub.png' | asset_url }}"
+          alt=""
+          width="34"
+          height="34"
+        >
+        <span>{{ 'chat.title' | t }}</span>
+      </div>
+      <button type="button" class="shop-ai-chat-close" aria-label="{{ 'chat.closeButton' | t }}">✕</button>
     </div>
 
     <div class="shop-ai-chat-messages">
@@ -39,7 +57,7 @@
 <script>
   window.shopChatConfig = {
     promptType: {{ block.settings.system_prompt | json }},
-    welcomeMessage: {{ block.settings.welcome_message | json }},
+    welcomeMessage: "Heyyy",
     appUrl: {{ block.settings.app_url | json }}
   };
   window.shopId = {{ shop.id }};
@@ -67,7 +85,7 @@
       "type": "text",
       "id": "welcome_message",
       "label": "Welcome Message",
-      "default": "👋 Hi there! How can I help you today?"
+      "default": "Heyyy"
     },
     {
       "type": "select",

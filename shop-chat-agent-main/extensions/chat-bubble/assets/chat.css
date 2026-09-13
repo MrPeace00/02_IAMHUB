@@ -34,13 +34,47 @@
     width: 60px;
     height: 60px;
     background-color: #5046e4;
+    border: 0;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
+    padding: 6px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     transition: transform 0.3s ease;
+  }
+
+  .shop-ai-chat-hub {
+    display: block;
+    height: auto;
+    object-fit: contain;
+    transform-origin: center;
+    animation: lazy-chat-hub-turn 5.2s ease-in-out infinite;
+  }
+
+  .shop-ai-chat-hub--launcher {
+    width: 48px;
+  }
+
+  .shop-ai-chat-hub--header {
+    width: 34px;
+    flex: 0 0 auto;
+  }
+
+  @keyframes lazy-chat-hub-turn {
+    0%, 100% {
+      transform: rotate(-12deg);
+    }
+    50% {
+      transform: rotate(348deg);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .shop-ai-chat-hub {
+      animation: none;
+    }
   }
   
   @media (max-width: 480px) {
@@ -49,20 +83,13 @@
       height: 50px;
     }
     
-    .shop-ai-chat-bubble svg {
-      width: 25px;
-      height: 25px;
+    .shop-ai-chat-hub--launcher {
+      width: 40px;
     }
   }
 
   .shop-ai-chat-bubble:hover {
     transform: scale(1.05);
-  }
-
-  .shop-ai-chat-bubble svg {
-    width: 30px;
-    height: 30px;
-    color: white;
   }
 
   .shop-ai-chat-window {
@@ -158,6 +185,12 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+  }
+
+  .shop-ai-chat-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
 
   .shop-ai-chat-close {
