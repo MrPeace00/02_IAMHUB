@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ChampionComponent1Review
+  version="1.0"
+  date="2026-09-12"
+  project="LazyCustoms.com"
+  governedBy="00_CHAMPION_MASTER_ENGINE.md v6.0"
+  engine="LazyCustoms Store and Agent Engine v5.1"
+  reviews="CODEX_COMPONENT_1_RETURN_HANDOFF_20260912.xml"
+  method="agent-handoff-review — verify against live code, do not trust the handoff">
+
+  <WhoIsAnswering>
+    Champion, running in a claude.ai chat session with repository read access,
+    standing in for Claude Code. This is a review, not the addressee's own
+    self-report. Verification performed against the live public repository,
+    not against Codex's assertions.
+  </WhoIsAnswering>
+
+  <RepositoryStateVerified>
+    <Repo>github.com/MrPeace00/02_IAMHUB</Repo>
+    <Commit>8605ccf ("Component 1 is complete at the Tested rung")</Commit>
+    <AppRoot>shop-chat-agent-main/</AppRoot>
+    <WorkingTree>Clean for all Component 1 code. Five Component 1 files are
+      committed on HEAD, nothing dirty. (Three PNG evidence fixtures under
+      _lazycustoms/ops/evidence/live_runs/ show as modified on fresh clone —
+      unrelated to Component 1; see Finding F3.)</WorkingTree>
+  </RepositoryStateVerified>
+
+  <!-- FIELD 1 OF 9 -->
+  <ObjectiveReceived>
+    Verify Codex's Component 1 (fulfillment recorder) return against the live
+    tree. Confirm the NR-11 telemetry-only boundary is structural, the
+    migration is additive and reversible, the write is idempotent, the tests
+    pass, and the rung is honestly stated. Close or re-scope OI-14.
+  </ObjectiveReceived>
+
+  <!-- FIELD 2 OF 9 -->
+  <CodexKnowledgePreserved>
+    Every Component 1 artifact Codex reported exists in the tree and is
+    preserved unchanged. No existing model, migration, service, or test was
+    disturbed. The provider router, artwork rail, vision rail, intake quiz,
+    and auth/PKCE code are intact (42/42 full suite green, below).
+  </CodexKnowledgePreserved>
+
+  <!-- FIELD 3 OF 9 -->
+  <ChampionWisdomApplied>
+    <Verified tier="live — this session, commit 8605ccf">
+      <Point id="V-1" rule="NR-11 / W-4">
+        FulfillmentRecord model carries only: orderReference (PK),
+        printifyOrderId?, blueprintId, printProviderIdSelected?, routingOption,
+        productTitle, variantReference, decorationMethod, fulfillmentStatus,
+        recordedAt, updatedAt. No name, age, audience, email, address, or
+        conversation id exists as a column. The boundary is structural at the
+        persistence layer — prohibited fields are impossible to write because
+        they do not exist, not merely omitted by convention.
+      </Point>
+      <Point id="V-2" rule="NR-11 second layer">
+        Write path (fulfillment-record.server.js) builds an explicit telemetry
+        allowlist and passes only that to Prisma. The full printifyOrder object
+        is received, but only line_items[].print_provider_id / .status /
+        .variant_id / .external_id and order .id / .status are read from it —
+        the address_to / recipient block is never touched. Two independent
+        structural guards, not one.
+      </Point>
+      <Point id="V-3">
+        Idempotency is a real upsert keyed on the orderReference primary key.
+        Re-delivery updates in place; no duplicate row. An incomplete
+        re-delivery preserves the previously resolved provider and status
+        (guarded update spreads).
+      </Point>
+      <Point id="V-4" rule="D-112 provider resolution">
+        printProviderIdSelected is nullable and resolved from the concrete
+        provider on the order response, never the literal 99. routingOption
+        holds 99. Matches the directive's "record the WHAT, resolve the
+        concrete provider later" design.
+      </Point>
+      <Point id="V-5" rule="additive + reversible">
+        Migration 20260913010000_add_fulfillment_record is CREATE TABLE + three
+        indexes only; the seven existing models are untouched. A paired
+        rollback.sql drops indexes then table in correct order.
+        migration_lock.toml provider = sqlite (no provider mismatch).
+      </Point>
+      <Point id="V-6" rule="NR-4 / CC-8 / secret safety">
+        printify.server.js takes the token from process.env only, never
+        hardcodes it, and its error messages surface Printify's status/message
+        without echoing the token. Test 4 asserts this: a 422 failure throws
+        the Printify message, does NOT contain the token, and writes no record.
+      </Point>
+      <Point id="V-7" rule="honest rung">
+        The recorder is wired into the Printify submission seam
+        (printify.server.js submitOrder / refreshOrder). No deployed route,
+        Shopify webhook, or live order event triggers it yet. This is the
+        correct unwired-but-tested state — it is exactly what keeps the claim
+        at Tested and out of Production.
+      </Point>
+      <Point id="V-8" rule="tests re-run, not trusted">
+        I re-ran the suite myself (stubbing only the @prisma/client import so
+        db.server.js loads; the fulfillment tests inject their own in-memory
+        database and never touch real Prisma). Fulfillment: 4/4 pass on real
+        logic, including the identity-rejection test (fixture deliberately
+        carries address_to first_name/last_name/email/address1 and the test
+        asserts none persists) and the token-non-leak test. Full suite: 42/42
+        pass, 0 fail.
+      </Point>
+    </Verified>
+
+    <CodexReportedNotReRun tier="reported — could not independently re-run">
+      <Point id="R-1">Lint, typecheck, production build passed. Not re-run
+        here (needs full install). Not rung-critical.</Point>
+      <Point id="R-2">"Real Prisma integration passed" and "migration
+        upgrade + rollback passed against the current DB." Not re-run — Prisma
+        engine binaries download from a domain outside this session's network
+        allowlist. Mitigated: the migration and rollback SQL are verified
+        structurally correct (V-5).</Point>
+    </CodexReportedNotReRun>
+  </ChampionWisdomApplied>
+
+  <!-- FIELD 4 OF 9 -->
+  <FilesChanged>
+    <File status="new">shop-chat-agent-main/app/services/fulfillment-record.server.js</File>
+    <File status="new">shop-chat-agent-main/app/services/printify.server.js</File>
+    <File status="new">shop-chat-agent-main/prisma/migrations/20260913010000_add_fulfillment_record/migration.sql</File>
+    <File status="new">shop-chat-agent-main/prisma/migrations/20260913010000_add_fulfillment_record/rollback.sql</File>
+    <File status="new">shop-chat-agent-main/tests/fulfillment-recorder.test.mjs</File>
+    <File status="modify">shop-chat-agent-main/prisma/schema.prisma (FulfillmentRecord model added)</File>
+    <File status="modify">shop-chat-agent-main/package.json (test script includes the new file)</File>
+  </FilesChanged>
+
+  <!-- FIELD 5 OF 9 -->
+  <TestsAndExactOutcomes>
+    <Result scope="fulfillment-recorder.test.mjs" reRunByChampion="yes">4 pass / 0 fail</Result>
+    <Result scope="full suite (9 files)" reRunByChampion="yes">42 pass / 0 fail</Result>
+    <Result scope="lint / typecheck / production build" reRunByChampion="no">Codex-reported pass</Result>
+    <Result scope="real Prisma integration + migration up/rollback on current DB" reRunByChampion="no">Codex-reported pass; SQL verified structurally</Result>
+    <Note>No live test. No deployment, no live Printify order, no browser round
+      trip. Honest and expected at this rung (NR-5).</Note>
+  </TestsAndExactOutcomes>
+
+  <!-- FIELD 6 OF 9 -->
+  <CapabilityRung>
+    <Component n="1">Tested — verified. Not Production. No live order, no
+      browser round trip, not triggered by a deployed order event. The
+      acceptance-vs-physical distinction (D-111) and CR-1 (browser round trip)
+      are untouched by this work and remain as they were.</Component>
+  </CapabilityRung>
+
+  <!-- FIELD 7 OF 9 -->
+  <UnverifiedOrLiveOnlyClaims>
+    <Claim>Concrete-provider enrichment reads line_items[].print_provider_id.
+      Defensive (nullable, refresh-resolved) — but the public Printify docs
+      attach print_provider_id to the product level and to the shipping-cost
+      request, not clearly to the GET-order response line items. Whether a real
+      Printify Choice order response populates that exact path is model-mediated
+      and unverified. See Finding F1.</Claim>
+    <Claim>All Codex-reported-not-re-run results in R-1/R-2.</Claim>
+  </UnverifiedOrLiveOnlyClaims>
+
+  <!-- FIELD 8 OF 9 -->
+  <OpenItemsAndFindings>
+    <OI id="OI-14" recommendation="met at Tested; live-trigger pending">
+      All closure conditions are met at the Tested rung: additive Prisma table
+      (V-5), idempotent write (V-3), NR-11 structural (V-1/V-2), full local
+      suite green (V-8), nine-field return delivered. Caveat: "order-handler
+      wiring" here is the service-level Printify submission seam, not a live
+      order-event trigger. Recommend recording OI-14 as "met at Tested;
+      live-trigger + deploy is Production work" rather than fully closed, to
+      keep NR-5 honest.
+    </OI>
+    <Finding id="F1" severity="live-verification" blocks="reliance on auto-resolved provider">
+      Confirm the exact JSON path of the resolved print provider in a genuine
+      Printify Choice (option 99) order response before depending on the
+      enrichment. Ties to OI-15 (the physical VT-6 sample) and the
+      "prepared, unwired" Printify status. Code degrades safely if the field is
+      absent, so this does not block the Tested rung.
+    </Finding>
+    <Finding id="F2" severity="latent — DR / fresh-environment only" component="pre-existing, NOT Component 1">
+      Codex honestly recorded: replaying the entire migration chain into a
+      completely empty SQLite path throws Prisma's generic schema-engine error;
+      the deployment-representative upgrade from the current DB passes cleanly.
+      Operational meaning: normal Railway deploy (new migration on top of the
+      existing /data/dev.db) is unaffected; a from-scratch rebuild — new volume,
+      disaster recovery, migrate reset, CI-from-empty — would fail.
+      Most plausible location (INFERENCE, not reproduced — engine binaries
+      blocked this session): the prior 20260912180000_bind_pkce_state_to_request
+      migration, which uses the PRAGMA foreign_keys OFF / redefine-table
+      pattern. Component 1's own migration is verified clean additive and is
+      NOT the cause. Closes when a from-empty replay is made to pass, or the
+      operator accepts the DR limitation in writing.
+    </Finding>
+    <Finding id="F3" severity="repo hygiene / evidence integrity" component="pre-existing, NOT Component 1">
+      .gitattributes applies `text eol=lf` to `_lazycustoms/ops/evidence/live_runs/**`
+      — a glob that catches the binary PNG evidence fixtures. Git is
+      EOL-normalizing binaries and stripping CR bytes (e.g. 1,651,937 →
+      1,651,910 bytes), which changes the very bytes the comment says it wants
+      to "hash exact." Recommended fix (owner's edit, not applied here): mark
+      the PNGs binary, e.g. `_lazycustoms/ops/evidence/live_runs/**/*.png binary`.
+    </Finding>
+  </OpenItemsAndFindings>
+
+  <!-- FIELD 9 OF 9 -->
+  <NextSmallestCompleteAction>
+    Record OI-14 as met-at-Tested per the recommendation, and F1–F3 as new open
+    items. Do NOT start Component 2. Component 2's live enablement is still gated
+    on OI-1/OI-2 (draft products, zero-channel products), which remain the
+    operator's open decisions and are the true next unblock. The single most
+    useful next physical step is OI-15: receive the VT-6 sample hoodie and hold
+    it against the on-screen design — that, plus a live Printify Choice order,
+    is what would begin to close F1 and lift the fulfillment claim above
+    acceptance-level.
+  </NextSmallestCompleteAction>
+
+  <ClosingPrinciple>
+    Knowledge built what Wisdom directed. The record is telemetry, not identity;
+    the boundary is structural, not conventional; the tests are real and pass;
+    the rung is honestly Tested, not Production. LazyCustoms.com became more
+    coherent, useful, secure, and real. Neither agent won — Understanding did.
+  </ClosingPrinciple>
+
+</ChampionComponent1Review>

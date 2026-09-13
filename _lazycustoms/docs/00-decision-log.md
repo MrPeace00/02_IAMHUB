@@ -320,3 +320,22 @@ The live `/chat` request exercised sanitized quiz context, Claude, Shopify catal
 The final run is recorded under `ops/evidence/live_runs/20260912T070412Z/`. Fixtures are dependency-free and byte-reproducible; path confinement and exclusive-create writes prevent overwrite; SHA-256 manifests bind both fixtures, both scripts, and every retained response artifact. Negative rerun tests confirmed that both scripts reject the completed directory before overwrite or another network request. Chat text is reconstructed before redaction, and neither the Shopify cart identifier/query credential nor the ephemeral image reference is written. Provider-key pattern scans are clean. Git attributes preserve exact evidence bytes across line-ending configurations.
 
 **Decision:** Close OI-5 and OI-10 under the operator-defined four-check direct-endpoint integration gate and advance the customer-facing AI text/quiz rail and shared Claude image-to-text rail to direct-endpoint `integration tested`. Reconcile OI-13 as the NR-8 live identity-fixture residual, introduced and closed by this evidence because the repository's prior v4.1 engine did not contain that identifier. Do not extend this result to exact Railway runtime-SHA attestation, browser/widget behavior, a raw successful cart tool-result event, completed purchase, authenticated customer OAuth session, database persistence, third-party agent visibility, or catalog completeness.  **Date:** 2026-09-12
+
+---
+
+## D22 — Component 1 fulfillment recorder is accepted at Tested, not Production
+**Status: DECIDED 2026-09-12 — OI-14 met at Tested; live trigger and deployment remain open.**
+
+Champion reviewed commit `8605ccf` against the live tree and accepted the Component 1 fulfillment recorder. The persistence boundary is structural: `FulfillmentRecord` contains telemetry fields only, and the service passes an explicit telemetry allowlist to Prisma rather than spreading the Printify response. The order reference is the upsert key, the migration adds only the new table and indexes with a paired rollback, and provider/API failures neither write a row nor expose the environment-sourced token. Champion reported 4/4 focused and 42/42 full-suite tests; Codex independently reran the repository suite after receiving the review and also obtained 42/42.
+
+This acceptance does not claim Production. The service seam is not called by a deployed route or live order event, no real Printify Choice order established the selected-provider response path, and no production `FulfillmentRecord` row was inspected. Component 2 remains gated by the operator-owned OI-1/OI-2 decisions and was not started.
+
+Open follow-ups are recorded without overstating their evidence:
+
+- **OI-15 / F1:** receive and compare the VT-6 sample, and use a genuine Printify Choice order response to confirm the concrete provider JSON path before relying on automatic enrichment.
+- **OI-16 / F2:** diagnose the pre-existing from-empty SQLite migration replay failure, or explicitly accept the disaster-recovery/fresh-environment limitation. The prior PKCE redefine-table migration is only a hypothesis; Component 1's additive migration is not identified as the cause.
+- **OI-17 / F3:** correct the broad `.gitattributes` text rule that currently catches PNG evidence fixtures. This is repository hygiene/evidence integrity work, not part of Component 1 acceptance.
+
+F3 corrects D21's statement that the existing Git attributes preserve exact evidence bytes across line-ending configurations. The manifests preserve the hashes of the retained files, but the current broad text rule can alter PNG bytes on checkout until OI-17 is resolved.
+
+**Decision:** Record OI-14 as met at Tested with live-trigger/deployment work pending; retain OI-15–OI-17 as open; do not start Component 2 until OI-1/OI-2 are resolved.  **Date:** 2026-09-12
