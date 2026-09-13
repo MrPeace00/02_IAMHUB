@@ -333,9 +333,10 @@ This acceptance does not claim Production. The service seam is not called by a d
 Open follow-ups are recorded without overstating their evidence:
 
 - **OI-15 / F1:** receive and compare the VT-6 sample, and use a genuine Printify Choice order response to confirm the concrete provider JSON path before relying on automatic enrichment.
-- **OI-16 / F2:** diagnose the pre-existing from-empty SQLite migration replay failure, or explicitly accept the disaster-recovery/fresh-environment limitation. The prior PKCE redefine-table migration is only a hypothesis; Component 1's additive migration is not identified as the cause.
-- **OI-17 / F3:** correct the broad `.gitattributes` text rule that currently catches PNG evidence fixtures. This is repository hygiene/evidence integrity work, not part of Component 1 acceptance.
+- **OI-16 / governing D-102 gate:** preserve the existing Shopify product-write scope authorization item. The `write_products` scope remains withheld until Mr. Peace explicitly authorizes it; Component 3 and automated Shopify product creation must not proceed before that authorization is recorded.
+- **OI-17 / F2:** diagnose the pre-existing from-empty SQLite migration replay failure, or explicitly accept the disaster-recovery/fresh-environment limitation. The prior PKCE redefine-table migration is only a hypothesis; Component 1's additive migration is not identified as the cause.
+- **OI-18 / F3:** correct the broad `.gitattributes` text rule that currently catches PNG evidence fixtures. This is repository hygiene/evidence integrity work, not part of Component 1 acceptance.
 
-F3 corrects D21's statement that the existing Git attributes preserve exact evidence bytes across line-ending configurations. The manifests preserve the hashes of the retained files, but the current broad text rule can alter PNG bytes on checkout until OI-17 is resolved.
+F3 corrects D21's statement that the existing Git attributes preserve exact evidence bytes across line-ending configurations. The manifests preserve the hashes of the retained files, but the current broad text rule can alter PNG bytes on checkout until OI-18 is resolved.
 
-**Decision:** Record OI-14 as met at Tested with live-trigger/deployment work pending; retain OI-15–OI-17 as open; do not start Component 2 until OI-1/OI-2 are resolved.  **Date:** 2026-09-12
+**Decision:** Record OI-14 as met at Tested with live-trigger/deployment work pending; retain OI-15–OI-18 as open; preserve OI-16 as the governing product-write authorization gate; and do not start Component 2 until OI-1/OI-2 are resolved.  **Date:** 2026-09-12

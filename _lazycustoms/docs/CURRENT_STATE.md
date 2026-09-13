@@ -70,6 +70,7 @@ Deployed code baseline `f258473` contains the NR-8-hardened vision rail and Reac
 | `63b0d10` | Migrated customer chat to OpenAI, committed a reproducible lockfile, restored Docker `npm ci`, added tests and deployment documentation |
 | `f258473` | Hardened the shared vision rail for NR-8, reconciled OI-9, closed OI-8, and deployed the verified provider/runtime changes |
 | `8605ccf` | Added the Component 1 fulfillment recorder, additive/reversible migration, Printify service seam, and focused tests; accepted at Tested, not Production |
+| `efef7e8` | Recorded the Champion Component 1 review and Tested-rung acceptance in the project documentation; this documentation commit is on `origin/main` |
 
 Pushing code does not deploy the application or update an existing merchant theme setting.
 
@@ -150,37 +151,40 @@ The following observations date to September 2, 2026. Re-observe them before act
 
 ## 7. OPEN ITEMS REGISTER
 
-Original item numbers are retained for continuity.
+Labels in this register are governing-engine OI identifiers. Earlier repository-only rows that called the expired tunnel “8” and the push task “9” were not engine OI IDs and are not retained as aliases; those completed operational facts remain recorded elsewhere in this file.
 
-| # | Item | Current status / next action |
+| OI ID | Item | Current status / next action |
 |---|---|---|
-| 1 | Four previously Draft products: Plush Crib Mobile, Baby Sleep Sack, Nursery Wall Art Plaque, Cotton Baby Bibs | Recheck status; operator decides publish versus keep Draft. Not a proven cause of zero `baby` matches |
-| 2 | Previously Active products assigned to zero channels | Recheck assignments and intended channel strategy; inspect specific missing products |
-| 3 | Seven previously unanswered Knowledge Base topics | Recheck current gaps and approve merchant answers; do not invent policies |
-| 4 | Pending Preferences password toggle | **Resolved for current state:** September 12 probes show password protection inactive; recheck after any future access-setting change |
-| 5 | Agent runtime setup | **Closed for the defined direct-endpoint integration gate:** live Claude response, Shopify catalog tools, two product cards, `create_cart` invocation, checkout handoff, both vision endpoints, and NR-8 fixture passed on September 12. Raw cart tool result, browser/widget behavior, database persistence, authenticated OAuth, completed checkout/payment, and exact runtime SHA remain separate unverified claims |
-| 6 | UCP publication | **Resolved for current state:** September 12 `.well-known/ucp` returns HTTP 200 with advertised capabilities; recheck before any future external availability claim |
-| 7 | Verification log | **Resolved:** file exists and is committed in `51fb5b7` |
-| 8 | Expired backend tunnel | **Resolved:** `ai.lazycustoms.com` is configured with verified DNS/TLS, targets Railway port 8080, returns HTTP 200 and is saved in the active theme setting |
-| 9 | Push completed commits | **Resolved:** all three commits pushed; operator remote verification and local tracking ref agree |
-| 10 | Live quiz/provider/vision verification | **Closed:** all four UTC-stamped direct-endpoint checks passed while `origin/main` matched expected source commit `f258473`; both rails are direct-endpoint `integration tested`, while exact runtime SHA and browser UI remain unverified |
-| 11a | Engagement logging and ranking | Open; gated by OI-1/OI-2 catalog hygiene |
-| 11b | Automated product creation | Paused by design; Printify field-injection and D-002 reconciliation remain |
-| 12 | SEO and structured-data work | Open; blocked by OI-1/OI-2 |
-| 13 | NR-8 identity-fixture residual | **Closed:** the printed-name fixture returned no identity detail and used the fixed generic fallback |
-| 14 | Component 1 fulfillment recorder | **Met at Tested; live-trigger pending:** local implementation, NR-11 structural boundary, additive/reversible migration, idempotent write, and 42/42 suite are accepted. Deployment, a live order-event trigger, and a real production telemetry row remain Production work |
-| 15 | VT-6 physical sample and genuine Printify Choice provider resolution | **Open:** receive the VT-6 hoodie and compare it with the on-screen design; capture one genuine Choice order response to confirm the concrete provider JSON path before relying on automatic enrichment |
-| 16 | Fresh-database historical migration replay | **Open, latent DR/fresh-environment issue:** the deployment-representative upgrade passed, but a replay into a brand-new SQLite database reported a generic schema-engine error. Diagnose separately or explicitly accept the rebuild limitation; Component 1's additive migration is not identified as the cause |
-| 17 | Binary evidence Git attributes | **Open, repository hygiene/evidence integrity:** the broad `text eol=lf` rule covers PNG fixtures under `ops/evidence/live_runs/**`. Add a narrower PNG `binary` rule before treating cross-checkout fixture bytes as exact; no fix was included in Component 1 acceptance |
+| OI-1 | Four previously Draft products: Plush Crib Mobile, Baby Sleep Sack, Nursery Wall Art Plaque, Cotton Baby Bibs | Recheck status; operator decides publish versus keep Draft. Not a proven cause of zero `baby` matches |
+| OI-2 | Previously Active products assigned to zero channels | Recheck assignments and intended channel strategy; inspect specific missing products |
+| OI-3 | Seven previously unanswered Knowledge Base topics | Recheck current gaps and approve merchant answers; do not invent policies |
+| OI-4 | Pending Preferences password toggle | **Resolved for current state:** September 12 probes show password protection inactive; recheck after any future access-setting change |
+| OI-5 | Agent runtime setup | **Closed for the defined direct-endpoint integration gate:** live Claude response, Shopify catalog tools, two product cards, `create_cart` invocation, checkout handoff, both vision endpoints, and NR-8 fixture passed on September 12. Raw cart tool result, browser/widget behavior, database persistence, authenticated OAuth, completed checkout/payment, and exact runtime SHA remain separate unverified claims |
+| OI-6 | UCP publication | **Resolved for current state:** September 12 `.well-known/ucp` returns HTTP 200 with advertised capabilities; recheck before any future external availability claim |
+| OI-7 | Verification log | **Resolved:** file exists and is committed in `51fb5b7` |
+| OI-8 | Exposed provider-value rotation/revocation | **Closed:** dated operator-stated provider-dashboard confirmations establish that the old Shopify, OpenAI, and Anthropic values are inactive or revoked and their replacements are live in Railway; no secret values are recorded |
+| OI-9 | Remaining Prisma/deepmerge dependency chain | **Accepted tracked risk:** React Router was remediated compatibly; four high-severity package entries remain in the Prisma/deepmerge chain, whose offered fix is semver-major |
+| OI-10 | Live quiz/provider/vision verification | **Closed:** all four UTC-stamped direct-endpoint checks passed while `origin/main` matched expected source commit `f258473`; both rails are direct-endpoint `integration tested`, while exact runtime SHA and browser UI remain unverified |
+| OI-11a | Engagement logging and ranking | Open; gated by OI-1/OI-2 catalog hygiene |
+| OI-11b | Automated product creation | Paused by design; Printify field-injection and D-002 reconciliation remain. Even after those conditions close, Shopify product creation remains blocked until OI-16 authorizes the required write scope |
+| OI-12 | SEO and structured-data work | Open; blocked by OI-1/OI-2 |
+| OI-13 | NR-8 identity-fixture residual | **Closed:** the printed-name fixture returned no identity detail and used the fixed generic fallback |
+| OI-14 | Component 1 fulfillment recorder | **Met at Tested; live-trigger pending:** local implementation, NR-11 structural boundary, additive/reversible migration, idempotent write, and 42/42 suite are accepted. Deployment, a live order-event trigger, and a real production telemetry row remain Production work |
+| OI-15 | VT-6 physical sample and genuine Printify Choice provider resolution | **Open:** receive the VT-6 hoodie and compare it with the on-screen design; capture one genuine Choice order response to confirm the concrete provider JSON path before relying on automatic enrichment |
+| OI-16 | Shopify product-write scope authorization | **Open, operator authorization required:** governing decision D-102 deliberately withholds `write_products`. Do not begin Component 3 or any automated Shopify product-creation work until Mr. Peace explicitly authorizes the scope and the authorization is recorded |
+| OI-17 | Fresh-database historical migration replay | **Open, latent DR/fresh-environment issue:** the deployment-representative upgrade passed, but a replay into a brand-new SQLite database reported a generic schema-engine error. Diagnose separately or explicitly accept the rebuild limitation; Component 1's additive migration is not identified as the cause |
+| OI-18 | Binary evidence Git attributes | **Open, repository hygiene/evidence integrity:** the broad `text eol=lf` rule covers PNG fixtures under `ops/evidence/live_runs/**`. Add a narrower PNG `binary` rule before treating cross-checkout fixture bytes as exact; no fix was included in Component 1 acceptance |
 
 ## 8. DECISIONS LOG
+
+The `D-001` through `D-022` labels below are repository recording decisions, not aliases for the governing engine's `D-101`-series decisions. Governing-engine references such as D-102 retain their engine meaning.
 
 | ID | Decision | Status |
 |---|---|---|
 | D-001 | Password removal timing | Closed for current state; password is off as of September 12 recheck |
 | D-002 | Publish existing supplier inventory before adding products | Previously in motion; product/channel decisions remain open |
 | D-003 | Adopt and patch the fork rather than rebuild | Closed; implemented in the existing fork |
-| D-022 | Accept Component 1 at Tested and preserve the Production boundary | Closed at Tested; OI-14 is met at that rung, while OI-15–OI-17 remain open and Component 2 remains gated |
+| D-022 | Accept Component 1 at Tested and preserve the Production boundary | Closed at Tested; OI-14 is met at that rung, while OI-15–OI-18 remain open and Component 2 remains gated |
 
 ## 9. FACTS, PREFERENCES AND LIMITS
 
@@ -199,9 +203,10 @@ Original item numbers are retained for continuity.
 
 1. Resolve the operator-owned OI-1/OI-2 product and channel decisions before starting Component 2.
 2. Complete OI-15 physically: inspect the VT-6 hoodie against the on-screen design and capture a genuine Printify Choice order response to verify the provider field path.
-3. Diagnose the from-empty migration replay separately (OI-16) and correct the PNG Git attribute rule as an owner-approved repository-hygiene change (OI-17).
-4. Re-observe Knowledge Base gaps and make only operator-approved policy changes (OI-3).
-5. Verify authenticated customer OAuth and database persistence separately if those capabilities are needed for a stronger production claim; do not infer them from the successful anonymous cart handoff.
-6. Keep Phase 3-4 automated product creation paused until OI-11b closes, and continue recording new evidence in `VERIFICATION_LOG.md`.
+3. Preserve the D-102 gate: obtain and record explicit operator authorization before adding the Shopify `write_products` scope or starting Component 3 (OI-16).
+4. Diagnose the from-empty migration replay separately (OI-17) and correct the PNG Git attribute rule as an owner-approved repository-hygiene change (OI-18).
+5. Re-observe Knowledge Base gaps and make only operator-approved policy changes (OI-3).
+6. Verify authenticated customer OAuth and database persistence separately if those capabilities are needed for a stronger production claim; do not infer them from the successful anonymous cart handoff.
+7. Keep Phase 3-4 automated product creation paused until OI-11b and OI-16 close, and continue recording new evidence in `VERIFICATION_LOG.md`.
 
 **Evidence:** [verification log](VERIFICATION_LOG.md), [connection audit](../../shop-chat-agent-main/MCP-CONNECTION-AUDIT.md), [saved connection results](../../shop-chat-agent-main/connection-check.json), September 11 and September 12 evidence files under `ops/evidence/`, application source, and local Git history/tracking ref. Historical admin observations are explicitly separated from newer live checks.
