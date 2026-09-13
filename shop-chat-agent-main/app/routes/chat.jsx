@@ -8,7 +8,7 @@ import AppConfig from "../services/config.server";
 import { createSseStream } from "../services/streaming.server";
 import { createAIService } from "../services/ai.server";
 import { createToolService } from "../services/tool.server";
-import { createCatalogPriority, addProviderPreference } from "../services/catalog-priority.server.js";
+import { createCatalogPriority, addProviderPreference, requestedProviderPreference } from "../services/catalog-priority.server.js";
 import { getCorsHeaders, isAllowedOrigin } from "../services/cors.server";
 
 const QUIZ_AUDIENCES = new Set(["man", "woman", "child"]);
@@ -302,7 +302,7 @@ async function handleChatSession({
     if (name !== 'search_catalog') return callTool(name, args);
     const {provider_preference = 'printify', ...catalogArgs} = args || {};
     const result = await callTool(name, catalogArgs);
-    return catalogPriority.prepare(result, new URL(shopDomain).origin, provider_preference);
+    return catalogPriority.prepare(result, new URL(shopDomain).origin, requestedProviderPreference(userMessage, provider_preference));
   };
 
   // Send conversation ID to client

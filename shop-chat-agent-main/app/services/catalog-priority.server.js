@@ -36,16 +36,18 @@ export function createCatalogPriority({ fetchImplementation = fetch, now = Date.
     }
     if (!Array.isArray(body?.products)) return result;
     const vendors = await vendorIndex(origin);
-    const products = body.products.map(p => ({...p, ...(vendors.get(identity(p.id)) || {})}));
+    let products = body.products.map(p => ({...p, ...(vendors.get(identity(p.id)) || {})}));
+    if (preference === 'exclude_printify') products = products.filter(p => p.vendor && !/^printify$/i.test(p.vendor));
     const available = p => p.availability?.available !== false && (!p.variants?.length || p.variants.some(v => v.availability?.available !== false));
     // The search tool already applies the buyer's category/price/availability filters.
     // Stable sort preserves relevance within each eligible provider group.
-    if (preference !== 'any') products.sort((a,b) => {
+    if (preference === 'printify') products.sort((a,b) => {
       const rank = p => !available(p) ? 2 : /^printify$/i.test(p.vendor || '') ? 0 : 1;
       return rank(a) - rank(b);
     });
     const updated = {...body, products, recommendation_policy: {
-      preferred_vendor:preference === 'any' ? null : 'Printify',
+      preferred_vendor:preference === 'printify' ? 'Printify' : null,
+      excluded_vendor:preference === 'exclude_printify' ? 'Printify' : null,
       vendor_metadata_available:vendors.size > 0,
       note:'Vendor labels identify catalog grouping only. They do not establish Printify Choice routing, personalization support, or shipping coverage. Honor explicit product choices and customer constraints.',
     }};
@@ -57,7 +59,11 @@ export function createCatalogPriority({ fetchImplementation = fetch, now = Date.
 export function addProviderPreference(tools) {
   return tools.map(tool => tool.name !== 'search_catalog' ? tool : {...tool,
     input_schema:{...tool.input_schema, properties:{...tool.input_schema?.properties,
-      provider_preference:{type:'string',enum:['printify','any'],description:'Local recommendation preference. Default printify for general shopping. Use any for an exact product, another provider, explicit price sorting, or when provider priority would conflict with the customer request. This field is handled locally.'},
+      provider_preference:{type:'string',enum:['printify','any','exclude_printify'],description:'Local recommendation preference. Default printify for general shopping. Use exclude_printify when the buyer refuses Printify. Use any for an exact product, explicit price sorting, or when provider priority would conflict with the customer request. This field is handled locally.'},
     }},
   });
+}
+
+export function requestedProviderPreference(message, preference) {
+  return /\b(?:not|no|exclude|excluding|except|without)\s+printify\b|\bnon[- ]printify\b|\b(?:another|other|different)\s+(?:print\s+)?provider\b/i.test(message || '') ? 'exclude_printify' : preference;
 }

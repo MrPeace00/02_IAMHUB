@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {createCatalogPriority,addProviderPreference} from '../app/services/catalog-priority.server.js';
+import {createCatalogPriority,addProviderPreference,requestedProviderPreference} from '../app/services/catalog-priority.server.js';
 const origin = 'https://lazycustoms.com';
 const product = (id, available=true) => ({id:`gid://shopify/Product/${id}`,title:`Product ${id}`,variants:[{availability:{available}}],media:[{type:'image',url:`https://cdn.shopify.com/${id}.jpg`}],price_range:{min:{amount:1000,currency:'USD'}}});
 function setup(fail=false) {
@@ -49,6 +49,16 @@ test('local preference extends only search schema without mutating discovered sc
   const updated=addProviderPreference(tools);
   assert.equal(updated[1],tools[1]);
   assert.deepEqual(updated[0].input_schema.required,['catalog']);
-  assert.deepEqual(updated[0].input_schema.properties.provider_preference.enum,['printify','any']);
+  assert.deepEqual(updated[0].input_schema.properties.provider_preference.enum,['printify','any','exclude_printify']);
   assert.equal(tools[0].input_schema.properties.provider_preference,undefined);
+});
+
+test('explicit provider exclusion removes conflicting cards and unverified providers',async()=>{
+  const {service}=setup();
+  const preference=requestedProviderPreference('Show me shirts from another provider, not Printify.', 'any');
+  assert.equal(preference,'exclude_printify');
+  const result=await service.prepare({structuredContent:{products:[product(2),product(1),product(9)]}},origin,preference);
+  assert.deepEqual(result.structuredContent.products.map(p=>p.id),[product(1).id]);
+  assert.equal(result.structuredContent.recommendation_policy.excluded_vendor,'Printify');
+  assert.equal(requestedProviderPreference('Show me shirts.','printify'),'printify');
 });
