@@ -2,12 +2,14 @@
  * Authentication service for handling OAuth and PKCE flows
  */
 
+import { randomBytes } from "node:crypto";
+
 /**
  * Generate authorization URL for the customer
  * @param {string} conversationId - The conversation ID to track the auth flow
  * @returns {Promise<Object>} - Object containing the auth URL and conversation ID
  */
-export async function generateAuthUrl(conversationId, shopId) {
+export async function generateAuthUrl(conversationId, shopId, dependencies = {}) {
   // Generate authorization URL for the customer
   const clientId = process.env.SHOPIFY_API_KEY;
   const scope = "customer-account-mcp-api:full";
@@ -25,38 +27,54 @@ export async function generateAuthUrl(conversationId, shopId) {
     throw new Error("REDIRECT_URL must use HTTPS");
   }
 
-  const { storeCodeVerifier } = await import('./db.server');
+  const db = dependencies.storeCodeVerifier
+    ? null
+    : await import("./db.server.js");
+  const storeCodeVerifier = dependencies.storeCodeVerifier ?? db.storeCodeVerifier;
+  const resolveBaseAuthUrl = dependencies.getBaseAuthUrl ?? getBaseAuthUrl;
 
-  // Include the conversation ID and shop ID in the state parameter for tracking
-  const state = `${conversationId}-${shopId}`;
+  // OAuth state is an unpredictable, single-use nonce. Request context belongs
+  // in the verifier record, not in the value sent through the browser.
+  const state = generateState();
 
   // Generate code verifier and challenge
   const verifier = generateCodeVerifier();
   const challenge = await generateCodeChallenge(verifier);
 
-  // Store the code verifier in the database
-  try {
-    await storeCodeVerifier(state, verifier);
-  } catch (error) {
-    console.error('Failed to store code verifier:', error);
-  }
-
   // Set code_challenge and code_challenge_method parameters
   const codeChallengeMethod = "S256";
-  const baseAuthUrl = await getBaseAuthUrl(conversationId);
+  const baseAuthUrl = await resolveBaseAuthUrl(conversationId);
 
   if (!baseAuthUrl) {
-    throw new Error('Base auth URL not found');
+    throw new Error("Base auth URL not found");
   }
 
+  // Do not issue an authorization URL unless its matching verifier is durable.
+  await storeCodeVerifier({ state, verifier, conversationId, shopId });
 
-  // Construct the authorization URL with hardcoded shop ID
-  const authUrl = `${baseAuthUrl}?client_id=${clientId}&scope=${encodeURIComponent(scope)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=${responseType}&state=${state}&code_challenge=${challenge}&code_challenge_method=${codeChallengeMethod}`;
+  const authUrl = new URL(baseAuthUrl);
+  authUrl.search = new URLSearchParams({
+    client_id: clientId,
+    scope,
+    redirect_uri: redirectUri,
+    response_type: responseType,
+    state,
+    code_challenge: challenge,
+    code_challenge_method: codeChallengeMethod,
+  }).toString();
 
   return {
-    url: authUrl,
+    url: authUrl.toString(),
     conversation_id: conversationId
   };
+}
+
+/**
+ * Generate an unpredictable OAuth state nonce.
+ * @returns {string} - A base64url-encoded 256-bit value
+ */
+export function generateState() {
+  return randomBytes(32).toString("base64url");
 }
 
 /**

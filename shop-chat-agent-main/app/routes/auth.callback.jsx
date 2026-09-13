@@ -1,5 +1,5 @@
-import process from "node:process";
-import { getCodeVerifier, storeCustomerToken, getCustomerAccountUrls } from "../db.server";
+import { exchangeCodeForToken } from "../auth-callback.server.js";
+import { storeCustomerToken } from "../db.server";
 
 /**
  * Handle OAuth callback from Shopify Customer API
@@ -8,15 +8,18 @@ export async function loader({ request }) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
   const state = url.searchParams.get("state");
-  const [conversationId, shopId] = state.split("-");
 
   if (!code) {
     return new Response(JSON.stringify({ error: "Authorization code is missing" }), { status: 400 });
   }
 
+  if (!state) {
+    return new Response(JSON.stringify({ error: "OAuth state is missing" }), { status: 400 });
+  }
+
   try {
     // Exchange code for access token
-    const tokenResponse = await exchangeCodeForToken(code, state);
+    const { tokenResponse, conversationId } = await exchangeCodeForToken(code, state);
 
     // Store token in database
     try {
@@ -80,89 +83,6 @@ export async function loader({ request }) {
     });
   } catch (error) {
     console.error("Error exchanging code for token:", error);
-    console.log("shopId", shopId);
     return new Response(JSON.stringify({ error: "Failed to obtain access token" }), { status: 500 });
   }
-}
-
-/**
- * Exchange authorization code for access token
- * @param {string} code - The authorization code
- * @returns {Promise<Object>} - The token response
- */
-async function exchangeCodeForToken(code, state) {
-  const clientId = process.env.SHOPIFY_API_KEY;
-  const [conversationId, shopId] = state.split("-");
-  if (!clientId || !shopId) {
-    throw new Error("SHOPIFY_CLIENT_ID and SHOPIFY_SHOP_ID environment variables are required");
-  }
-
-  const redirectUri = process.env.REDIRECT_URL;
-
-  // Correct token URL format
-  const tokenUrl = await getTokenUrl(conversationId);
-
-  if (!tokenUrl) {
-    throw new Error("Token URL not found");
-  }
-
-  // Get the code verifier that corresponds to this authorization request from database
-  let codeVerifier = "";
-  try {
-    const verifierRecord = await getCodeVerifier(state);
-    if (verifierRecord) {
-      codeVerifier = verifierRecord.verifier;
-    } else {
-      console.warn("Code verifier not found for state:", state);
-      // Proceed anyway, since we might be using an older flow without PKCE
-    }
-  } catch (error) {
-    console.error("Error retrieving code verifier:", error);
-    // Proceed anyway and attempt the token exchange
-  }
-
-  const requestBody = {
-    grant_type: "authorization_code",
-    client_id: clientId,
-    code: code,
-    redirect_uri: redirectUri
-  };
-
-  // Add code_verifier if we have it
-  if (codeVerifier) {
-    requestBody.code_verifier = codeVerifier;
-  }
-
-  // Format the request as x-www-form-urlencoded instead of JSON
-  const formData = new URLSearchParams();
-  for (const [key, value] of Object.entries(requestBody)) {
-    formData.append(key, value);
-  }
-
-  const response = await fetch(tokenUrl, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded"
-    },
-    body: formData
-  });
-
-  if (!response.ok) {
-    console.log("Request id", response.headers.get("x-request-id"));
-    console.log("conversation_id", conversationId);
-    const errorText = await response.text();
-    throw new Error(`Token exchange failed: ${response.status} ${errorText}`);
-  }
-
-  return response.json();
-}
-
-/**
- * Get the token URL from the customer account URL
- * @param {string} conversationId - The conversation ID
- * @returns {Promise<string|null>} - The token URL or null if not found
- */
-async function getTokenUrl(conversationId) {
-  const { tokenUrl } = await getCustomerAccountUrls(conversationId);
-  return tokenUrl;
 }

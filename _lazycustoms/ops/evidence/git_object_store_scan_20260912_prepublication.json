@@ -1,0 +1,2051 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-09-12T07:40:26.001Z",
+  "scanner": {
+    "name": "scan_git_object_store_20260912.mjs",
+    "sourceSha256": "9d9aadc7873468dfeaad25579f30b6fda72996de23189c3634f26500edda069e",
+    "enumeration": "git cat-file --batch-all-objects",
+    "scope": [
+      "all blobs",
+      "all commits",
+      "all annotated tags",
+      "reachable",
+      "reflog-only",
+      "unreachable"
+    ],
+    "valueRetention": "No matched values or value-derived hashes are retained.",
+    "limitations": [
+      "Pattern-based detection can produce false positives and false negatives.",
+      "Compressed or encrypted payloads are not decompressed or decrypted.",
+      "Binary blobs are scanned as byte-preserving Latin-1 text for recognizable token strings.",
+      "This is a repository-local detector, not a gitleaks or trufflehog execution."
+    ]
+  },
+  "repository": {
+    "root": "C:/Users/P/Desktop/02_IAMHUB",
+    "head": "10f7d6babbef13fbfd19c61db086add2fea05f8a",
+    "originMain": "f258473856d1cbf853f0da6ce1c9ca35912f6b5b",
+    "headAheadOfOriginMain": 1
+  },
+  "coverage": {
+    "totalObjects": 524,
+    "countsByType": {
+      "blob": 272,
+      "commit": 19,
+      "tree": 233
+    },
+    "countsByReachability": {
+      "reachable-from-ref": 433,
+      "reflog-only": 20,
+      "unreachable": 71
+    },
+    "scannedObjectTypes": [
+      "blob",
+      "commit",
+      "tag"
+    ],
+    "scannedBytes": 8398339
+  },
+  "result": {
+    "findingCount": 99,
+    "findingsBySeverity": {
+      "critical": 4,
+      "internal-identifier": 6,
+      "personal-data": 46,
+      "review": 43
+    },
+    "findingsByDetector": {
+      "email-address": 45,
+      "generic-credential-assignment": 43,
+      "query-credential": 2,
+      "url-basic-auth": 2,
+      "us-phone-number": 1,
+      "uuid": 6
+    },
+    "sensitivePathCandidateCount": 8
+  },
+  "keywordInventory": {
+    "credentialTerms": {
+      "occurrences": 1306,
+      "objectCount": 116
+    },
+    "transcriptTerms": {
+      "occurrences": 10,
+      "objectCount": 10
+    },
+    "identityTerms": {
+      "occurrences": 134,
+      "objectCount": 36
+    }
+  },
+  "sensitivePathCandidates": [
+    {
+      "objectId": "7e6b0f9d2f11c7754554408f34ca394660ad884b",
+      "reachability": "reachable-from-ref",
+      "path": "_lazycustoms/chat-agent-additions/.env.example"
+    },
+    {
+      "objectId": "542301081534d7b65c6e49f2142e6fc8bffa1f27",
+      "reachability": "reachable-from-ref",
+      "path": "shop-chat-agent-main/.env.example"
+    },
+    {
+      "objectId": "b2cfa49f15c1e7d08a81694e5addfba4f9f97e03",
+      "reachability": "reachable-from-ref",
+      "path": "shop-chat-agent-main/.env.example"
+    },
+    {
+      "objectId": "d3f33ff75bc724855f9be13923ea07d3395857c5",
+      "reachability": "reachable-from-ref",
+      "path": "shop-chat-agent-main/.env.example"
+    },
+    {
+      "objectId": "f43c233ef4d4afcffa3c0fef39fb839bf889b966",
+      "reachability": "reachable-from-ref",
+      "path": "shop-chat-agent-main/.env.example"
+    },
+    {
+      "objectId": "4c04b99ae95f2db8404cdc0f8094407f0221cc06",
+      "reachability": "reachable-from-ref",
+      "path": "shop-chat-agent-main/CLAUDE_BACKUP_AND_REVIEW_INVITATION.xml"
+    },
+    {
+      "objectId": "16b6a6c8985059a4168f6d3c23dced6fc00a5c10",
+      "reachability": "reachable-from-ref",
+      "path": "shop-chat-agent-main/prisma/migrations/20240530213853_create_session_table"
+    },
+    {
+      "objectId": "bfb184add224fde515702458876fb2508c247006",
+      "reachability": "reachable-from-ref",
+      "path": "shop-chat-agent-main/prisma/migrations/20250508000001_add_conversation_tables"
+    }
+  ],
+  "findings": [
+    {
+      "id": "d69a0c051bbb4d4e",
+      "detector": "query-credential",
+      "severity": "critical",
+      "objectId": "7ae3d87c8eacf1aae26c217f3fde73816e0a56e4",
+      "objectType": "blob",
+      "objectSize": 8047,
+      "reachability": "unreachable",
+      "paths": [
+        "dev-server.log"
+      ],
+      "location": {
+        "line": 36,
+        "column": 57
+      },
+      "matchedLength": 69,
+      "parameterName": "key",
+      "appearsPlaceholder": false
+    },
+    {
+      "id": "c4268b8926252189",
+      "detector": "query-credential",
+      "severity": "critical",
+      "objectId": "c40d2dfb11d616f49664b42a8c49a5e9da3c90a3",
+      "objectType": "blob",
+      "objectSize": 7873,
+      "reachability": "unreachable",
+      "paths": [
+        "dev-server.log"
+      ],
+      "location": {
+        "line": 36,
+        "column": 57
+      },
+      "matchedLength": 69,
+      "parameterName": "key",
+      "appearsPlaceholder": false
+    },
+    {
+      "id": "74ee9d83a0a3a1b1",
+      "detector": "url-basic-auth",
+      "severity": "critical",
+      "objectId": "af0f5006e7df32257a120ab70d26a1b13a45637f",
+      "objectType": "blob",
+      "objectSize": 3480,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "shop-chat-agent-main/tests/widget-backend.test.mjs",
+        "tests/widget-backend.test.mjs",
+        "widget-backend.test.mjs"
+      ],
+      "location": {
+        "line": 24,
+        "column": 100
+      },
+      "matchedLength": 37,
+      "host": "chat.example.com'])",
+      "appearsPlaceholder": true
+    },
+    {
+      "id": "a255abe448213b63",
+      "detector": "url-basic-auth",
+      "severity": "critical",
+      "objectId": "f35c6b25bc62533945bc52907ac4ab81ae17fd97",
+      "objectType": "blob",
+      "objectSize": 2668,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "shop-chat-agent-main/tests/widget-backend.test.mjs",
+        "tests/widget-backend.test.mjs",
+        "widget-backend.test.mjs"
+      ],
+      "location": {
+        "line": 23,
+        "column": 100
+      },
+      "matchedLength": 37,
+      "host": "chat.example.com'])",
+      "appearsPlaceholder": true
+    },
+    {
+      "id": "99acee5d7d546144",
+      "detector": "uuid",
+      "severity": "internal-identifier",
+      "objectId": "e5a958c959a444f5641793229b276c0a7393ca68",
+      "objectType": "blob",
+      "objectSize": 1664096,
+      "reachability": "reflog-only",
+      "paths": [
+        "_lazycustoms/ops/evidence/live_generated_openai_20260912.png",
+        "evidence/live_generated_openai_20260912.png",
+        "live_generated_openai_20260912.png",
+        "ops/evidence/live_generated_openai_20260912.png"
+      ],
+      "location": {
+        "byteOffset": 121
+      },
+      "matchedLength": 36,
+      "pngChunkType": "caBX",
+      "pngChunkClass": "ancillary",
+      "nearbyKnownLabels": [
+        "c2pa"
+      ]
+    },
+    {
+      "id": "6ec799379be14bcd",
+      "detector": "uuid",
+      "severity": "internal-identifier",
+      "objectId": "e5a958c959a444f5641793229b276c0a7393ca68",
+      "objectType": "blob",
+      "objectSize": 1664096,
+      "reachability": "reflog-only",
+      "paths": [
+        "_lazycustoms/ops/evidence/live_generated_openai_20260912.png",
+        "evidence/live_generated_openai_20260912.png",
+        "live_generated_openai_20260912.png",
+        "ops/evidence/live_generated_openai_20260912.png"
+      ],
+      "location": {
+        "byteOffset": 3657
+      },
+      "matchedLength": 36,
+      "pngChunkType": "caBX",
+      "pngChunkClass": "ancillary",
+      "nearbyKnownLabels": [
+        "c2pa",
+        "openai"
+      ]
+    },
+    {
+      "id": "4402f9cca681824f",
+      "detector": "uuid",
+      "severity": "internal-identifier",
+      "objectId": "f1c86d41d75bb957d489157caf28c906eae7f35e",
+      "objectType": "blob",
+      "objectSize": 7836,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "CHATGPT_CHROME_RAILWAY_CONSOLIDATION.xml",
+        "shop-chat-agent-main/CHATGPT_CHROME_RAILWAY_CONSOLIDATION.xml"
+      ],
+      "location": {
+        "line": 16,
+        "column": 18
+      },
+      "matchedLength": 36
+    },
+    {
+      "id": "d78b4a74943a3a6a",
+      "detector": "uuid",
+      "severity": "internal-identifier",
+      "objectId": "f1c86d41d75bb957d489157caf28c906eae7f35e",
+      "objectType": "blob",
+      "objectSize": 7836,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "CHATGPT_CHROME_RAILWAY_CONSOLIDATION.xml",
+        "shop-chat-agent-main/CHATGPT_CHROME_RAILWAY_CONSOLIDATION.xml"
+      ],
+      "location": {
+        "line": 17,
+        "column": 18
+      },
+      "matchedLength": 36
+    },
+    {
+      "id": "40d345594575dfab",
+      "detector": "uuid",
+      "severity": "internal-identifier",
+      "objectId": "f3129e846962fa51216728cc25efa32e0d077b23",
+      "objectType": "blob",
+      "objectSize": 1651937,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "20260912T070412Z/generated_openai.png",
+        "_lazycustoms/ops/evidence/live_runs/20260912T070412Z/generated_openai.png",
+        "evidence/live_runs/20260912T070412Z/generated_openai.png",
+        "generated_openai.png",
+        "live_runs/20260912T070412Z/generated_openai.png",
+        "ops/evidence/live_runs/20260912T070412Z/generated_openai.png"
+      ],
+      "location": {
+        "byteOffset": 121
+      },
+      "matchedLength": 36,
+      "pngChunkType": "caBX",
+      "pngChunkClass": "ancillary",
+      "nearbyKnownLabels": [
+        "c2pa"
+      ]
+    },
+    {
+      "id": "95c2aac641d73d6a",
+      "detector": "uuid",
+      "severity": "internal-identifier",
+      "objectId": "f3129e846962fa51216728cc25efa32e0d077b23",
+      "objectType": "blob",
+      "objectSize": 1651937,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "20260912T070412Z/generated_openai.png",
+        "_lazycustoms/ops/evidence/live_runs/20260912T070412Z/generated_openai.png",
+        "evidence/live_runs/20260912T070412Z/generated_openai.png",
+        "generated_openai.png",
+        "live_runs/20260912T070412Z/generated_openai.png",
+        "ops/evidence/live_runs/20260912T070412Z/generated_openai.png"
+      ],
+      "location": {
+        "byteOffset": 3657
+      },
+      "matchedLength": 36,
+      "pngChunkType": "caBX",
+      "pngChunkClass": "ancillary",
+      "nearbyKnownLabels": [
+        "c2pa",
+        "openai"
+      ]
+    },
+    {
+      "id": "5e7e9c94c88047e3",
+      "detector": "email-address",
+      "severity": "personal-data",
+      "objectId": "10f7d6babbef13fbfd19c61db086add2fea05f8a",
+      "objectType": "commit",
+      "objectSize": 270,
+      "reachability": "reachable-from-ref",
+      "paths": [],
+      "location": {
+        "line": 3,
+        "column": 17
+      },
+      "matchedLength": 25,
+      "domain": "gmail.com",
+      "classification": "git-metadata"
+    },
+    {
+      "id": "ff13af3fe4604789",
+      "detector": "email-address",
+      "severity": "personal-data",
+      "objectId": "10f7d6babbef13fbfd19c61db086add2fea05f8a",
+      "objectType": "commit",
+      "objectSize": 270,
+      "reachability": "reachable-from-ref",
+      "paths": [],
+      "location": {
+        "line": 4,
+        "column": 20
+      },
+      "matchedLength": 25,
+      "domain": "gmail.com",
+      "classification": "git-metadata"
+    },
+    {
+      "id": "107b2982640f9746",
+      "detector": "email-address",
+      "severity": "personal-data",
+      "objectId": "180de635d7c2e5e3c2bb3c201f4d424cd5cbd360",
+      "objectType": "commit",
+      "objectSize": 971,
+      "reachability": "reachable-from-ref",
+      "paths": [],
+      "location": {
+        "line": 3,
+        "column": 17
+      },
+      "matchedLength": 25,
+      "domain": "gmail.com",
+      "classification": "git-metadata"
+    },
+    {
+      "id": "ae91c9d5c2fff469",
+      "detector": "email-address",
+      "severity": "personal-data",
+      "objectId": "180de635d7c2e5e3c2bb3c201f4d424cd5cbd360",
+      "objectType": "commit",
+      "objectSize": 971,
+      "reachability": "reachable-from-ref",
+      "paths": [],
+      "location": {
+        "line": 4,
+        "column": 20
+      },
+      "matchedLength": 25,
+      "domain": "gmail.com",
+      "classification": "git-metadata"
+    },
+    {
+      "id": "8a4c2caf352e58ad",
+      "detector": "email-address",
+      "severity": "personal-data",
+      "objectId": "22e8cada748f26447dd3aafd662cb09c5d38950b",
+      "objectType": "commit",
+      "objectSize": 298,
+      "reachability": "reachable-from-ref",
+      "paths": [],
+      "location": {
+        "line": 3,
+        "column": 17
+      },
+      "matchedLength": 25,
+      "domain": "gmail.com",
+      "classification": "git-metadata"
+    },
+    {
+      "id": "0c19611878d91da5",
+      "detector": "email-address",
+      "severity": "personal-data",
+      "objectId": "22e8cada748f26447dd3aafd662cb09c5d38950b",
+      "objectType": "commit",
+      "objectSize": 298,
+      "reachability": "reachable-from-ref",
+      "paths": [],
+      "location": {
+        "line": 4,
+        "column": 20
+      },
+      "matchedLength": 25,
+      "domain": "gmail.com",
+      "classification": "git-metadata"
+    },
+    {
+      "id": "1d403112c32b4a06",
+      "detector": "email-address",
+      "severity": "personal-data",
+      "objectId": "31c17fefc00b0437c25bf308cc90bb3d7c3ccaee",
+      "objectType": "blob",
+      "objectSize": 1015,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "03-refund-policy-draft.md",
+        "_lazycustoms/docs/03-refund-policy-draft.md",
+        "docs/03-refund-policy-draft.md"
+      ],
+      "location": {
+        "line": 13,
+        "column": 10
+      },
+      "matchedLength": 18,
+      "domain": "iamhubinc.com",
+      "classification": "review-required"
+    },
+    {
+      "id": "b59148b48428da1b",
+      "detector": "email-address",
+      "severity": "personal-data",
+      "objectId": "31c17fefc00b0437c25bf308cc90bb3d7c3ccaee",
+      "objectType": "blob",
+      "objectSize": 1015,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "03-refund-policy-draft.md",
+        "_lazycustoms/docs/03-refund-policy-draft.md",
+        "docs/03-refund-policy-draft.md"
+      ],
+      "location": {
+        "line": 7,
+        "column": 318
+      },
+      "matchedLength": 18,
+      "domain": "iamhubinc.com",
+      "classification": "review-required"
+    },
+    {
+      "id": "15f211b84213e13e",
+      "detector": "email-address",
+      "severity": "personal-data",
+      "objectId": "382ce6789dbffe8aaba52dacf7286fb242fa9434",
+      "objectType": "commit",
+      "objectSize": 1155,
+      "reachability": "reachable-from-ref",
+      "paths": [],
+      "location": {
+        "line": 3,
+        "column": 19
+      },
+      "matchedLength": 25,
+      "domain": "gmail.com",
+      "classification": "git-metadata"
+    },
+    {
+      "id": "dfc1fe42f4a1a477",
+      "detector": "email-address",
+      "severity": "personal-data",
+      "objectId": "382ce6789dbffe8aaba52dacf7286fb242fa9434",
+      "objectType": "commit",
+      "objectSize": 1155,
+      "reachability": "reachable-from-ref",
+      "paths": [],
+      "location": {
+        "line": 4,
+        "column": 19
+      },
+      "matchedLength": 18,
+      "domain": "github.com",
+      "classification": "git-metadata"
+    },
+    {
+      "id": "7f47f94dd018a211",
+      "detector": "email-address",
+      "severity": "personal-data",
+      "objectId": "4e2fc355b3194389f55c9a832b587b60441bfc92",
+      "objectType": "commit",
+      "objectSize": 277,
+      "reachability": "reflog-only",
+      "paths": [],
+      "location": {
+        "line": 3,
+        "column": 17
+      },
+      "matchedLength": 25,
+      "domain": "gmail.com",
+      "classification": "git-metadata"
+    },
+    {
+      "id": "337649b48fad636e",
+      "detector": "email-address",
+      "severity": "personal-data",
+      "objectId": "4e2fc355b3194389f55c9a832b587b60441bfc92",
+      "objectType": "commit",
+      "objectSize": 277,
+      "reachability": "reflog-only",
+      "paths": [],
+      "location": {
+        "line": 4,
+        "column": 20
+      },
+      "matchedLength": 25,
+      "domain": "gmail.com",
+      "classification": "git-metadata"
+    },
+    {
+      "id": "bc681323c8ad1710",
+      "detector": "email-address",
+      "severity": "personal-data",
+      "objectId": "51fb5b743f2b8534c437e9bcd78ddb374626d33d",
+      "objectType": "commit",
+      "objectSize": 274,
+      "reachability": "reachable-from-ref",
+      "paths": [],
+      "location": {
+        "line": 3,
+        "column": 17
+      },
+      "matchedLength": 25,
+      "domain": "gmail.com",
+      "classification": "git-metadata"
+    },
+    {
+      "id": "721513a1ba840b42",
+      "detector": "email-address",
+      "severity": "personal-data",
+      "objectId": "51fb5b743f2b8534c437e9bcd78ddb374626d33d",
+      "objectType": "commit",
+      "objectSize": 274,
+      "reachability": "reachable-from-ref",
+      "paths": [],
+      "location": {
+        "line": 4,
+        "column": 20
+      },
+      "matchedLength": 25,
+      "domain": "gmail.com",
+      "classification": "git-metadata"
+    },
+    {
+      "id": "2add60c86ae9e1c7",
+      "detector": "email-address",
+      "severity": "personal-data",
+      "objectId": "5be615ef5a2245c72ea752b74b6883dd72f40d61",
+      "objectType": "commit",
+      "objectSize": 1925,
+      "reachability": "reachable-from-ref",
+      "paths": [],
+      "location": {
+        "line": 3,
+        "column": 17
+      },
+      "matchedLength": 25,
+      "domain": "gmail.com",
+      "classification": "git-metadata"
+    },
+    {
+      "id": "1f7543558b433ea9",
+      "detector": "email-address",
+      "severity": "personal-data",
+      "objectId": "5be615ef5a2245c72ea752b74b6883dd72f40d61",
+      "objectType": "commit",
+      "objectSize": 1925,
+      "reachability": "reachable-from-ref",
+      "paths": [],
+      "location": {
+        "line": 4,
+        "column": 20
+      },
+      "matchedLength": 25,
+      "domain": "gmail.com",
+      "classification": "git-metadata"
+    },
+    {
+      "id": "ecb6276e5d7abae6",
+      "detector": "email-address",
+      "severity": "personal-data",
+      "objectId": "63b0d1027080137bbd016fc96a664792823fa48f",
+      "objectType": "commit",
+      "objectSize": 257,
+      "reachability": "reachable-from-ref",
+      "paths": [],
+      "location": {
+        "line": 3,
+        "column": 17
+      },
+      "matchedLength": 25,
+      "domain": "gmail.com",
+      "classification": "git-metadata"
+    },
+    {
+      "id": "86f662d398a8cd57",
+      "detector": "email-address",
+      "severity": "personal-data",
+      "objectId": "63b0d1027080137bbd016fc96a664792823fa48f",
+      "objectType": "commit",
+      "objectSize": 257,
+      "reachability": "reachable-from-ref",
+      "paths": [],
+      "location": {
+        "line": 4,
+        "column": 20
+      },
+      "matchedLength": 25,
+      "domain": "gmail.com",
+      "classification": "git-metadata"
+    },
+    {
+      "id": "a62de45eb1a7c9dc",
+      "detector": "email-address",
+      "severity": "personal-data",
+      "objectId": "70395ac986097c3fbcf9d2b2a8bbd59488a6d73a",
+      "objectType": "commit",
+      "objectSize": 465,
+      "reachability": "reachable-from-ref",
+      "paths": [],
+      "location": {
+        "line": 3,
+        "column": 17
+      },
+      "matchedLength": 25,
+      "domain": "gmail.com",
+      "classification": "git-metadata"
+    },
+    {
+      "id": "11a47656303a37b3",
+      "detector": "email-address",
+      "severity": "personal-data",
+      "objectId": "70395ac986097c3fbcf9d2b2a8bbd59488a6d73a",
+      "objectType": "commit",
+      "objectSize": 465,
+      "reachability": "reachable-from-ref",
+      "paths": [],
+      "location": {
+        "line": 4,
+        "column": 20
+      },
+      "matchedLength": 25,
+      "domain": "gmail.com",
+      "classification": "git-metadata"
+    },
+    {
+      "id": "623167ef68e306b8",
+      "detector": "email-address",
+      "severity": "personal-data",
+      "objectId": "7bd9d0134a92bec882afefa38a792d2738b5112b",
+      "objectType": "commit",
+      "objectSize": 832,
+      "reachability": "reachable-from-ref",
+      "paths": [],
+      "location": {
+        "line": 3,
+        "column": 17
+      },
+      "matchedLength": 25,
+      "domain": "gmail.com",
+      "classification": "git-metadata"
+    },
+    {
+      "id": "f15c316942c0499b",
+      "detector": "email-address",
+      "severity": "personal-data",
+      "objectId": "7bd9d0134a92bec882afefa38a792d2738b5112b",
+      "objectType": "commit",
+      "objectSize": 832,
+      "reachability": "reachable-from-ref",
+      "paths": [],
+      "location": {
+        "line": 4,
+        "column": 20
+      },
+      "matchedLength": 25,
+      "domain": "gmail.com",
+      "classification": "git-metadata"
+    },
+    {
+      "id": "0c0ff57b89ef7e80",
+      "detector": "email-address",
+      "severity": "personal-data",
+      "objectId": "84180b2c0c3744ad9f225fc3d153a77e3968b20b",
+      "objectType": "commit",
+      "objectSize": 2478,
+      "reachability": "reachable-from-ref",
+      "paths": [],
+      "location": {
+        "line": 3,
+        "column": 17
+      },
+      "matchedLength": 25,
+      "domain": "gmail.com",
+      "classification": "git-metadata"
+    },
+    {
+      "id": "b82689ae515fe61d",
+      "detector": "email-address",
+      "severity": "personal-data",
+      "objectId": "84180b2c0c3744ad9f225fc3d153a77e3968b20b",
+      "objectType": "commit",
+      "objectSize": 2478,
+      "reachability": "reachable-from-ref",
+      "paths": [],
+      "location": {
+        "line": 4,
+        "column": 20
+      },
+      "matchedLength": 25,
+      "domain": "gmail.com",
+      "classification": "git-metadata"
+    },
+    {
+      "id": "9233a84a879514a5",
+      "detector": "email-address",
+      "severity": "personal-data",
+      "objectId": "99c2c3a340a3192d033794a22cc6e62c9e81098c",
+      "objectType": "commit",
+      "objectSize": 1122,
+      "reachability": "reachable-from-ref",
+      "paths": [],
+      "location": {
+        "line": 3,
+        "column": 17
+      },
+      "matchedLength": 25,
+      "domain": "gmail.com",
+      "classification": "git-metadata"
+    },
+    {
+      "id": "186b4570a5b58e7a",
+      "detector": "email-address",
+      "severity": "personal-data",
+      "objectId": "99c2c3a340a3192d033794a22cc6e62c9e81098c",
+      "objectType": "commit",
+      "objectSize": 1122,
+      "reachability": "reachable-from-ref",
+      "paths": [],
+      "location": {
+        "line": 4,
+        "column": 20
+      },
+      "matchedLength": 25,
+      "domain": "gmail.com",
+      "classification": "git-metadata"
+    },
+    {
+      "id": "34d84ac4f07011a6",
+      "detector": "email-address",
+      "severity": "personal-data",
+      "objectId": "9a1932a9d04779ef33c6e105f068ec8c8cf3578d",
+      "objectType": "commit",
+      "objectSize": 233,
+      "reachability": "reachable-from-ref",
+      "paths": [],
+      "location": {
+        "line": 3,
+        "column": 17
+      },
+      "matchedLength": 25,
+      "domain": "gmail.com",
+      "classification": "git-metadata"
+    },
+    {
+      "id": "fce9c3101af54eba",
+      "detector": "email-address",
+      "severity": "personal-data",
+      "objectId": "9a1932a9d04779ef33c6e105f068ec8c8cf3578d",
+      "objectType": "commit",
+      "objectSize": 233,
+      "reachability": "reachable-from-ref",
+      "paths": [],
+      "location": {
+        "line": 4,
+        "column": 20
+      },
+      "matchedLength": 25,
+      "domain": "gmail.com",
+      "classification": "git-metadata"
+    },
+    {
+      "id": "792e9295ce840782",
+      "detector": "email-address",
+      "severity": "personal-data",
+      "objectId": "af0f5006e7df32257a120ab70d26a1b13a45637f",
+      "objectType": "blob",
+      "objectSize": 3480,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "shop-chat-agent-main/tests/widget-backend.test.mjs",
+        "tests/widget-backend.test.mjs",
+        "widget-backend.test.mjs"
+      ],
+      "location": {
+        "line": 24,
+        "column": 113
+      },
+      "matchedLength": 21,
+      "domain": "chat.example.com",
+      "classification": "reserved-example"
+    },
+    {
+      "id": "fdb976f2720dee20",
+      "detector": "email-address",
+      "severity": "personal-data",
+      "objectId": "cb48f1371c28dd32bf29ea43b5a0ecec708915d4",
+      "objectType": "commit",
+      "objectSize": 1510,
+      "reachability": "reachable-from-ref",
+      "paths": [],
+      "location": {
+        "line": 3,
+        "column": 17
+      },
+      "matchedLength": 25,
+      "domain": "gmail.com",
+      "classification": "git-metadata"
+    },
+    {
+      "id": "f52b7401039d4ca3",
+      "detector": "email-address",
+      "severity": "personal-data",
+      "objectId": "cb48f1371c28dd32bf29ea43b5a0ecec708915d4",
+      "objectType": "commit",
+      "objectSize": 1510,
+      "reachability": "reachable-from-ref",
+      "paths": [],
+      "location": {
+        "line": 4,
+        "column": 20
+      },
+      "matchedLength": 25,
+      "domain": "gmail.com",
+      "classification": "git-metadata"
+    },
+    {
+      "id": "fb42c0de831b33fd",
+      "detector": "email-address",
+      "severity": "personal-data",
+      "objectId": "ccb8e116299bdf76b6e02c748b444406e47b4071",
+      "objectType": "blob",
+      "objectSize": 412662,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "package-lock.json",
+        "shop-chat-agent-main/package-lock.json"
+      ],
+      "location": {
+        "line": 6542,
+        "column": 257
+      },
+      "matchedLength": 8,
+      "domain": "izs.me",
+      "classification": "review-required"
+    },
+    {
+      "id": "abdbe0fa55028cbf",
+      "detector": "email-address",
+      "severity": "personal-data",
+      "objectId": "d4dfa0d467a3f72362b1695086a7a90e9cfd31d0",
+      "objectType": "commit",
+      "objectSize": 224,
+      "reachability": "reachable-from-ref",
+      "paths": [],
+      "location": {
+        "line": 3,
+        "column": 17
+      },
+      "matchedLength": 25,
+      "domain": "gmail.com",
+      "classification": "git-metadata"
+    },
+    {
+      "id": "f4d6efcac15bfd2f",
+      "detector": "email-address",
+      "severity": "personal-data",
+      "objectId": "d4dfa0d467a3f72362b1695086a7a90e9cfd31d0",
+      "objectType": "commit",
+      "objectSize": 224,
+      "reachability": "reachable-from-ref",
+      "paths": [],
+      "location": {
+        "line": 4,
+        "column": 20
+      },
+      "matchedLength": 25,
+      "domain": "gmail.com",
+      "classification": "git-metadata"
+    },
+    {
+      "id": "55ca1d459e8fb66e",
+      "detector": "email-address",
+      "severity": "personal-data",
+      "objectId": "e0d6623ed465f9777fecc3ca766fe85a429f6c42",
+      "objectType": "commit",
+      "objectSize": 465,
+      "reachability": "reachable-from-ref",
+      "paths": [],
+      "location": {
+        "line": 3,
+        "column": 17
+      },
+      "matchedLength": 25,
+      "domain": "gmail.com",
+      "classification": "git-metadata"
+    },
+    {
+      "id": "9b03f6696c8dc6e4",
+      "detector": "email-address",
+      "severity": "personal-data",
+      "objectId": "e0d6623ed465f9777fecc3ca766fe85a429f6c42",
+      "objectType": "commit",
+      "objectSize": 465,
+      "reachability": "reachable-from-ref",
+      "paths": [],
+      "location": {
+        "line": 4,
+        "column": 20
+      },
+      "matchedLength": 25,
+      "domain": "gmail.com",
+      "classification": "git-metadata"
+    },
+    {
+      "id": "a0a359f3b2b8c317",
+      "detector": "email-address",
+      "severity": "personal-data",
+      "objectId": "e66a7ac1f0fed8d10d2f2b3e22512b1224c1c2e2",
+      "objectType": "commit",
+      "objectSize": 592,
+      "reachability": "reachable-from-ref",
+      "paths": [],
+      "location": {
+        "line": 13,
+        "column": 34
+      },
+      "matchedLength": 21,
+      "domain": "anthropic.com",
+      "classification": "review-required"
+    },
+    {
+      "id": "a9eebc4df87dcf57",
+      "detector": "email-address",
+      "severity": "personal-data",
+      "objectId": "e66a7ac1f0fed8d10d2f2b3e22512b1224c1c2e2",
+      "objectType": "commit",
+      "objectSize": 592,
+      "reachability": "reachable-from-ref",
+      "paths": [],
+      "location": {
+        "line": 2,
+        "column": 17
+      },
+      "matchedLength": 25,
+      "domain": "gmail.com",
+      "classification": "git-metadata"
+    },
+    {
+      "id": "fefeab48c0588edb",
+      "detector": "email-address",
+      "severity": "personal-data",
+      "objectId": "e66a7ac1f0fed8d10d2f2b3e22512b1224c1c2e2",
+      "objectType": "commit",
+      "objectSize": 592,
+      "reachability": "reachable-from-ref",
+      "paths": [],
+      "location": {
+        "line": 3,
+        "column": 20
+      },
+      "matchedLength": 25,
+      "domain": "gmail.com",
+      "classification": "git-metadata"
+    },
+    {
+      "id": "1527c9721e067f75",
+      "detector": "email-address",
+      "severity": "personal-data",
+      "objectId": "e73ed0af078a41c126b28caa277ad4cac384b8b3",
+      "objectType": "commit",
+      "objectSize": 259,
+      "reachability": "reachable-from-ref",
+      "paths": [],
+      "location": {
+        "line": 3,
+        "column": 17
+      },
+      "matchedLength": 25,
+      "domain": "gmail.com",
+      "classification": "git-metadata"
+    },
+    {
+      "id": "e35cc9cb625fb500",
+      "detector": "email-address",
+      "severity": "personal-data",
+      "objectId": "e73ed0af078a41c126b28caa277ad4cac384b8b3",
+      "objectType": "commit",
+      "objectSize": 259,
+      "reachability": "reachable-from-ref",
+      "paths": [],
+      "location": {
+        "line": 4,
+        "column": 20
+      },
+      "matchedLength": 25,
+      "domain": "gmail.com",
+      "classification": "git-metadata"
+    },
+    {
+      "id": "6b512ae7b28918fd",
+      "detector": "email-address",
+      "severity": "personal-data",
+      "objectId": "f258473856d1cbf853f0da6ce1c9ca35912f6b5b",
+      "objectType": "commit",
+      "objectSize": 282,
+      "reachability": "reachable-from-ref",
+      "paths": [],
+      "location": {
+        "line": 3,
+        "column": 17
+      },
+      "matchedLength": 25,
+      "domain": "gmail.com",
+      "classification": "git-metadata"
+    },
+    {
+      "id": "c3852a3422c255ca",
+      "detector": "email-address",
+      "severity": "personal-data",
+      "objectId": "f258473856d1cbf853f0da6ce1c9ca35912f6b5b",
+      "objectType": "commit",
+      "objectSize": 282,
+      "reachability": "reachable-from-ref",
+      "paths": [],
+      "location": {
+        "line": 4,
+        "column": 20
+      },
+      "matchedLength": 25,
+      "domain": "gmail.com",
+      "classification": "git-metadata"
+    },
+    {
+      "id": "2b741e708bd8eaed",
+      "detector": "email-address",
+      "severity": "personal-data",
+      "objectId": "f35c6b25bc62533945bc52907ac4ab81ae17fd97",
+      "objectType": "blob",
+      "objectSize": 2668,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "shop-chat-agent-main/tests/widget-backend.test.mjs",
+        "tests/widget-backend.test.mjs",
+        "widget-backend.test.mjs"
+      ],
+      "location": {
+        "line": 23,
+        "column": 113
+      },
+      "matchedLength": 21,
+      "domain": "chat.example.com",
+      "classification": "reserved-example"
+    },
+    {
+      "id": "63a23c3c13e13439",
+      "detector": "email-address",
+      "severity": "personal-data",
+      "objectId": "fcd6ec05722c8d9e82769e5f3e6b590d9eab777d",
+      "objectType": "blob",
+      "objectSize": 412643,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "package-lock.json",
+        "shop-chat-agent-main/package-lock.json"
+      ],
+      "location": {
+        "line": 6542,
+        "column": 257
+      },
+      "matchedLength": 8,
+      "domain": "izs.me",
+      "classification": "review-required"
+    },
+    {
+      "id": "db79a53ba5a58a48",
+      "detector": "us-phone-number",
+      "severity": "personal-data",
+      "objectId": "31c17fefc00b0437c25bf308cc90bb3d7c3ccaee",
+      "objectType": "blob",
+      "objectSize": 1015,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "03-refund-policy-draft.md",
+        "_lazycustoms/docs/03-refund-policy-draft.md",
+        "docs/03-refund-policy-draft.md"
+      ],
+      "location": {
+        "line": 14,
+        "column": 10
+      },
+      "matchedLength": 14,
+      "classification": "review-required"
+    },
+    {
+      "id": "5b39bfd59d369aec",
+      "detector": "generic-credential-assignment",
+      "severity": "review",
+      "objectId": "009de7c9541a586fc6e65f55add90606322a8ecd",
+      "objectType": "blob",
+      "objectSize": 35718,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "assets/chat.js",
+        "chat-bubble/assets/chat.js",
+        "chat.js",
+        "extensions/chat-bubble/assets/chat.js",
+        "shop-chat-agent-main/extensions/chat-bubble/assets/chat.js"
+      ],
+      "location": {
+        "line": 788,
+        "column": 26
+      },
+      "matchedLength": 8,
+      "variableName": "startTokenPolling"
+    },
+    {
+      "id": "1459b15185dd0116",
+      "detector": "generic-credential-assignment",
+      "severity": "review",
+      "objectId": "14727494e755cda9a2f9c8e218b1f3a4a4885906",
+      "objectType": "blob",
+      "objectSize": 2873,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "app/services/claude.server.js",
+        "claude.server.js",
+        "services/claude.server.js",
+        "shop-chat-agent-main/app/services/claude.server.js"
+      ],
+      "location": {
+        "line": 41,
+        "column": 19
+      },
+      "matchedLength": 23,
+      "variableName": "max_tokens"
+    },
+    {
+      "id": "951edc8fd960846f",
+      "detector": "generic-credential-assignment",
+      "severity": "review",
+      "objectId": "1f29d4e18e7d1c846a9aa4361fc75d0bcff9b9d5",
+      "objectType": "blob",
+      "objectSize": 9095,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "app/mcp-client.js",
+        "mcp-client.js",
+        "shop-chat-agent-main/app/mcp-client.js"
+      ],
+      "location": {
+        "line": 178,
+        "column": 25
+      },
+      "matchedLength": 24,
+      "variableName": "accessToken"
+    },
+    {
+      "id": "18548f621ac71b71",
+      "detector": "generic-credential-assignment",
+      "severity": "review",
+      "objectId": "1f29d4e18e7d1c846a9aa4361fc75d0bcff9b9d5",
+      "objectType": "blob",
+      "objectSize": 9095,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "app/mcp-client.js",
+        "mcp-client.js",
+        "shop-chat-agent-main/app/mcp-client.js"
+      ],
+      "location": {
+        "line": 184,
+        "column": 25
+      },
+      "matchedLength": 19,
+      "variableName": "accessToken"
+    },
+    {
+      "id": "3c5d8cf14dea8f66",
+      "detector": "generic-credential-assignment",
+      "severity": "review",
+      "objectId": "1f29d4e18e7d1c846a9aa4361fc75d0bcff9b9d5",
+      "objectType": "blob",
+      "objectSize": 9095,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "app/mcp-client.js",
+        "mcp-client.js",
+        "shop-chat-agent-main/app/mcp-client.js"
+      ],
+      "location": {
+        "line": 185,
+        "column": 38
+      },
+      "matchedLength": 11,
+      "variableName": "this.customerAccessToken"
+    },
+    {
+      "id": "d827de081f9352e8",
+      "detector": "generic-credential-assignment",
+      "severity": "review",
+      "objectId": "1f29d4e18e7d1c846a9aa4361fc75d0bcff9b9d5",
+      "objectType": "blob",
+      "objectSize": 9095,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "app/mcp-client.js",
+        "mcp-client.js",
+        "shop-chat-agent-main/app/mcp-client.js"
+      ],
+      "location": {
+        "line": 45,
+        "column": 38
+      },
+      "matchedLength": 19,
+      "variableName": "this.customerAccessToken"
+    },
+    {
+      "id": "0fbec33982aca56a",
+      "detector": "generic-credential-assignment",
+      "severity": "review",
+      "objectId": "26136071f13f99f6a292d820e357d9fcb1f1300a",
+      "objectType": "blob",
+      "objectSize": 4095,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "app/services/vision-copy.server.js",
+        "services/vision-copy.server.js",
+        "shop-chat-agent-main/app/services/vision-copy.server.js",
+        "vision-copy.server.js"
+      ],
+      "location": {
+        "line": 51,
+        "column": 22
+      },
+      "matchedLength": 11,
+      "variableName": "actualKeys"
+    },
+    {
+      "id": "1f5d8e880158894d",
+      "detector": "generic-credential-assignment",
+      "severity": "review",
+      "objectId": "3566fa1803072d0d803ac313bd16753ad5c9e4aa",
+      "objectType": "blob",
+      "objectSize": 4030,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "app/services/claude.server.js",
+        "claude.server.js",
+        "services/claude.server.js",
+        "shop-chat-agent-main/app/services/claude.server.js"
+      ],
+      "location": {
+        "line": 41,
+        "column": 19
+      },
+      "matchedLength": 23,
+      "variableName": "max_tokens"
+    },
+    {
+      "id": "5f2d22656823fae1",
+      "detector": "generic-credential-assignment",
+      "severity": "review",
+      "objectId": "3c4b070a21bef5bab3c782ed7e5548c798780068",
+      "objectType": "blob",
+      "objectSize": 10820,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "anthropic.server.js",
+        "app/services/anthropic.server.js",
+        "services/anthropic.server.js",
+        "shop-chat-agent-main/app/services/anthropic.server.js"
+      ],
+      "location": {
+        "line": 245,
+        "column": 17
+      },
+      "matchedLength": 23,
+      "variableName": "maxTokens"
+    },
+    {
+      "id": "8155fe678e2a79fd",
+      "detector": "generic-credential-assignment",
+      "severity": "review",
+      "objectId": "3c4b070a21bef5bab3c782ed7e5548c798780068",
+      "objectType": "blob",
+      "objectSize": 10820,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "anthropic.server.js",
+        "app/services/anthropic.server.js",
+        "services/anthropic.server.js",
+        "shop-chat-agent-main/app/services/anthropic.server.js"
+      ],
+      "location": {
+        "line": 251,
+        "column": 19
+      },
+      "matchedLength": 9,
+      "variableName": "max_tokens"
+    },
+    {
+      "id": "3565b6a35af8efa3",
+      "detector": "generic-credential-assignment",
+      "severity": "review",
+      "objectId": "430e56719a18bb45045bf719ccde21ab7d1b0cbf",
+      "objectType": "blob",
+      "objectSize": 34121,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "assets/chat.js",
+        "chat-bubble/assets/chat.js",
+        "chat.js",
+        "extensions/chat-bubble/assets/chat.js",
+        "shop-chat-agent-main/extensions/chat-bubble/assets/chat.js"
+      ],
+      "location": {
+        "line": 762,
+        "column": 26
+      },
+      "matchedLength": 8,
+      "variableName": "startTokenPolling"
+    },
+    {
+      "id": "7216ccd8a17a8eeb",
+      "detector": "generic-credential-assignment",
+      "severity": "review",
+      "objectId": "4318f9e856ec461692682a510ab72e3e76ac8b63",
+      "objectType": "blob",
+      "objectSize": 3570,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "app/services/claude.server.js",
+        "claude.server.js",
+        "services/claude.server.js",
+        "shop-chat-agent-main/app/services/claude.server.js"
+      ],
+      "location": {
+        "line": 41,
+        "column": 19
+      },
+      "matchedLength": 23,
+      "variableName": "max_tokens"
+    },
+    {
+      "id": "90a3f65e4b83e1dc",
+      "detector": "generic-credential-assignment",
+      "severity": "review",
+      "objectId": "52f0e04babbf9d10e2d1637ecedb14a87d603e30",
+      "objectType": "blob",
+      "objectSize": 33892,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "assets/chat.js",
+        "chat-bubble/assets/chat.js",
+        "chat.js",
+        "extensions/chat-bubble/assets/chat.js",
+        "shop-chat-agent-main/extensions/chat-bubble/assets/chat.js"
+      ],
+      "location": {
+        "line": 758,
+        "column": 26
+      },
+      "matchedLength": 8,
+      "variableName": "startTokenPolling"
+    },
+    {
+      "id": "11342f7efe137474",
+      "detector": "generic-credential-assignment",
+      "severity": "review",
+      "objectId": "5bb0cd10884d0526297364f515cf9f071c7fc7e8",
+      "objectType": "blob",
+      "objectSize": 5790,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "app/services/openai.server.js",
+        "openai.server.js",
+        "services/openai.server.js",
+        "shop-chat-agent-main/app/services/openai.server.js"
+      ],
+      "location": {
+        "line": 104,
+        "column": 26
+      },
+      "matchedLength": 23,
+      "variableName": "max_output_tokens"
+    },
+    {
+      "id": "a9d422bfcd1c8c00",
+      "detector": "generic-credential-assignment",
+      "severity": "review",
+      "objectId": "69b25796d99db24d8fd79fd3fd9e8d4aa6c57be2",
+      "objectType": "blob",
+      "objectSize": 8430,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "anthropic.server.js",
+        "app/services/anthropic.server.js",
+        "services/anthropic.server.js",
+        "shop-chat-agent-main/app/services/anthropic.server.js"
+      ],
+      "location": {
+        "line": 197,
+        "column": 19
+      },
+      "matchedLength": 23,
+      "variableName": "max_tokens"
+    },
+    {
+      "id": "787059c6c752b9fc",
+      "detector": "generic-credential-assignment",
+      "severity": "review",
+      "objectId": "6f03edbb99e04f9c6b2a6271d487b6916857c5de",
+      "objectType": "blob",
+      "objectSize": 21831,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "assets/lazy-home.js",
+        "chat-bubble/assets/lazy-home.js",
+        "extensions/chat-bubble/assets/lazy-home.js",
+        "lazy-home.js",
+        "shop-chat-agent-main/extensions/chat-bubble/assets/lazy-home.js"
+      ],
+      "location": {
+        "line": 93,
+        "column": 25
+      },
+      "matchedLength": 28,
+      "variableName": "sessionKey"
+    },
+    {
+      "id": "634b4842d2101004",
+      "detector": "generic-credential-assignment",
+      "severity": "review",
+      "objectId": "6f03edbb99e04f9c6b2a6271d487b6916857c5de",
+      "objectType": "blob",
+      "objectSize": 21831,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "assets/lazy-home.js",
+        "chat-bubble/assets/lazy-home.js",
+        "extensions/chat-bubble/assets/lazy-home.js",
+        "lazy-home.js",
+        "shop-chat-agent-main/extensions/chat-bubble/assets/lazy-home.js"
+      ],
+      "location": {
+        "line": 94,
+        "column": 30
+      },
+      "matchedLength": 20,
+      "variableName": "conversationKey"
+    },
+    {
+      "id": "625487d76f5feb8d",
+      "detector": "generic-credential-assignment",
+      "severity": "review",
+      "objectId": "76424d74c77c3063f117e982ce2ec185381a1357",
+      "objectType": "blob",
+      "objectSize": 21914,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "assets/lazy-home.js",
+        "chat-bubble/assets/lazy-home.js",
+        "extensions/chat-bubble/assets/lazy-home.js",
+        "lazy-home.js",
+        "shop-chat-agent-main/extensions/chat-bubble/assets/lazy-home.js"
+      ],
+      "location": {
+        "line": 93,
+        "column": 25
+      },
+      "matchedLength": 28,
+      "variableName": "sessionKey"
+    },
+    {
+      "id": "022dd8ca77571350",
+      "detector": "generic-credential-assignment",
+      "severity": "review",
+      "objectId": "76424d74c77c3063f117e982ce2ec185381a1357",
+      "objectType": "blob",
+      "objectSize": 21914,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "assets/lazy-home.js",
+        "chat-bubble/assets/lazy-home.js",
+        "extensions/chat-bubble/assets/lazy-home.js",
+        "lazy-home.js",
+        "shop-chat-agent-main/extensions/chat-bubble/assets/lazy-home.js"
+      ],
+      "location": {
+        "line": 94,
+        "column": 30
+      },
+      "matchedLength": 20,
+      "variableName": "conversationKey"
+    },
+    {
+      "id": "ed38ec2c2d2a9d45",
+      "detector": "generic-credential-assignment",
+      "severity": "review",
+      "objectId": "886bbc39a0f8fb554a2f7fbce4f01afba61819c6",
+      "objectType": "blob",
+      "objectSize": 18328,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "app/routes/chat.jsx",
+        "chat.jsx",
+        "routes/chat.jsx",
+        "shop-chat-agent-main/app/routes/chat.jsx"
+      ],
+      "location": {
+        "line": 86,
+        "column": 21
+      },
+      "matchedLength": 19,
+      "variableName": "factKey"
+    },
+    {
+      "id": "baa1a20b99e9a1d7",
+      "detector": "generic-credential-assignment",
+      "severity": "review",
+      "objectId": "98e8cc73f69782ee05d822acf01e2501c1e7e92e",
+      "objectType": "blob",
+      "objectSize": 5109,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "app/services/openai.server.js",
+        "openai.server.js",
+        "services/openai.server.js",
+        "shop-chat-agent-main/app/services/openai.server.js"
+      ],
+      "location": {
+        "line": 104,
+        "column": 26
+      },
+      "matchedLength": 23,
+      "variableName": "max_output_tokens"
+    },
+    {
+      "id": "a521a8d54e589918",
+      "detector": "generic-credential-assignment",
+      "severity": "review",
+      "objectId": "9f5b507a1279b65a810b4fa74dce3fe9084028d9",
+      "objectType": "blob",
+      "objectSize": 35718,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "assets/chat.js",
+        "chat-bubble/assets/chat.js",
+        "chat.js",
+        "extensions/chat-bubble/assets/chat.js",
+        "shop-chat-agent-main/extensions/chat-bubble/assets/chat.js"
+      ],
+      "location": {
+        "line": 788,
+        "column": 26
+      },
+      "matchedLength": 8,
+      "variableName": "startTokenPolling"
+    },
+    {
+      "id": "e607bed41ab70cec",
+      "detector": "generic-credential-assignment",
+      "severity": "review",
+      "objectId": "a00c79ba15e992023a703a10b6f7a859dc17e44b",
+      "objectType": "blob",
+      "objectSize": 15311,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "assets/lazy-home.js",
+        "chat-bubble/assets/lazy-home.js",
+        "extensions/chat-bubble/assets/lazy-home.js",
+        "lazy-home.js",
+        "shop-chat-agent-main/extensions/chat-bubble/assets/lazy-home.js"
+      ],
+      "location": {
+        "line": 91,
+        "column": 25
+      },
+      "matchedLength": 28,
+      "variableName": "sessionKey"
+    },
+    {
+      "id": "5612cc03a530b908",
+      "detector": "generic-credential-assignment",
+      "severity": "review",
+      "objectId": "a00c79ba15e992023a703a10b6f7a859dc17e44b",
+      "objectType": "blob",
+      "objectSize": 15311,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "assets/lazy-home.js",
+        "chat-bubble/assets/lazy-home.js",
+        "extensions/chat-bubble/assets/lazy-home.js",
+        "lazy-home.js",
+        "shop-chat-agent-main/extensions/chat-bubble/assets/lazy-home.js"
+      ],
+      "location": {
+        "line": 92,
+        "column": 30
+      },
+      "matchedLength": 20,
+      "variableName": "conversationKey"
+    },
+    {
+      "id": "8b7b8917b72d1857",
+      "detector": "generic-credential-assignment",
+      "severity": "review",
+      "objectId": "a216a545f862f097e0a872236f5e05387087a796",
+      "objectType": "blob",
+      "objectSize": 9476,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "app/mcp-client.js",
+        "mcp-client.js",
+        "shop-chat-agent-main/app/mcp-client.js"
+      ],
+      "location": {
+        "line": 185,
+        "column": 25
+      },
+      "matchedLength": 24,
+      "variableName": "accessToken"
+    },
+    {
+      "id": "afa2515ff9d824c2",
+      "detector": "generic-credential-assignment",
+      "severity": "review",
+      "objectId": "a216a545f862f097e0a872236f5e05387087a796",
+      "objectType": "blob",
+      "objectSize": 9476,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "app/mcp-client.js",
+        "mcp-client.js",
+        "shop-chat-agent-main/app/mcp-client.js"
+      ],
+      "location": {
+        "line": 191,
+        "column": 25
+      },
+      "matchedLength": 19,
+      "variableName": "accessToken"
+    },
+    {
+      "id": "f3dcc7180dcc75df",
+      "detector": "generic-credential-assignment",
+      "severity": "review",
+      "objectId": "a216a545f862f097e0a872236f5e05387087a796",
+      "objectType": "blob",
+      "objectSize": 9476,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "app/mcp-client.js",
+        "mcp-client.js",
+        "shop-chat-agent-main/app/mcp-client.js"
+      ],
+      "location": {
+        "line": 192,
+        "column": 38
+      },
+      "matchedLength": 11,
+      "variableName": "this.customerAccessToken"
+    },
+    {
+      "id": "b220978178cb46d2",
+      "detector": "generic-credential-assignment",
+      "severity": "review",
+      "objectId": "a216a545f862f097e0a872236f5e05387087a796",
+      "objectType": "blob",
+      "objectSize": 9476,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "app/mcp-client.js",
+        "mcp-client.js",
+        "shop-chat-agent-main/app/mcp-client.js"
+      ],
+      "location": {
+        "line": 49,
+        "column": 38
+      },
+      "matchedLength": 19,
+      "variableName": "this.customerAccessToken"
+    },
+    {
+      "id": "9524db4ea9915a73",
+      "detector": "generic-credential-assignment",
+      "severity": "review",
+      "objectId": "afb318f17adace218a6c0ae0b6e93cd94156585a",
+      "objectType": "blob",
+      "objectSize": 13321,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "assets/lazy-home.js",
+        "chat-bubble/assets/lazy-home.js",
+        "extensions/chat-bubble/assets/lazy-home.js",
+        "lazy-home.js",
+        "shop-chat-agent-main/extensions/chat-bubble/assets/lazy-home.js"
+      ],
+      "location": {
+        "line": 78,
+        "column": 25
+      },
+      "matchedLength": 28,
+      "variableName": "sessionKey"
+    },
+    {
+      "id": "196ad9cbdef4c253",
+      "detector": "generic-credential-assignment",
+      "severity": "review",
+      "objectId": "afb318f17adace218a6c0ae0b6e93cd94156585a",
+      "objectType": "blob",
+      "objectSize": 13321,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "assets/lazy-home.js",
+        "chat-bubble/assets/lazy-home.js",
+        "extensions/chat-bubble/assets/lazy-home.js",
+        "lazy-home.js",
+        "shop-chat-agent-main/extensions/chat-bubble/assets/lazy-home.js"
+      ],
+      "location": {
+        "line": 79,
+        "column": 30
+      },
+      "matchedLength": 20,
+      "variableName": "conversationKey"
+    },
+    {
+      "id": "ebefd7395f579034",
+      "detector": "generic-credential-assignment",
+      "severity": "review",
+      "objectId": "b1cb5569484410785fe84ddf265bc5879449d05e",
+      "objectType": "blob",
+      "objectSize": 11778,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "app/mcp-client.js",
+        "mcp-client.js",
+        "shop-chat-agent-main/app/mcp-client.js"
+      ],
+      "location": {
+        "line": 233,
+        "column": 25
+      },
+      "matchedLength": 24,
+      "variableName": "accessToken"
+    },
+    {
+      "id": "84d2aae29bdcd03e",
+      "detector": "generic-credential-assignment",
+      "severity": "review",
+      "objectId": "b1cb5569484410785fe84ddf265bc5879449d05e",
+      "objectType": "blob",
+      "objectSize": 11778,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "app/mcp-client.js",
+        "mcp-client.js",
+        "shop-chat-agent-main/app/mcp-client.js"
+      ],
+      "location": {
+        "line": 239,
+        "column": 25
+      },
+      "matchedLength": 19,
+      "variableName": "accessToken"
+    },
+    {
+      "id": "6f407da6974e7d79",
+      "detector": "generic-credential-assignment",
+      "severity": "review",
+      "objectId": "b1cb5569484410785fe84ddf265bc5879449d05e",
+      "objectType": "blob",
+      "objectSize": 11778,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "app/mcp-client.js",
+        "mcp-client.js",
+        "shop-chat-agent-main/app/mcp-client.js"
+      ],
+      "location": {
+        "line": 240,
+        "column": 38
+      },
+      "matchedLength": 11,
+      "variableName": "this.customerAccessToken"
+    },
+    {
+      "id": "681d140e84e69e1f",
+      "detector": "generic-credential-assignment",
+      "severity": "review",
+      "objectId": "b1cb5569484410785fe84ddf265bc5879449d05e",
+      "objectType": "blob",
+      "objectSize": 11778,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "app/mcp-client.js",
+        "mcp-client.js",
+        "shop-chat-agent-main/app/mcp-client.js"
+      ],
+      "location": {
+        "line": 60,
+        "column": 38
+      },
+      "matchedLength": 19,
+      "variableName": "this.customerAccessToken"
+    },
+    {
+      "id": "23e0443814b87ac9",
+      "detector": "generic-credential-assignment",
+      "severity": "review",
+      "objectId": "c58d3cc490d75baa8ca6b2b0daa8688e7e57ec80",
+      "objectType": "blob",
+      "objectSize": 7749,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "anthropic.server.js",
+        "app/services/anthropic.server.js",
+        "services/anthropic.server.js",
+        "shop-chat-agent-main/app/services/anthropic.server.js"
+      ],
+      "location": {
+        "line": 197,
+        "column": 19
+      },
+      "matchedLength": 23,
+      "variableName": "max_tokens"
+    },
+    {
+      "id": "930236a2d57b1458",
+      "detector": "generic-credential-assignment",
+      "severity": "review",
+      "objectId": "d13829a2f72e9ab0f6969e407198e1dbd91ca375",
+      "objectType": "blob",
+      "objectSize": 12703,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "app/mcp-client.js",
+        "mcp-client.js",
+        "shop-chat-agent-main/app/mcp-client.js"
+      ],
+      "location": {
+        "line": 250,
+        "column": 25
+      },
+      "matchedLength": 24,
+      "variableName": "accessToken"
+    },
+    {
+      "id": "2670e7e4335477b0",
+      "detector": "generic-credential-assignment",
+      "severity": "review",
+      "objectId": "d13829a2f72e9ab0f6969e407198e1dbd91ca375",
+      "objectType": "blob",
+      "objectSize": 12703,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "app/mcp-client.js",
+        "mcp-client.js",
+        "shop-chat-agent-main/app/mcp-client.js"
+      ],
+      "location": {
+        "line": 256,
+        "column": 25
+      },
+      "matchedLength": 19,
+      "variableName": "accessToken"
+    },
+    {
+      "id": "a8475a61466254e3",
+      "detector": "generic-credential-assignment",
+      "severity": "review",
+      "objectId": "d13829a2f72e9ab0f6969e407198e1dbd91ca375",
+      "objectType": "blob",
+      "objectSize": 12703,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "app/mcp-client.js",
+        "mcp-client.js",
+        "shop-chat-agent-main/app/mcp-client.js"
+      ],
+      "location": {
+        "line": 257,
+        "column": 38
+      },
+      "matchedLength": 11,
+      "variableName": "this.customerAccessToken"
+    },
+    {
+      "id": "f8a8bc57840e0cbf",
+      "detector": "generic-credential-assignment",
+      "severity": "review",
+      "objectId": "d13829a2f72e9ab0f6969e407198e1dbd91ca375",
+      "objectType": "blob",
+      "objectSize": 12703,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "app/mcp-client.js",
+        "mcp-client.js",
+        "shop-chat-agent-main/app/mcp-client.js"
+      ],
+      "location": {
+        "line": 64,
+        "column": 38
+      },
+      "matchedLength": 19,
+      "variableName": "this.customerAccessToken"
+    },
+    {
+      "id": "738fa0434ec662f3",
+      "detector": "generic-credential-assignment",
+      "severity": "review",
+      "objectId": "d84a82ed8c86672cdcf3eb2007d38032728af140",
+      "objectType": "blob",
+      "objectSize": 14658,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "assets/lazy-home.js",
+        "chat-bubble/assets/lazy-home.js",
+        "extensions/chat-bubble/assets/lazy-home.js",
+        "lazy-home.js",
+        "shop-chat-agent-main/extensions/chat-bubble/assets/lazy-home.js"
+      ],
+      "location": {
+        "line": 84,
+        "column": 25
+      },
+      "matchedLength": 28,
+      "variableName": "sessionKey"
+    },
+    {
+      "id": "d42b636e813c756b",
+      "detector": "generic-credential-assignment",
+      "severity": "review",
+      "objectId": "d84a82ed8c86672cdcf3eb2007d38032728af140",
+      "objectType": "blob",
+      "objectSize": 14658,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "assets/lazy-home.js",
+        "chat-bubble/assets/lazy-home.js",
+        "extensions/chat-bubble/assets/lazy-home.js",
+        "lazy-home.js",
+        "shop-chat-agent-main/extensions/chat-bubble/assets/lazy-home.js"
+      ],
+      "location": {
+        "line": 85,
+        "column": 30
+      },
+      "matchedLength": 20,
+      "variableName": "conversationKey"
+    },
+    {
+      "id": "a5b20dcf917835fa",
+      "detector": "generic-credential-assignment",
+      "severity": "review",
+      "objectId": "fc83763a7d0a3afff6237edb529e131471e448f9",
+      "objectType": "blob",
+      "objectSize": 6483,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "app/services/vision-copy.server.js",
+        "services/vision-copy.server.js",
+        "shop-chat-agent-main/app/services/vision-copy.server.js",
+        "vision-copy.server.js"
+      ],
+      "location": {
+        "line": 43,
+        "column": 22
+      },
+      "matchedLength": 11,
+      "variableName": "actualKeys"
+    },
+    {
+      "id": "79573e1fcd90901c",
+      "detector": "generic-credential-assignment",
+      "severity": "review",
+      "objectId": "fc83763a7d0a3afff6237edb529e131471e448f9",
+      "objectType": "blob",
+      "objectSize": 6483,
+      "reachability": "reachable-from-ref",
+      "paths": [
+        "app/services/vision-copy.server.js",
+        "services/vision-copy.server.js",
+        "shop-chat-agent-main/app/services/vision-copy.server.js",
+        "vision-copy.server.js"
+      ],
+      "location": {
+        "line": 81,
+        "column": 22
+      },
+      "matchedLength": 11,
+      "variableName": "actualKeys"
+    }
+  ]
+}

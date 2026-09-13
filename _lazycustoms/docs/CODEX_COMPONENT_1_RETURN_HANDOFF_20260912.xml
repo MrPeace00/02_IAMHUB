@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodexReturnHandoff
+  version="1.0"
+  date="2026-09-12"
+  project="LazyCustoms.com"
+  from="Codex (Knowledge)"
+  to="Champion (Wisdom) and Mr. Peace"
+  governedBy="D-002 and CodexHandoffDirective 1.0"
+  scope="Component 1 only">
+
+  <Field n="1" name="Objective received">
+    <Outcome>
+      Component 1, the fulfillment recorder, is implemented and locally
+      proven. Components 2 and 3 were not started.
+    </Outcome>
+  </Field>
+
+  <Field n="2" name="Knowledge preserved">
+    <Preserved>
+      The provider router, storefront chat and MCP paths, intake quiz,
+      artwork rail, vision rail, OAuth controls, Shopify scopes, and all
+      unrelated working-tree changes were preserved. No secret value was
+      read, printed, copied, or committed.
+    </Preserved>
+    <WorkingTreeNote>
+      PKCE hardening and git-object-store evidence were already modified or
+      untracked before this component began. The additive edits to
+      package.json and schema.prisma preserve those in-progress changes.
+    </WorkingTreeNote>
+  </Field>
+
+  <Field n="3" name="Wisdom applied and reasons">
+    <Change reason="The fulfillment history is the dependency both later D-002 layers read.">
+      Added one FulfillmentRecord model and one additive migration.
+    </Change>
+    <Change reason="NR-8 and NR-9 require WHAT telemetry without WHO identity.">
+      The database model and Prisma write allowlist contain product, routing,
+      provider, variant, status, and timestamps only. Printify recipient data
+      is never spread into or passed to persistence.
+    </Change>
+    <Change reason="Printify Choice 99 is a routing option, not the concrete fulfiller.">
+      The recorder reads line_items[].print_provider_id from the order
+      response. If unresolved, it stores routing option 99 with a null
+      selected provider, performs one immediate details lookup when an order
+      id is available, and exposes an idempotent refreshOrder polling path for
+      later status changes.
+    </Change>
+    <Change reason="A successful order must not be forgotten or duplicated.">
+      submitOrder persists only after a successful HTTP response, and Prisma
+      upsert makes orderReference idempotent while allowing status/provider
+      enrichment.
+    </Change>
+  </Field>
+
+  <Field n="4" name="Actual files changed for Component 1">
+    <File status="modified">shop-chat-agent-main/.env.example</File>
+    <File status="new">shop-chat-agent-main/app/services/fulfillment-record.server.js</File>
+    <File status="new">shop-chat-agent-main/app/services/printify.server.js</File>
+    <File status="modified">shop-chat-agent-main/package.json</File>
+    <File status="modified">shop-chat-agent-main/prisma/schema.prisma</File>
+    <File status="new">shop-chat-agent-main/prisma/migrations/20260913010000_add_fulfillment_record/migration.sql</File>
+    <File status="new">shop-chat-agent-main/prisma/migrations/20260913010000_add_fulfillment_record/rollback.sql</File>
+    <File status="new">shop-chat-agent-main/tests/fulfillment-recorder.test.mjs</File>
+    <File status="new">_lazycustoms/docs/CODEX_COMPONENT_1_RETURN_HANDOFF_20260912.xml</File>
+  </Field>
+
+  <Field n="5" name="Tests and exact outcomes">
+    <Test scope="Component 1 local unit" result="PASS" count="4/4">
+      Simulated success writes exactly one telemetry-only record; repeated
+      delivery remains one row; pending Choice 99 is enriched by status poll;
+      Printify failure writes nothing and does not expose the API token.
+    </Test>
+    <Test scope="Full local suite" result="PASS" count="42/42" command="npm test" />
+    <Test scope="Lint" result="PASS" count="0 errors" command="npm run lint" />
+    <Test scope="Typecheck" result="PASS" command="npm run typecheck" />
+    <Test scope="Production build" result="PASS" command="npm run build" />
+    <Test scope="Prisma" result="PASS">
+      prisma format, validate, and generate completed successfully.
+    </Test>
+    <Test scope="Migration upgrade and rollback" result="PASS">
+      Against a disposable copy of prisma/dev.sqlite, migrate deploy applied
+      the pending PKCE migration and the new fulfillment migration. A direct
+      sqlite_master query confirmed FulfillmentRecord existed. The supplied
+      rollback executed successfully, and a second query confirmed the table
+      was absent. The disposable copy was deleted.
+    </Test>
+    <Test scope="Real Prisma recorder integration" result="PASS" count="1 idempotent row">
+      Against a second disposable migrated database copy, a pending Choice
+      99 event and its in-production redelivery produced one row, enriched
+      printProviderIdSelected to 42, normalized status to in_production, and
+      exposed no prohibited persistence field. The disposable copy was deleted.
+    </Test>
+    <Observation scope="Historical migration replay">
+      A separate attempt to replay the repository's full historical migration
+      chain into a brand-new empty SQLite path ended in Prisma's generic
+      "Schema engine error" before identifying or applying the new migration.
+      The deployment-representative upgrade from a copy of the current
+      database passed. No fresh-install claim is made from the failed replay.
+    </Observation>
+    <LiveTests count="0">No live request, deployment, Printify order, or Shopify mutation was performed.</LiveTests>
+  </Field>
+
+  <Field n="6" name="Capability rung after work">
+    <Component n="1" rung="Tested">
+      Local implementation and deployment-representative migration upgrade
+      are proven. Production is not claimed because no deployed real order
+      has written a real FulfillmentRecord row.
+    </Component>
+  </Field>
+
+  <Field n="7" name="Unverified and live-only claims">
+    <Claim>
+      Component 1 deployment, live Printify Choice provider resolution, and a
+      real Railway database write remain unverified.
+    </Claim>
+    <Claim>
+      The September 12 evidence closes OI-5 and OI-10 only for the project's
+      operator-defined direct-endpoint gate. It explicitly states that the
+      browser/widget UI, raw Shopify cart result, authenticated OAuth,
+      completed checkout, database persistence, and exact Railway runtime SHA
+      were not exercised. Therefore the directive's full browser round trip
+      remains unverified and is not inherited as closed here.
+    </Claim>
+    <Claim>Component 3 has created no product and has no live claim.</Claim>
+  </Field>
+
+  <Field n="8" name="Open items and gates">
+    <OpenItem id="Component-1-production">
+      Deploy only through an authorized release, then record a real order and
+      verify the resulting telemetry row without exposing recipient data.
+    </OpenItem>
+    <OpenItem id="OI-1/OI-2">Still operator-owned and still gate Component 2 live meaning and SEO claims.</OpenItem>
+    <OpenItem id="D-102-scope">Still closed to Codex action. Shopify product-write authorization is required before Component 3.</OpenItem>
+    <OpenItem id="fresh-migration-replay">The full migration chain's generic error on a brand-new empty SQLite path should be diagnosed separately; current-database upgrade succeeded.</OpenItem>
+  </Field>
+
+  <Field n="9" name="Next smallest complete action">
+    <Action>
+      Review and accept this Component 1 handoff. If a production proof is
+      desired, authorize the normal deployment/release action and run one
+      controlled real order through the new submission seam, then verify one
+      telemetry-only row. Do not begin Component 2 until Component 1 is
+      accepted as proven at the intended rung.
+    </Action>
+  </Field>
+</CodexReturnHandoff>

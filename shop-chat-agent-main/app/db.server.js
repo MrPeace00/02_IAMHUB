@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { PrismaClient } from "@prisma/client";
 
 if (process.env.NODE_ENV !== "production") {
@@ -12,59 +13,45 @@ export default prisma;
 
 /**
  * Store a code verifier for PKCE authentication
- * @param {string} state - The state parameter used in OAuth flow
- * @param {string} verifier - The code verifier to store
+ * @param {Object} record - The PKCE request data to store
+ * @param {string} record.state - The state parameter used in OAuth flow
+ * @param {string} record.verifier - The code verifier to store
+ * @param {string} record.conversationId - Conversation bound to this request
+ * @param {string} record.shopId - Shop bound to this request
  * @returns {Promise<Object>} - The saved code verifier object
  */
-export async function storeCodeVerifier(state, verifier) {
+export async function storeCodeVerifier({ state, verifier, conversationId, shopId }) {
   // Calculate expiration date (10 minutes from now)
   const expiresAt = new Date();
   expiresAt.setMinutes(expiresAt.getMinutes() + 10);
 
-  try {
-    return await prisma.codeVerifier.create({
-      data: {
-        id: `cv_${Date.now()}`,
-        state,
-        verifier,
-        expiresAt
-      }
-    });
-  } catch (error) {
-    console.error('Error storing code verifier:', error);
-    throw error;
-  }
+  return prisma.codeVerifier.create({
+    data: {
+      id: `cv_${randomUUID()}`,
+      state,
+      verifier,
+      conversationId,
+      shopId,
+      expiresAt
+    }
+  });
 }
 
 /**
- * Get a code verifier by state parameter
+ * Atomically consume a code verifier by state parameter
  * @param {string} state - The state parameter used in OAuth flow
  * @returns {Promise<Object|null>} - The code verifier object or null if not found
  */
-export async function getCodeVerifier(state) {
+export async function consumeCodeVerifier(state) {
   try {
-    const verifier = await prisma.codeVerifier.findFirst({
-      where: {
-        state,
-        expiresAt: {
-          gt: new Date()
-        }
-      }
-    });
-
-    if (verifier) {
-      // Delete it after retrieval to prevent reuse
-      await prisma.codeVerifier.delete({
-        where: {
-          id: verifier.id
-        }
-      });
+    const verifier = await prisma.codeVerifier.delete({ where: { state } });
+    return verifier.expiresAt > new Date() ? verifier : null;
+  } catch (error) {
+    if (error?.code === "P2025") {
+      return null;
     }
 
-    return verifier;
-  } catch (error) {
-    console.error('Error retrieving code verifier:', error);
-    return null;
+    throw error;
   }
 }
 

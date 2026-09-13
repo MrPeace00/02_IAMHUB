@@ -44,11 +44,13 @@ model CustomerToken {
 }
 
 model CodeVerifier {
-  id        String   @id
-  state     String   @unique
-  verifier  String
-  createdAt DateTime @default(now())
-  expiresAt DateTime
+  id             String   @id
+  state          String   @unique
+  verifier       String
+  conversationId String
+  shopId         String
+  createdAt      DateTime @default(now())
+  expiresAt      DateTime
 
   @@index([state])
 }
@@ -88,4 +90,22 @@ model GenerationRateLimit {
   updatedAt   DateTime @updatedAt
 
   @@index([updatedAt])
+}
+
+model FulfillmentRecord {
+  orderReference          String   @id
+  printifyOrderId         String?
+  blueprintId             Int
+  printProviderIdSelected Int?
+  routingOption           Int
+  productTitle            String
+  variantReference        String
+  decorationMethod        String
+  fulfillmentStatus       String
+  recordedAt              DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  @@index([blueprintId])
+  @@index([printProviderIdSelected])
+  @@index([fulfillmentStatus])
 }
