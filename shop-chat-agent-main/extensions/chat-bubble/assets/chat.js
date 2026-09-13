@@ -183,9 +183,16 @@
        */
       scrollToBottom: function() {
         const { messagesContainer } = this.elements;
-        setTimeout(() => {
-          messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }, 100);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      },
+
+      setBusy: function(busy) {
+        const { container, chatInput, sendButton } = this.elements;
+        chatInput.disabled = busy;
+        sendButton.disabled = busy;
+        container.querySelectorAll('[data-shop-ai-global], [data-shop-ai-shopify]').forEach(button => {
+          button.disabled = busy;
+        });
       },
 
       /**
@@ -193,6 +200,7 @@
        */
       showTypingIndicator: function() {
         const { messagesContainer } = this.elements;
+        if (messagesContainer.querySelector('.shop-ai-typing-indicator')) return;
 
         const typingIndicator = document.createElement('div');
         typingIndicator.classList.add('shop-ai-typing-indicator');
@@ -256,13 +264,17 @@
      * Message handling and display functionality
      */
     Message: {
+      busy: false,
       /**
        * Send a message to the API
        * @param {HTMLInputElement} chatInput - The input element
        * @param {HTMLElement} messagesContainer - The messages container
        */
-      send: async function(chatInput, messagesContainer) {
+      send: async function(chatInput, messagesContainer, intent) {
         const userMessage = chatInput.value.trim();
+        if (!userMessage || this.busy || chatInput.disabled) return;
+        this.busy = true;
+        ShopAIChat.UI.setBusy(true);
         const conversationId = sessionStorage.getItem('shopAiConversationId');
 
         // Add user message to chat
@@ -275,11 +287,15 @@
         ShopAIChat.UI.showTypingIndicator();
 
         try {
-          ShopAIChat.API.streamResponse(userMessage, conversationId, messagesContainer);
+          await ShopAIChat.API.streamResponse(userMessage, conversationId, messagesContainer, intent);
         } catch (error) {
           console.error('Error communicating with OpenAI API:', error);
           ShopAIChat.UI.removeTypingIndicator();
           this.add("Sorry, I couldn't process your request at the moment. Please try again later.", 'assistant', messagesContainer);
+        } finally {
+          ShopAIChat.UI.removeTypingIndicator();
+          this.busy = false;
+          ShopAIChat.UI.setBusy(false);
         }
       },
 
@@ -395,11 +411,12 @@
         const rawText = element.dataset.rawText;
 
         // Process the text with various Markdown features
-        let processedText = rawText;
+        let processedText = rawText.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
         // Process Markdown links
         const markdownLinkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
         processedText = processedText.replace(markdownLinkRegex, (match, text, url) => {
+          if (!/^https?:\/\//i.test(url)) return text;
           // Check if it's an auth URL
           if (url.includes('shopify.com/authentication') &&
              (url.includes('oauth/authorize') || url.includes('authentication'))) {
@@ -473,7 +490,8 @@
             if (line.trim() === '') {
               htmlContent += '<br>';
             } else {
-              htmlContent += '<p>' + line + '</p>';
+              const heading = line.match(/^#{1,6}\s+(.+)/);
+              htmlContent += heading ? '<p><strong>' + heading[1] + '</strong></p>' : '<p>' + line + '</p>';
             }
           }
         }
@@ -493,19 +511,22 @@
      * API communication and data handling
      */
     API: {
+      STARTER_INTENTS: ['global_fulfillment', 'shopify_catalog'],
       /**
        * Stream a response from the API
        * @param {string} userMessage - User's message text
        * @param {string} conversationId - Conversation ID for context
        * @param {HTMLElement} messagesContainer - The messages container
        */
-      streamResponse: async function(userMessage, conversationId, messagesContainer) {
+      streamResponse: async function(userMessage, conversationId, messagesContainer, intent) {
         let currentMessageElement = null;
 
         try {
+          if (intent !== undefined && !this.STARTER_INTENTS.includes(intent)) throw new Error('Unsupported starter intent');
           const promptType = window.shopChatConfig?.promptType || "standardAssistant";
           const requestBody = JSON.stringify({
             message: userMessage,
+            ...(intent ? { intent } : {}),
             conversation_id: conversationId,
             prompt_type: promptType
           });
@@ -523,6 +544,8 @@
             body: requestBody
           });
 
+          if (!response.ok || !response.body) throw new Error('Chat is temporarily unavailable');
+
           const reader = response.body.getReader();
           const decoder = new TextDecoder();
           let buffer = '';
@@ -532,6 +555,7 @@
           messageElement.classList.add('shop-ai-message', 'assistant');
           messageElement.textContent = '';
           messageElement.dataset.rawText = '';
+          messageElement.hidden = true;
           messagesContainer.appendChild(messageElement);
           currentMessageElement = messageElement;
 
@@ -555,6 +579,12 @@
                 }
               }
             }
+          }
+          // Also finalize a response if the connection closes without message_complete.
+          if (currentMessageElement.hidden) {
+            ShopAIChat.Formatting.formatMessageContent(currentMessageElement);
+            currentMessageElement.hidden = !currentMessageElement.textContent;
+            ShopAIChat.UI.scrollToBottom();
           }
         } catch (error) {
           console.error('Error in streaming:', error);
@@ -581,15 +611,14 @@
             break;
 
           case 'chunk':
-            ShopAIChat.UI.removeTypingIndicator();
-            currentMessageElement.dataset.rawText += data.chunk;
-            currentMessageElement.textContent = currentMessageElement.dataset.rawText;
-            ShopAIChat.UI.scrollToBottom();
+            // Keep partial Markdown off screen; render once at a message boundary.
+            currentMessageElement.dataset.rawText += data.chunk || '';
             break;
 
           case 'message_complete':
             ShopAIChat.UI.removeTypingIndicator();
             ShopAIChat.Formatting.formatMessageContent(currentMessageElement);
+            currentMessageElement.hidden = !currentMessageElement.textContent;
             ShopAIChat.UI.scrollToBottom();
             break;
 
@@ -601,12 +630,16 @@
             console.error('Stream error:', data.error);
             ShopAIChat.UI.removeTypingIndicator();
             currentMessageElement.textContent = "Sorry, I couldn't process your request. Please try again later.";
+            currentMessageElement.dataset.rawText = '';
+            currentMessageElement.hidden = false;
             break;
 
           case 'rate_limit_exceeded':
             console.error('Rate limit exceeded:', data.error);
             ShopAIChat.UI.removeTypingIndicator();
             currentMessageElement.textContent = "Sorry, our servers are currently busy. Please try again later.";
+            currentMessageElement.dataset.rawText = '';
+            currentMessageElement.hidden = false;
             break;
 
           case 'auth_required':
@@ -615,17 +648,22 @@
             break;
 
           case 'product_results':
+            if (currentMessageElement.dataset.starterIntent === 'global_fulfillment' && !data.products?.length) break;
             ShopAIChat.UI.displayProductResults(data.products);
             break;
 
+          case 'starter_result':
+            currentMessageElement.dataset.starterIntent = data.intent;
+            currentMessageElement.dataset.verificationState = data.state;
+            break;
+
           case 'tool_use':
-            if (data.tool_use_message) {
-              ShopAIChat.Message.addToolUse(data.tool_use_message, messagesContainer);
-            }
+            ShopAIChat.UI.showTypingIndicator();
             break;
 
           case 'new_message': {
             ShopAIChat.Formatting.formatMessageContent(currentMessageElement);
+            currentMessageElement.hidden = !currentMessageElement.textContent;
             ShopAIChat.UI.showTypingIndicator();
 
             // Create new message element for the next response
@@ -633,6 +671,7 @@
             newMessageElement.classList.add('shop-ai-message', 'assistant');
             newMessageElement.textContent = '';
             newMessageElement.dataset.rawText = '';
+            newMessageElement.hidden = true;
             messagesContainer.appendChild(newMessageElement);
 
             // Update the current element reference
@@ -952,13 +991,13 @@
     init: async function() {
       // Initialize UI
       const container = document.querySelector('.shop-ai-chat-container');
-      if (!container) return;
+      if (!container || container.dataset.chatInitialized) return;
+      container.dataset.chatInitialized = 'true';
 
       this.UI.init(container);
 
       const { chatInput, sendButton, messagesContainer } = this.UI.elements;
-      chatInput.disabled = true;
-      sendButton.disabled = true;
+      this.UI.setBusy(true);
       try {
         await this.configureBackend();
       } catch (error) {
@@ -966,21 +1005,19 @@
         this.Message.add('Chat is temporarily unavailable. Please try again later.', 'assistant', messagesContainer);
         return;
       }
-      chatInput.disabled = false;
-      sendButton.disabled = false;
 
       const globalStart = container.querySelector('[data-shop-ai-global]');
       if (globalStart) globalStart.addEventListener('click', () => {
         if (chatInput.disabled || sendButton.disabled) return;
-        chatInput.value = 'Show me available Printify products suited to global fulfillment first. Ask for my delivery country only if you need it to confirm availability.';
-        sendButton.click();
+        chatInput.value = 'Check verified Printify Choice global fulfillment options.';
+        this.Message.send(chatInput, messagesContainer, 'global_fulfillment');
       });
 
       const shopifyStart = container.querySelector('[data-shop-ai-shopify]');
       if (shopifyStart) shopifyStart.addEventListener('click', () => {
         if (chatInput.disabled || sendButton.disabled) return;
         chatInput.value = 'Show me the Lazy Customs Shopify catalog from any provider.';
-        sendButton.click();
+        this.Message.send(chatInput, messagesContainer, 'shopify_catalog');
       });
 
       // Check for existing conversation
@@ -988,12 +1025,13 @@
 
       if (conversationId) {
         // Fetch conversation history
-        this.API.fetchChatHistory(conversationId, this.UI.elements.messagesContainer);
+        await this.API.fetchChatHistory(conversationId, this.UI.elements.messagesContainer);
       } else {
         // No previous conversation, show welcome message
         const welcomeMessage = window.shopChatConfig?.welcomeMessage || "Heyyy";
         this.Message.add(welcomeMessage, 'assistant', this.UI.elements.messagesContainer);
       }
+      this.UI.setBusy(false);
     }
   };
 
