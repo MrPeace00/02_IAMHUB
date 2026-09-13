@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<codex_workplan name="Lazy Chat" version="1.1" date="2026-09-13">
+  <request>
+    Fix product images and repeated placeholder requests; wire components independently;
+    name the assistant Lazy Chat; replace the greeting with a relaxed Hey; recolor and
+    animate the supplied hub mark; prioritize Printify in default shopping recommendations.
+  </request>
+  <scope>
+    This file is an implementation handoff. Its creation does not mean the code has
+    been changed, tested, or deployed. Execute it when instructed to implement this plan.
+    Interpret "the three separately" as three independent tracks: product cards,
+    chat identity and activity, and Printify recommendation priority. Also isolate
+    every product card's image state, including when three cards appear together.
+    Do not create three duplicated chat backends or hardcode a three-product limit.
+  </scope>
+
+  <workspace root="C:\Users\P\Desktop\02_IAMHUB" app="shop-chat-agent-main">
+    <rule>Keep _lazycustoms and shop-chat-agent-main as siblings.</rule>
+    <rule>Read applicable AGENTS.md instructions and inspect the current diff before editing.</rule>
+    <rule>Preserve unrelated work, authentication, explicit CORS allowlists, rate limiting, cart behavior, prices, and checkout links.</rule>
+    <rule>Keep credentials server-side. Add no runtime dependencies without a demonstrated need.</rule>
+    <rule>Use codex/ branch names and separate commits for each change unit below.</rule>
+    <rule>Branch each unit from the latest accepted baseline. Integrate and release one unit at a time; do not overwrite previously accepted changes with an older branch deployment.</rule>
+    <rule>Separate branches isolate changes; runtime isolation requires the component boundaries specified below.</rule>
+  </workspace>
+
+  <evidence>
+    <local_fact file="shop-chat-agent-main/extensions/chat-bubble/shopify.extension.toml">
+      Local extension name is chat-bubble. The reported published name lazy-customs-chat-agent-3
+      must be reconciled with the selected Shopify app, extension UID, and deployed version before release.
+    </local_fact>
+    <local_fact file="shop-chat-agent-main/extensions/chat-bubble/assets/chat.js" symbol="ShopAIChat.Product.createCard">
+      The card reads product.image_url. Its onerror assigns the same remote Shopify
+      placeholder without removing the handler, allowing repeated failure requests.
+    </local_fact>
+    <local_fact file="shop-chat-agent-main/app/services/tool.server.js" symbol="createToolService">
+      The normalizer already sets image_url from product.image_url or the URL of the
+      first product.media entry whose type equals image. The actual live catalog field
+      is not established by this inspection; capture it before changing the mapping.
+      Both structuredContent.products and content[0].text products are supported locally.
+    </local_fact>
+    <local_fact file="shop-chat-agent-main/extensions/chat-bubble/blocks/chat-interface.liquid">
+      Header uses the chat.title translation. en.default.json currently says Store Assistant.
+      The block already exposes welcome_message and passes it through window.shopChatConfig.
+      chat.js contains three fallback greeting occurrences, including history and reset paths.
+      The pasted v1.0 claim that configuration is not read does not match this checkout.
+    </local_fact>
+    <local_fact file="shop-chat-agent-main/app/prompts/prompts.json">
+      Actual nesting is systemPrompts.standardAssistant.content and systemPrompts.systemShopping.content,
+      with systemDesignCoach and enthusiasticAssistant also present. Guardrails are text within prompts,
+      not a separate top-level guardrails key. AppConfig defaults to standardAssistant, and the
+      extension schema currently offers standardAssistant and enthusiasticAssistant.
+      Editing systemShopping alone would not reliably change default storefront behavior.
+    </local_fact>
+    <user_report verification="pending">
+      The remote placeholder returned HTTP 503 repeatedly; real Shopify product images exist;
+      Printify products and a vendor-filtered collection are available; the production backend uses OpenAI.
+      These are supplied observations, not live checks performed while writing this plan.
+    </user_report>
+    <missing_asset>
+      The attachment supplied for this handoff contains pasted-text.txt only, not lazy-chat-hub-source.png.
+      No matching hub PNG, SVG, or JPG was found in the filename search of this workspace.
+      The text describes a central square connected to eight surrounding nodes; it is not the image itself.
+      Locate the actual source or request it for an exact recolor. Do not claim to have inspected or
+      recolored it. Continue the other independent changes while this asset is unavailable.
+    </missing_asset>
+  </evidence>
+
+  <tracks>
+    <track id="1" name="Independent product cards">
+      <change id="images" branch="codex/lazychat-card-images" priority="first">
+        <files>
+          <file>shop-chat-agent-main/app/services/tool.server.js</file>
+          <file>shop-chat-agent-main/app/routes/chat.jsx</file>
+          <file>shop-chat-agent-main/app/mcp-client.js</file>
+          <file>shop-chat-agent-main/extensions/chat-bubble/assets/chat.js</file>
+          <file>shop-chat-agent-main/extensions/chat-bubble/assets/chat.css</file>
+        </files>
+        <diagnosis>
+          Capture a sanitized, read-only search_catalog response and, if needed, get_product response
+          using the actual discovered tool schema. Trace one product from raw catalog data through
+          processProductSearchResult, the product_results stream event, and createCard to the final img.src.
+          Record the exact raw field path and where image data is lost. Do not guess fields or scrape
+          assistant prose for image URLs. Do not place orders or create carts to diagnose images.
+        </diagnosis>
+        <contract>
+          Normalize each product to its own stable identity, existing commerce fields, and image_url.
+          image_url is a validated HTTPS product-image URL, or an empty string when absent.
+          Preserve the existing client-facing image_url field; keep schema-specific mapping on the server.
+          Support only shapes demonstrated by actual responses or documented tool schemas.
+          If search lacks images, use an existing supported detail lookup with bounded work and caching;
+          one lookup failure must not discard sibling products. Preserve search order and product identity.
+        </contract>
+        <implementation>
+          <step>Correct the source request or normalizer where evidence shows the field is lost. Preserve existing supported response envelopes.</step>
+          <step>Render each card from that product's image_url. Never share mutable image, fallback, loading, or error state across cards.</step>
+          <step>Remove the remote placeholder URL from product rendering entirely. Use a bundled local asset or inline SVG fallback with no external resource references.</step>
+          <step>Install the error handler before assigning src. On the first error, detach the handler before applying the fallback. A fallback failure is terminal.</step>
+          <step>For an absent URL, render the local fallback directly. Do not send a request to an empty src.</step>
+          <step>Keep stable card identity during streaming or updates; do not recreate failed images or reassign unchanged src values on every text chunk.</step>
+          <step>Bound failure state to the current product and image URL. Reset it only when the actual URL changes or a new conversation begins.</step>
+          <step>Set dimensions or aspect-ratio and suitable object-fit; use the product title as alternative text. Preserve product links and Add to Cart.</step>
+        </implementation>
+        <acceptance>
+          <check>With a captured catalog fixture containing real images, assert the normalizer and product_results event preserve the exact expected image URLs.</check>
+          <check>Render three distinct products: one valid image, one forced HTTP 503 image, and one absent image. Only the failed and absent cards use fallback; the valid card remains visible and interactive.</check>
+          <check>Force fallback failure too. After repeated stream updates, request counts remain bounded: at most one failed-source attempt and one fallback assignment per unchanged card URL per conversation.</check>
+          <check>Ask for shirts and totes in a fresh chat. Check each card against its catalog product; no card with a valid loading image uses fallback.</check>
+          <check>Observe the Network panel for at least 30 seconds after rendering and through another reply: zero requests to placeholder-images-image_large.png, no retry loop, and no image-related flicker.</check>
+          <check>Run targeted regression tests for normalization and isolated failure behavior, then the app's existing npm test and npm run build checks.</check>
+        </acceptance>
+      </change>
+    </track>
+
+    <track id="2" name="Chat identity, greeting, and activity">
+      <boundary>
+        Header and avatar state belong to the widget. Request activity controls the avatar only;
+        product image load events must never start or stop it. Keep the three changes below in
+        separate commits and releases so each can be reverted independently.
+      </boundary>
+      <change id="name" branch="codex/lazychat-name">
+        <implementation>
+          Add a merchant-editable assistant_name text setting in chat-interface.liquid with default
+          Lazy Chat and label Assistant name. Render it safely with Liquid escaping and a Lazy Chat
+          fallback. Reconcile the existing chat.title locale fallback so Store Assistant cannot leak
+          into the intended header. Set the active theme's saved value where required; a schema default
+          does not overwrite an existing merchant setting. Do not modify unrelated merchant copy.
+        </implementation>
+        <acceptance>
+          <check>In the active theme editor, Assistant name is available and set to Lazy Chat.</check>
+          <check>After release and refresh, desktop and mobile headers read exactly Lazy Chat with no clipping.</check>
+        </acceptance>
+      </change>
+      <change id="greeting" branch="codex/lazychat-greeting">
+        <copy>Heyyy… what can I help you find today?</copy>
+        <implementation>
+          Use the existing welcome_message setting as the configurable source. Update its schema
+          default and all three chat.js fallback occurrences consistently, preferably through one
+          small greeting accessor. Update the active theme's saved default greeting as needed.
+          Interpret "spoken in a lazy way" as relaxed written delivery; this change adds no audio
+          playback or speech service. Keep the greeting short, with no emoji.
+        </implementation>
+        <acceptance>
+          <check>Fresh open, empty history, history-fetch failure, and New Chat/reset all display the chosen greeting once.</check>
+          <check>No new greeting displays Hi there. Do not rewrite old conversation messages containing historical copy.</check>
+          <check>The existing merchant setting still overrides the default correctly.</check>
+        </acceptance>
+      </change>
+      <change id="hub" branch="codex/lazychat-hub">
+        <asset_requirement>
+          Use the actual brown hub source once available. Recolor it to the active storefront's
+          verified theme colors with a transparent background, preserving its geometry. Reuse
+          actual theme tokens or expose merchant-editable color settings tied to verified values.
+          Do not treat the approximate teal/indigo values in v1.0 as confirmed brand colors.
+          Put the finished asset in extensions/chat-bubble/assets. If source remains missing,
+          report only this change blocked; do not invent or silently substitute a different logo.
+        </asset_requirement>
+        <implementation>
+          <step>Place the hub beside the header title, about 28–40 px. Give a decorative image empty alt text because the adjacent name already identifies the assistant.</step>
+          <step>Use CSS keyframes for a lazy clockwise idle turn of about 10 seconds. During response processing, use about 2 seconds per turn; counterclockwise or alternating direction is optional.</step>
+          <step>Connect an avatar-only is-active class to the real request lifecycle alongside showTypingIndicator and hideTypingIndicator. Cover completion, errors, cancellation, timeout, authentication handoff, and reset.</step>
+          <step>If requests can overlap, derive activity from pending request identity or a count so one completion cannot incorrectly mark another active request idle.</step>
+          <step>Under prefers-reduced-motion: reduce, stop rotation completely and retain a nonmoving activity cue. Avoid per-frame JavaScript timers.</step>
+          <step>Missing avatar markup or an asset failure must not break sending messages, rendering cards, or checkout.</step>
+        </implementation>
+        <acceptance>
+          <check>Inspect the actual asset at desktop and mobile size: correct hub geometry, verified brand colors, no brown, transparent background, and readable title.</check>
+          <check>Send a message and verify idle-to-active-to-idle transitions, including a forced backend error and cancellation/reset.</check>
+          <check>Emulate reduced motion and verify zero rotation with a visible static activity cue.</check>
+          <check>Break a product image while a reply streams: avatar activity and healthy cards continue independently.</check>
+        </acceptance>
+      </change>
+    </track>
+
+    <track id="3" name="Printify-first shopping experience">
+      <change id="printify" branch="codex/lazychat-printify-first">
+        <intent>
+          Printify is the preferred provider for default and proactive product offers.
+          This is a recommendation-priority change, not a migration of existing fulfillment,
+          an order-routing change, or an enrollment in the separately named Printify Choice service.
+          Do not claim all products ship worldwide or that every destination is supported.
+        </intent>
+        <files>
+          <file>shop-chat-agent-main/app/prompts/prompts.json</file>
+          <file>shop-chat-agent-main/app/services/config.server.js</file>
+          <file>shop-chat-agent-main/app/routes/chat.jsx</file>
+          <file>shop-chat-agent-main/app/services/tool.server.js</file>
+          <file>shop-chat-agent-main/app/mcp-client.js</file>
+        </files>
+        <implementation>
+          <step>Trace the storefront's actual prompt_type through the request and selected provider. Apply the policy to every supported shopping entry point, including the active default; do not edit only an unused prompt.</step>
+          <step>Keep the persona calm and concise and identify it as Lazy Chat where appropriate. Preserve existing policy and checkout formatting instructions.</step>
+          <step>Inspect the live catalog tool schema. If supported, prefer a verified Printify vendor filter or the verified Printify collection for generic and proactive queries; do not invent filter parameters or collection IDs.</step>
+          <step>Retain trusted provider metadata for ranking where available. A store vendor label may support catalog grouping; do not present it as proof of actual fulfillment routing or destination coverage.</step>
+          <step>For ordinary category requests, lead with relevant Printify items. Relevance, availability, explicit product choices, budget, and customer constraints take precedence over provider preference.</step>
+          <step>If relevant Printify results are empty or insufficient, broaden once to eligible alternatives and deduplicate by stable identity. Provider-filter errors also get a bounded fallback, never an infinite retry.</step>
+          <step>If filtering is unavailable but provider metadata exists, rank relevant Printify items before applying the display limit. Keep assistant recommendations and card order consistent.</step>
+          <step>If neither filtering nor reliable metadata is available, report that limitation and the exact missing capability; do not guess fulfillment providers from product titles.</step>
+          <step>Honor explicit requests for other providers or exact products. Use catalog-backed prices and capabilities; do not invent shipping guarantees, partnerships, availability, or exclusivity.</step>
+          <step>Do not alter Printify credentials, fulfillment clients, existing orders, payments, or publication settings as part of recommendation priority.</step>
+        </implementation>
+        <acceptance>
+          <check>In fresh conversations, What do you have? and Show me shirts lead with relevant verified Printify items when available, in both assistant text and cards.</check>
+          <check>An explicit non-Printify product or provider request is respected and not replaced with unrelated Printify stock.</check>
+          <check>A category with no matching Printify results returns relevant alternatives through one bounded broadening attempt.</check>
+          <check>Unavailable or unsuitable Printify stock does not outrank suitable products solely due to provider.</check>
+          <check>Exercise the actual default prompt and systemShopping path. Assert that neither output claims exclusive fulfillment or guaranteed worldwide delivery.</check>
+          <check>Run targeted policy/ranking regression checks plus npm test and npm run build from the app directory.</check>
+        </acceptance>
+      </change>
+    </track>
+  </tracks>
+
+  <release_and_evidence>
+    <sequence>images, name, greeting, hub when its asset is available, then printify. The missing hub must not prevent the Printify change from proceeding.</sequence>
+    <step>Before implementation, verify local versus deployed versions and record the baseline commit. Before release, verify the target app/store and backend service from current configuration.</step>
+    <step>For each unit, record exact changed files and runnable commands or reproducible browser steps, exit codes, and results. Add focused tests for behavioral defects; simple copy edits need direct verification.</step>
+    <step>Release extension changes using shopify app deploy from shop-chat-agent-main once the unit is validated and release is authorized by the executing session. Record the actual extension release/version.</step>
+    <step>For a backend mapping or recommendation change, verify and redeploy the intended Railway service; valiant-liberation is a supplied project reference that must be checked. Record the deployed commit and deployment ID.</step>
+    <step>When images require both backend and widget changes, keep the image_url contract compatible and deploy the backend first, then the widget. Recheck both together.</step>
+    <step>Refresh the actual storefront and run that unit's acceptance checks plus a smoke check of message sending, product cards, and cart controls. Do not submit a purchase.</step>
+    <step>Rollback only the failing unit using its previous verified extension version or backend deployment as appropriate. Verify other accepted units still work.</step>
+    <report>
+      For each unit return: status, branch and commit, files changed, raw image field and normalized
+      field where relevant, tests executed and results, storefront evidence, deployment identifiers,
+      and unresolved blockers. Mark unrun checks not run. Never describe planned checks as passed.
+    </report>
+  </release_and_evidence>
+</codex_workplan>
