@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {createCatalogPriority,addProviderPreference,requestedProviderPreference} from '../app/services/catalog-priority.server.js';
+import {createCatalogPriority,addProviderPreference,requestedProviderPreference,catalogArgsForRequest} from '../app/services/catalog-priority.server.js';
 const origin = 'https://lazycustoms.com';
 const product = (id, available=true) => ({id:`gid://shopify/Product/${id}`,title:`Product ${id}`,variants:[{availability:{available}}],media:[{type:'image',url:`https://cdn.shopify.com/${id}.jpg`}],price_range:{min:{amount:1000,currency:'USD'}}});
 function setup(fail=false) {
@@ -61,4 +61,15 @@ test('explicit provider exclusion removes conflicting cards and unverified provi
   assert.deepEqual(result.structuredContent.products.map(p=>p.id),[product(1).id]);
   assert.equal(result.structuredContent.recommendation_policy.excluded_vendor,'Printify');
   assert.equal(requestedProviderPreference('Show me shirts.','printify'),'printify');
+});
+
+test('generic browsing uses the supported empty query without discarding catalog filters',()=>{
+  const args={provider_preference:'printify',catalog:{query:'available products',price:{max:4000}}};
+  assert.deepEqual(catalogArgsForRequest('What do you have?',args),{
+    providerPreference:'printify',catalogArgs:{catalog:{query:'',price:{max:4000}}},
+  });
+  assert.deepEqual(catalogArgsForRequest('Show me shirts.',args),{
+    providerPreference:'printify',catalogArgs:{catalog:{query:'available products',price:{max:4000}}},
+  });
+  assert.equal(args.catalog.query,'available products');
 });

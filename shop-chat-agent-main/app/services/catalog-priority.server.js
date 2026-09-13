@@ -67,3 +67,13 @@ export function addProviderPreference(tools) {
 export function requestedProviderPreference(message, preference) {
   return /\b(?:not|no|exclude|excluding|except|without)\s+printify\b|\bnon[- ]printify\b|\b(?:another|other|different)\s+(?:print\s+)?provider\b/i.test(message || '') ? 'exclude_printify' : preference;
 }
+
+export function catalogArgsForRequest(message, args = {}) {
+  const {provider_preference = 'printify', ...catalogArgs} = args || {};
+  const genericBrowse = /^\s*(?:what do you (?:have|sell|offer)|show me what you (?:have|sell|offer)|(?:show me |browse |shop )?(?:all )?(?:your )?(?:products|catalog|store|shop)|browse|shop)\s*[?.!]*\s*$/i.test(message || '');
+  if (!genericBrowse) return {providerPreference:provider_preference, catalogArgs};
+  return {
+    providerPreference:provider_preference,
+    catalogArgs:{...catalogArgs, catalog:{...(catalogArgs.catalog || {}), query:''}},
+  };
+}

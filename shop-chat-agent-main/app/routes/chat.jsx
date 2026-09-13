@@ -8,7 +8,7 @@ import AppConfig from "../services/config.server";
 import { createSseStream } from "../services/streaming.server";
 import { createAIService } from "../services/ai.server";
 import { createToolService } from "../services/tool.server";
-import { createCatalogPriority, addProviderPreference, requestedProviderPreference } from "../services/catalog-priority.server.js";
+import { createCatalogPriority, addProviderPreference, requestedProviderPreference, catalogArgsForRequest } from "../services/catalog-priority.server.js";
 import { getCorsHeaders, isAllowedOrigin } from "../services/cors.server";
 
 const QUIZ_AUDIENCES = new Set(["man", "woman", "child"]);
@@ -300,9 +300,9 @@ async function handleChatSession({
   const callTool = mcpClient.callTool.bind(mcpClient);
   mcpClient.callTool = async (name, args) => {
     if (name !== 'search_catalog') return callTool(name, args);
-    const {provider_preference = 'printify', ...catalogArgs} = args || {};
+    const {providerPreference, catalogArgs} = catalogArgsForRequest(userMessage, args);
     const result = await callTool(name, catalogArgs);
-    return catalogPriority.prepare(result, new URL(shopDomain).origin, requestedProviderPreference(userMessage, provider_preference));
+    return catalogPriority.prepare(result, new URL(shopDomain).origin, requestedProviderPreference(userMessage, providerPreference));
   };
 
   // Send conversation ID to client
