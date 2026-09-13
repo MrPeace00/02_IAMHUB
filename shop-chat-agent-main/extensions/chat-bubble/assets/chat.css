@@ -2,7 +2,27 @@
     --viewport-height: 100vh;
   }
 
-  .shop-ai-chat-container {
+.shop-ai-shopping-start {
+  padding: 10px 16px;
+  border-top: 1px solid #e5e7eb;
+  display: grid;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.shop-ai-shopping-start button {
+  border: 1px solid currentColor;
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+}
+.shop-ai-shopping-start span, .shop-ai-product-vendor {
+  font-size: 12px;
+  color: #555;
+}
+.shop-ai-chat-container {
     position: fixed;
     bottom: 20px;
     right: 20px;

@@ -868,13 +868,18 @@
 
         // Add product image or placeholder
         const image = document.createElement('img');
-        image.src = product.image_url || 'https://cdn.shopify.com/s/files/1/0533/2089/files/placeholder-images-image_large.png';
         image.alt = product.title;
+        const showFallback = () => {
+          image.onerror = null;
+          image.remove();
+          imageContainer.textContent = 'Image unavailable';
+        };
         image.onerror = function() {
-          // If image fails to load, use a fallback placeholder
-          this.src = 'https://cdn.shopify.com/s/files/1/0533/2089/files/placeholder-images-image_large.png';
+          showFallback();
         };
         imageContainer.appendChild(image);
+        if (product.image_url) image.src = product.image_url;
+        else showFallback();
         card.appendChild(imageContainer);
 
         // Add product info
@@ -898,6 +903,13 @@
 
         info.appendChild(title);
 
+        if (product.vendor) {
+          const vendor = document.createElement('p');
+          vendor.className = 'shop-ai-product-vendor';
+          vendor.textContent = product.vendor;
+          info.appendChild(vendor);
+        }
+
         // Add product price
         const price = document.createElement('p');
         price.classList.add('shop-ai-product-price');
@@ -905,13 +917,16 @@
         info.appendChild(price);
 
         // Add add-to-cart button
-        const button = document.createElement('button');
+        const needsProductPage = /^printify$/i.test(product.vendor || '') && product.url;
+        const button = document.createElement(needsProductPage ? 'a' : 'button');
         button.classList.add('shop-ai-add-to-cart');
-        button.textContent = 'Add to Cart';
+        button.textContent = needsProductPage ? 'Choose options & personalize' : 'Add to Cart';
+        if (needsProductPage) button.href = product.url;
         button.dataset.productId = product.id;
 
         // Add click handler for the button
         button.addEventListener('click', function() {
+          if (needsProductPage) return;
           // Send message to add this product to cart
           const input = document.querySelector('.shop-ai-chat-input input');
           if (input) {
@@ -953,6 +968,13 @@
       }
       chatInput.disabled = false;
       sendButton.disabled = false;
+
+      const printifyStart = container.querySelector('[data-shop-ai-printify]');
+      if (printifyStart) printifyStart.addEventListener('click', () => {
+        if (chatInput.disabled || sendButton.disabled) return;
+        chatInput.value = 'Show me available Printify shirts first.';
+        sendButton.click();
+      });
 
       // Check for existing conversation
       const conversationId = sessionStorage.getItem('shopAiConversationId');

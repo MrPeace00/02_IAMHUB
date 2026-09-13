@@ -2,6 +2,7 @@
   "use strict";
 
   const initialSuggestions = [
+    { label: "Shop Printify shirts", prompt: "Show me available Printify shirts first." },
     { label: "Find a thoughtful gift", prompt: "I need a thoughtful gift" },
     { label: "Something cozy", prompt: "Show me something cozy" },
     { label: "Create custom art", action: "art" },
@@ -212,6 +213,11 @@
         price.className = "lazy-home__product-price";
         price.textContent = product.price || "View product";
         copy.append(title, price);
+        if (product.vendor) {
+          const vendor = document.createElement('p');
+          vendor.textContent = product.vendor;
+          copy.appendChild(vendor);
+        }
         card.append(media, copy);
         products.appendChild(card);
       });
@@ -510,6 +516,12 @@
     });
 
     artStart.addEventListener("click", startArtworkMode);
+    root.querySelector('[data-lazy-printify-start]')?.addEventListener('click', () => {
+      if (busy) return;
+      artMode = false;
+      if (quizForm) quizForm.hidden = true;
+      streamChat('Show me available Printify shirts first.');
+    });
     imageUpload.addEventListener("change", () => {
       const file = imageUpload.files?.[0];
       imageUpload.value = "";
