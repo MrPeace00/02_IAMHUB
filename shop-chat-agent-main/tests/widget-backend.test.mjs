@@ -71,8 +71,13 @@ test('shopping starters lead with global fulfillment and keep Shopify as the sto
     assert.doesNotMatch(source, /Shopify search/i);
   }
   for (const source of [homeScript, chatScript]) {
-    assert.match(source, /Check verified Printify Choice global fulfillment options/);
+    assert.match(source, /Show me products made for global fulfillment/);
     assert.match(source, /Shopify catalog from any provider/);
+  }
+  // Theme copy may name the network; it may never promise verified eligibility
+  // or guaranteed worldwide delivery, which no connected source can establish.
+  for (const source of [homeLiquid, chatLiquid, homeScript, chatScript]) {
+    assert.doesNotMatch(source, /verified (?:printify )?choice|guaranteed (?:worldwide|global)|ships? worldwide/i);
   }
 });
 

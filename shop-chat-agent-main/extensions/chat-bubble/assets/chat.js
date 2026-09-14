@@ -1009,7 +1009,7 @@
       const globalStart = container.querySelector('[data-shop-ai-global]');
       if (globalStart) globalStart.addEventListener('click', () => {
         if (chatInput.disabled || sendButton.disabled) return;
-        chatInput.value = 'Check verified Printify Choice global fulfillment options.';
+        chatInput.value = 'Show me products made for global fulfillment.';
         this.Message.send(chatInput, messagesContainer, 'global_fulfillment');
       });
 

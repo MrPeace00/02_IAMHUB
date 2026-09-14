@@ -2,7 +2,7 @@
   "use strict";
 
   const STARTER_INTENTS = ['global_fulfillment', 'shopify_catalog'];
-  const globalFulfillmentPrompt = "Check verified Printify Choice global fulfillment options.";
+  const globalFulfillmentPrompt = "Show me products made for global fulfillment.";
   const shopifyPrompt = "Show me the Lazy Customs Shopify catalog from any provider.";
 
   const initialSuggestions = [

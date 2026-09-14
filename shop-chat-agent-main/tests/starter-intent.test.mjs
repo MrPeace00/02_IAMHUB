@@ -11,36 +11,54 @@ import AppConfig from '../app/services/config.server.js';
 
 const sharedProduct = { id: 'p1', title: 'Same shirt', vendor: 'Printify', url: 'https://lazycustoms.com/products/shirt' };
 
-test('intent selects distinct services even with identical message, title and Printify vendor', async () => {
+test('intent selects distinct sources and distinct claims from one shared catalog', async () => {
   const calls = [];
-  const searchShopify = async () => { calls.push('shopify'); return [sharedProduct]; };
-  const searchGlobal = async () => { calls.push('global'); return searchGlobalFulfillment(); };
+  const catalog = [sharedProduct, { ...sharedProduct, id: 'p2', vendor: 'Gelato', url: 'https://lazycustoms.com/products/mug' }];
+  const searchShopify = async () => { calls.push('shopify'); return catalog; };
+  const searchGlobal = async options => { calls.push('global'); return searchGlobalFulfillment(options); };
   const shop = await dispatchStarter({ intent: 'shopify_catalog', searchShopify, searchGlobal });
   const global = await dispatchStarter({ intent: 'global_fulfillment', searchShopify, searchGlobal });
-  assert.deepEqual(calls, ['shopify', 'global']);
+
+  assert.deepEqual(calls, ['shopify', 'global', 'shopify']);
+  // Shopify browses the whole catalog; global keeps only Printify-made products.
   assert.equal(shop.state, 'catalog');
-  assert.deepEqual(shop.products, [sharedProduct]);
-  assert.equal(global.state, 'unavailable');
-  assert.deepEqual(global.products, []);
-  assert.match(global.message, /cannot currently be verified/);
-  assert.doesNotMatch(global.message, /what.*country|which.*country|where.*deliver/i);
+  assert.deepEqual(shop.products.map(p => p.id), ['p1', 'p2']);
+  assert.equal(global.state, 'catalog');
+  assert.deepEqual(global.products.map(p => p.id), ['p1']);
+  assert.equal(global.fulfillment, 'printify_network');
+  assert.notEqual(shop.message, global.message);
 });
 
-test('missing eligibility configuration never asks for a country or accepts vendor-only evidence', async () => {
-  // Extra caller-supplied metadata is not a configuration or eligibility source.
-  for (const destination of [undefined, 'US', 'unsupported']) {
-    const result = await searchGlobalFulfillment({ destination, products: [sharedProduct] });
-    assert.equal(result.state, 'unavailable');
-    assert.equal(result.reason, 'eligibility_source_not_configured');
-    assert.deepEqual(result.products, []);
+test('no branch claims verified Choice eligibility, promises delivery, or asks for a country', async () => {
+  const messages = [];
+  for (const catalog of [[], [{ ...sharedProduct, vendor: '' }], [{ ...sharedProduct, vendor: 'Gelato' }], [sharedProduct]]) {
+    const result = await searchGlobalFulfillment({ searchCatalog: async () => catalog });
+    messages.push(result.message);
   }
+  messages.push((await searchGlobalFulfillment()).message);
+  for (const message of messages) {
+    assert.doesNotMatch(message, /\b(?:what|which)\s+country\b|\bdelivery country\b|\bcountry\b[^.]*\?/i, message);
+    assert.doesNotMatch(message, /guarantee[ds]? (?:worldwide|global)|ships? (?:worldwide|to every country)|verified (?:choice|eligib)/i, message);
+  }
+  // The one branch that returns products must disclaim the vendor label itself.
+  const fulfilled = await searchGlobalFulfillment({ searchCatalog: async () => [sharedProduct] });
+  assert.match(fulfilled.message, /does not by itself guarantee Printify Choice routing/);
+});
+
+test('unreadable vendor metadata is reported as unreadable, never as "none"', async () => {
+  const unreadable = await searchGlobalFulfillment({ searchCatalog: async () => [{ ...sharedProduct, vendor: '' }] });
+  assert.equal(unreadable.reason, 'vendor_metadata_unavailable');
+  const none = await searchGlobalFulfillment({ searchCatalog: async () => [{ ...sharedProduct, vendor: 'Gelato' }] });
+  assert.equal(none.reason, 'no_printify_fulfilled_products');
+  assert.notEqual(unreadable.message, none.message);
+  for (const result of [unreadable, none]) assert.deepEqual(result.products, []);
 });
 
 test('provider errors are sanitized with no cross-catalog fallback', async () => {
   for (const detail of ['timeout', '401', '429', 'malformed JSON']) {
     const result = await dispatchStarter({ intent: 'global_fulfillment',
       searchGlobal: async () => { throw new Error(`${detail}: fixture-secret`); },
-      searchShopify: () => assert.fail('Shopify fallback is forbidden'),
+      searchShopify: async () => [sharedProduct],
     });
     assert.equal(result.state, 'unavailable');
     assert.deepEqual(result.products, []);
@@ -120,23 +138,35 @@ function routeHarness() {
   } };
 }
 
-test('POST /chat dispatches before any AI/MCP discovery and preserves the SSE contract', async () => {
+test('POST /chat dispatches both starters before any AI, and keeps the SSE contract', async () => {
   const harness = routeHarness();
   const request = { message: 'Same shirt', conversation_id: 'same-conversation' };
+  const catalogCall = { name: 'search_catalog', args: { catalog: { query: '' } } };
+
   const global = await harness.post({ ...request, intent: 'global_fulfillment' });
   const globalEvents = (await global.text()).trim().split('\n\n').map(line => JSON.parse(line.slice(6)));
   assert.equal(global.status, 200);
-  assert.deepEqual(harness.calls, []);
-  assert.equal(globalEvents.find(event => event.type === 'starter_result').state, 'unavailable');
-  assert.deepEqual(globalEvents.find(event => event.type === 'product_results').products, []);
+  // Global fulfillment reads the one real catalog. What it must not do is
+  // reach the AI loop or customer-account discovery before choosing a source.
+  assert.deepEqual(JSON.parse(JSON.stringify(harness.calls)), ['mcp', 'connect', catalogCall]);
+  const globalResult = globalEvents.find(event => event.type === 'starter_result');
+  assert.equal(globalResult.state, 'catalog');
+  assert.equal(globalResult.fulfillment, 'printify_network');
+  assert.equal(globalEvents.find(event => event.type === 'product_results').products[0].url, sharedProduct.url);
   assert.equal(globalEvents.at(-1).type, 'end_turn');
   assert.equal(harness.saved.length, 2);
+
   const shop = await harness.post({ ...request, intent: 'shopify_catalog' });
   const shopEvents = (await shop.text()).trim().split('\n\n').map(line => JSON.parse(line.slice(6)));
-  assert.deepEqual(JSON.parse(JSON.stringify(harness.calls)), ['mcp', 'connect', { name: 'search_catalog', args: { catalog: { query: '' } } }]);
-  assert.equal(shopEvents.find(event => event.type === 'starter_result').state, 'catalog');
+  assert.deepEqual(JSON.parse(JSON.stringify(harness.calls)), ['mcp', 'connect', catalogCall, 'mcp', 'connect', catalogCall]);
+  const shopResult = shopEvents.find(event => event.type === 'starter_result');
+  assert.equal(shopResult.state, 'catalog');
+  assert.equal(shopResult.fulfillment, undefined);
+  assert.notEqual(shopResult.message, globalResult.message);
   assert.equal(shopEvents.find(event => event.type === 'product_results').products[0].url, sharedProduct.url);
-  // Intent applies to this request only, even with the same conversation ID.
+
+  // Neither starter touches the AI service; intent applies to this request only.
+  assert.equal(harness.calls.filter(call => call === 'general').length, 0);
   const freeForm = await (await harness.post(request)).text();
   assert.match(freeForm, /An ordinary chat response/);
   assert.doesNotMatch(freeForm, /starter_result/);
