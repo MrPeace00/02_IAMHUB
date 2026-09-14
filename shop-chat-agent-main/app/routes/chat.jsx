@@ -10,6 +10,7 @@ import { createAIService } from "../services/ai.server";
 import { createToolService } from "../services/tool.server";
 import { createCatalogPriority, addProviderPreference, requestedProviderPreference, catalogArgsForRequest } from "../services/catalog-priority.server.js";
 import { getCorsHeaders, isAllowedOrigin } from "../services/cors.server";
+import { dispatchStarter, validStarterIntent } from "../services/starter-intent.server.js";
 
 const QUIZ_AUDIENCES = new Set(["man", "woman", "child"]);
 const QUIZ_SEASONS = new Set(["summer", "winter", "fall", "spring"]);
@@ -221,10 +222,13 @@ async function handleChatRequest(request) {
   try {
     // Get message data from request body
     const body = await request.json();
+    if (!body || typeof body !== 'object' || Array.isArray(body) || !validStarterIntent(body.intent)) {
+      return Response.json({ error: 'Unsupported starter intent' }, { status: 400, headers: getCorsHeaders(request) });
+    }
     const userMessage = body.message;
 
     // Validate required message
-    if (!userMessage) {
+    if (typeof userMessage !== 'string' || !userMessage.trim()) {
       return new Response(
         JSON.stringify({ error: AppConfig.errorMessages.missingMessage }),
         { status: 400, headers: getSseHeaders(request) }
@@ -245,6 +249,8 @@ async function handleChatRequest(request) {
         quizContext,
         conversationId,
         promptType,
+        intent: body.intent,
+        destination: body.destination,
         stream
       });
     });
@@ -253,8 +259,7 @@ async function handleChatRequest(request) {
       headers: getSseHeaders(request)
     });
   } catch (error) {
-    console.error('Error in chat request handler:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: 'Chat request could not be processed' }), {
       status: 500,
       headers: getCorsHeaders(request)
     });
@@ -277,8 +282,33 @@ async function handleChatSession({
   quizContext,
   conversationId,
   promptType,
+  intent,
+  destination,
   stream
 }) {
+  // Select the source before initializing AI, account discovery, or tool loops.
+  const starter = await dispatchStarter({ intent, destination, searchShopify: async () => {
+    const client = new MCPClient(request.headers.get('Origin'), conversationId,
+      request.headers.get('X-Shopify-Shop-Id'));
+    await client.connectToStorefrontServer();
+    const result = await client.callTool('search_catalog', { catalog: { query: '' } });
+    if (result?.isError || result?.error) throw new Error('Catalog unavailable');
+    const prepared = await createCatalogPriority().prepare(result,
+      new URL(request.headers.get('Origin')).origin, 'any');
+    return createToolService().processProductSearchResult(prepared);
+  } });
+  if (starter) {
+    stream.sendMessage({ type: 'id', conversation_id: conversationId });
+    stream.sendMessage({ type: 'starter_result', ...starter });
+    stream.sendMessage({ type: 'chunk', chunk: starter.message });
+    stream.sendMessage({ type: 'message_complete' });
+    stream.sendMessage({ type: 'product_results', products: starter.products });
+    // Store the same customer-visible copy for history, never provider payloads.
+    await saveMessage(conversationId, 'user', userMessage);
+    await saveMessage(conversationId, 'assistant', starter.message);
+    stream.sendMessage({ type: 'end_turn' });
+    return;
+  }
   // Initialize services
   const { provider, service: aiService, formatHistory } = createAIService();
   const toolService = createToolService();

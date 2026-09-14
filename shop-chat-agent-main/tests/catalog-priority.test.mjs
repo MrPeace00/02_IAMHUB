@@ -1,8 +1,34 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {createCatalogPriority,addProviderPreference,requestedProviderPreference,catalogArgsForRequest} from '../app/services/catalog-priority.server.js';
+import {dispatchStarter} from '../app/services/starter-intent.server.js';
 const origin = 'https://lazycustoms.com';
 const product = (id, available=true) => ({id:`gid://shopify/Product/${id}`,title:`Product ${id}`,variants:[{availability:{available}}],media:[{type:'image',url:`https://cdn.shopify.com/${id}.jpg`}],price_range:{min:{amount:1000,currency:'USD'}}});
+
+test('an all-Printify Shopify catalog remains explicitly unverified and cannot satisfy global fulfillment', async () => {
+  const service = createCatalogPriority({cacheStore:new Map(), fetchImplementation:async () => ({
+    ok:true, json:async () => ({products:[{id:1,vendor:'Printify'}, {id:2,vendor:'Printify'}]}),
+  })});
+  const products = [1,2].map(id => ({...product(id), url:`https://lazycustoms.com/products/shirt-${id}`}));
+  for (const preference of ['any', 'printify']) {
+    const result = await service.prepare({structuredContent:{products},content:[{type:'text',text:JSON.stringify({products})}]}, origin, preference);
+    const policy = result.structuredContent.recommendation_policy;
+    assert.equal(policy.catalog_source, 'shopify_catalog');
+    assert.equal(policy.printify_choice_eligibility, 'unverified');
+    assert.equal(policy.destination_coverage, 'unverified');
+    assert.deepEqual(JSON.parse(result.content[0].text), result.structuredContent);
+    assert.ok(result.structuredContent.products.every(p => p.vendor === 'Printify'));
+    let shopifyCalls = 0;
+    const searchShopify = async () => { shopifyCalls++; return result.structuredContent.products; };
+    const shop = await dispatchStarter({intent:'shopify_catalog', searchShopify});
+    const global = await dispatchStarter({intent:'global_fulfillment', searchShopify});
+    assert.equal(shopifyCalls, 1);
+    assert.deepEqual(shop.products.map(p => p.url), products.map(p => p.url));
+    assert.equal(global.state, 'unavailable');
+    assert.equal(global.reason, 'eligibility_source_not_configured');
+    assert.deepEqual(global.products, []);
+  }
+});
 function setup(fail=false) {
   let calls=0;
   const service=createCatalogPriority({cacheStore:new Map(),fetchImplementation:async()=>{
