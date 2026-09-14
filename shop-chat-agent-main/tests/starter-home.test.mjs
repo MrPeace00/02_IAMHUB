@@ -41,7 +41,7 @@ test('homepage buttons and suggestion chips send distinct intents; ordinary chat
       const body = JSON.parse(options.body);
       requests.push({ url, options, body });
       const events = [
-        { type: 'starter_result', intent: body.intent, state: body.intent === 'global_fulfillment' ? 'unavailable' : 'catalog' },
+        { type: 'starter_result', intent: body.intent, state: body.intent === 'global_fulfillment' ? (body.destination ? 'verified' : 'needs_destination') : 'catalog', destinations:[{code:'US',label:'United States'}] },
         { type: 'chunk', chunk: 'Results' }, { type: 'product_results', products: [] },
       ];
       return new Response(events.map(event => `data: ${JSON.stringify(event)}\n\n`).join(''));
@@ -61,16 +61,21 @@ test('homepage buttons and suggestion chips send distinct intents; ordinary chat
     chip.click();
     await settle();
   }
+  elements.get('[data-lazy-global-start]').click();
+  await settle();
+  elements.get('[data-lazy-chips]').children[0].click();
+  await settle();
+  assert.equal(requests.at(-1).body.destination,'US');
   elements.get('[data-lazy-input]').value = 'An ordinary question';
   elements.get('[data-lazy-form]').events.submit({ preventDefault() {} });
   await settle();
   assert.deepEqual(requests.map(request => request.body.intent), [
-    'global_fulfillment', 'shopify_catalog', 'global_fulfillment', 'shopify_catalog', undefined,
+    'global_fulfillment', 'shopify_catalog', 'global_fulfillment', 'shopify_catalog', 'global_fulfillment', 'global_fulfillment', undefined,
   ]);
   assert.ok(requests.every(request => request.url === 'https://chat.example.com/chat' && request.options.method === 'POST'));
   const assistantMessages = elements.get('[data-lazy-messages]').children.filter(element => element.dataset.starterIntent);
-  assert.equal(assistantMessages.length, 4);
-  assert.equal(assistantMessages[0].dataset.verificationState, 'unavailable');
+  assert.equal(assistantMessages.length, 6);
+  assert.equal(assistantMessages[0].dataset.verificationState, 'needs_destination');
   assert.equal(elements.get('[data-lazy-products]').children.length, 0);
 });
 

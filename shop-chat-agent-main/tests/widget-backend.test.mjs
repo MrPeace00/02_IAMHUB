@@ -165,3 +165,19 @@ test('both widget buttons send their intent over POST; later free-form requests 
   assert.ok(requests.every(request => typeof request.body.message === 'string' && request.body.prompt_type));
   assert.deepEqual(Array.from(app.API.STARTER_INTENTS), ['global_fulfillment', 'shopify_catalog']);
 });
+
+test('widget country selection retains global intent and sends structured destination', async () => {
+  const children=[];
+  const app=widget('https://chat.example.com',()=>{}, {createElement:()=>({
+    appendChild(child){children.push(child);},addEventListener(event,handler){this.click=handler;},remove(){},
+  })});
+  app.UI.elements={chatInput:{value:''},messagesContainer:{appendChild(){}}};
+  let sent;
+  app.Message.send=(input,container,intent,destination)=>{sent={intent,destination,message:input.value};};
+  app.API.handleStreamEvent({type:'starter_result',intent:'global_fulfillment',state:'needs_destination',
+    destinations:[{code:'CA',label:'Canada'}]}, {dataset:{}});
+  children[0].click();
+  assert.equal(sent.intent,'global_fulfillment');
+  assert.equal(sent.destination,'CA');
+  assert.match(sent.message,/Canada/);
+});

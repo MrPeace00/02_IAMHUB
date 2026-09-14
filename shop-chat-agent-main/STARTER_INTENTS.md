@@ -1,147 +1,86 @@
-# Lazy Chat starter routing
+# Lazy Chat: evidence-backed Global Fulfillment
 
-Local implementation on `codex/printify-first`, September 13, 2026. No deployment.
+Updated September 14, 2026 UTC on `codex/printify-first`.
 
-## Root cause and selected architecture
+## Verified scope
 
-The widget and homepage previously supplied different prose to the same chat
-session and LLM tool loop. Both could call Shopify `search_catalog`. The local
-catalog priority service enriches Shopify product IDs with vendor metadata and
-sorts Printify-vendor products first. That is catalog grouping, not Printify
-Choice eligibility or global delivery evidence. If every product has the same
-vendor, changing that priority cannot distinguish the starter results. This was
-confirmed from code and local fixtures, not a fresh production catalog audit.
+The signed-in Printify product page for `6a7769c211b5d6d7cb0c60bd`
+(Crewneck Sweatshirt — Abstract Brown Geometric Pattern, blueprint 49) showed
+Global Fulfillment enabled. The product list showed Published and Printify Choice.
+Its Global Fulfillment delivery table showed US 2–5, Canada 2–5, Australia 3–6,
+and UK 2–3 business days. These are provider estimates, not arrival guarantees.
 
-The implementation uses a deterministic server dispatcher before AI or account
-discovery. The existing Printify client submits and refreshes orders; it is not
-an approved source of catalog Choice eligibility, destination coverage, or
-customer product mappings. A separate server-only eligibility boundary therefore
-returns unavailable. No guessed provider endpoint, response field, token-based
-enablement, or external redirect was added.
+Source: https://printify.com/app/product-details/6a7769c211b5d6d7cb0c60bd?fromProductsPage=1
 
-## Request and response contracts
+The public Printify product API independently returned provider 99, Shopify
+product ID 10446334558530, six enabled variant IDs, and the mapped customer URL.
+The source does not expose a documented Global Fulfillment eligibility flag.
+The dashboard observation is therefore recorded as a short-lived, manually
+reviewed server-side evidence record, not replaced by a vendor/provider test.
 
-Both theme interfaces, including homepage suggestion chips, use:
+Only US, CA, and AU passed explicit live shipping-profile coverage for all
+purchasable mapped variants. UK is excluded because the v1 API did not return
+explicit GB coverage. EU is excluded pending store compliance confirmation.
+No REST_OF_THE_WORLD inference is accepted.
 
-```json
-{
-  "message": "Check verified Printify Choice global fulfillment options.",
-  "intent": "global_fulfillment",
-  "conversation_id": "existing-conversation",
-  "prompt_type": "systemShopping"
-}
-```
+## Runtime contract
 
-`intent` is either `global_fulfillment` or `shopify_catalog`. The server and both
-static assets have matching allowlists, covered by tests. Unknown values,
-including explicit null, return HTTP 400 before source calls. Messages must be
-nonempty strings. Existing fields remain supported.
+Both widgets send `intent: global_fulfillment` or `intent: shopify_catalog` to
+POST /chat. Global requests reach the server-only Printify boundary before any
+AI or Shopify search_catalog call. Shopify requests retain their catalog path
+and lazycustoms.com customer product links.
 
-Intent is request-scoped. The server never infers or inherits it from prompt
-wording, conversation history, or `prompt_type`. Ordinary typed chat, quiz
-requests, and subsequent free-form messages omit intent and retain the existing
-general chat flow. Selecting another starter explicitly selects its route.
-The Shopify starter is a category-free browse; subsequent refinements use the
-existing general chat flow. No persistent global-delivery mode is implied.
+Global verification requires the server's PRINTIFY_API_TOKEN, an unexpired
+Printify dashboard evidence record, an unchanged live Printify product identity,
+provider, blueprint, updated_at and enabled variant set, an available mapped
+Shopify product, and explicit API shipping coverage for every purchasable SKU.
+Additional unmapped purchasable Shopify variants invalidate the result.
 
-Responses retain the SSE `id`, `chunk`, `message_complete`, `product_results`,
-and `end_turn` events. A new `starter_result` event includes `intent`, `state`,
-`message`, `products`, and an optional machine-readable `reason`. Both interfaces
-record intent and state on the assistant element's dataset. Supported states in
-this release are `catalog` (ordinary Shopify results, not eligibility verified)
-and `unavailable`. No branch emits `verified` or `needs_destination` yet.
+The first global request checks product availability and returns
+`needs_destination` with country buttons. Selection posts the same intent plus
+`destination: US`, `CA`, or `AU`. Successful responses say what was checked and
+when. Purchase/personalization stays on:
+https://lazycustoms.com/products/crewneck-sweatshirt-abstract-brown-geometric-pattern
 
-## Source behavior and customer URLs
+No merchant dashboard URL, credential, or raw provider error is sent to shoppers.
+No checkout, payment, order submission, or production operation was performed.
 
-- `shopify_catalog` connects to the existing storefront MCP integration and calls
-  `search_catalog` with `{ "catalog": { "query": "" } }`. Vendor metadata uses
-  preference `any`. Product cards use the existing formatting and display limit.
-  No AI, customer-account discovery, or Printify API is needed for this starter.
-- `global_fulfillment` calls `searchGlobalFulfillment` in the server-only
-  eligibility boundary. It returns `unavailable` with
-  `eligibility_source_not_configured`, no products and an explanation that
-  eligibility and delivery coverage cannot currently be verified. It does not
-  call Shopify, AI, or the Printify order client. Shopify is offered only as an
-  explicit alternative button. The homepage clears previous cards when a new
-  starter starts; the chat transcript keeps earlier turns as history.
-- Provider exceptions at the dispatcher boundary yield generic unavailable
-  messages without exception text or a cross-catalog fallback.
-- Shopify starter purchase links must be HTTPS product-page URLs on
-  `lazycustoms.com`, `www.lazycustoms.com`, `vbw9zu-f7.myshopify.com`, or
-  `lazy-customs-2.myshopify.com`. Relative product paths are accepted. These known
-  store aliases canonicalize to `https://lazycustoms.com/products/<handle>`.
-  Queries and fragments are removed for this browse action. Unsafe schemes,
-  credentials, foreign shops, merchant paths, and encoded-path tricks are
-  rejected; cards without an approved URL are omitted. No title-based mapping
-  or merchant-dashboard destination is used.
+The evidence expires September 15, 2026 at 03:42 UTC (September 14, 11:42 PM EDT).
+It is not renewed automatically. Re-observe the actual Printify Global Fulfillment
+banner, product publication, eligible variant set and country delivery table
+before updating the evidence record and deploying. Product changes, expiry,
+missing credentials, unsupported countries and failed sources return unverified
+with no Shopify fallback. A verified result means checked configuration and
+coverage, not proof that a future order has been delivered.
 
-## Configuration and remaining gate
+## Configuration and tonight's completion steps
 
-There is **no enabled eligibility source and no new configuration key** in this
-release. `PRINTIFY_API_TOKEN` remains the existing server-only order-client key;
-its presence cannot enable or verify Global fulfillment. No credentials are
-read by this new boundary, serialized to clients, or included in fixtures.
+1. Set PRINTIFY_API_TOKEN in Railway project valiant-liberation, service
+   02_IAMHUB, production Variables. Use the existing valid token from the local
+   ignored .env; never put it in Shopify theme settings or public JavaScript.
+2. Deploy the tested codex/printify-first commit to that Railway service.
+3. Release the matching Shopify chat-bubble extension.
+4. Check Global fulfillment, then United States, Canada and Australia. Each
+   should return the one crewneck. Shopify should retain ordinary catalog
+   results. GB and unknown country codes must return unverified, not a fallback.
+5. Before the evidence expiry, repeat the Printify dashboard inspection and
+   renew only facts still supported. To expand products, observe each product's
+   Global Fulfillment confirmation and variants, then add matching server checks.
 
-Confirm a real Printify Choice-capable catalog source and its eligibility,
-destination, and identity-to-customer-page fields before implementing verified
-results. Country normalization and country questions are deliberately deferred:
-an absent source cannot verify any destination and must not ask unnecessarily.
-The alternative is a product-owner-confirmed customer-facing Printify URL. No
-such URL is confirmed here, so no redirect setting or navigation was added.
+Printify's official setup instructions:
+https://help.printify.com/hc/en-us/articles/33741445661457-How-can-I-create-a-product-with-Printify-Choice-Global-Fulfillment
 
-Provider integration, actual timeout/cancellation, authorization/rate-limit and
-malformed-response handling, supported/unsupported destination verification,
-and verified-result normalization must be implemented and tested when that
-source contract is confirmed. Current exception tests use injected failures at
-the service boundary; they are not evidence of a working Printify integration.
-The full verified-provider outcome remains blocked; the authorized safe portion
-is implemented. Deployment remains prohibited for this task.
+## Validation
 
-## Changed files
+Local lint, 67 tests, typecheck, and production client/server build passed.
+Tests cover distinct widget intents and country requests, POST source routing,
+all-Printify vendor rejection, snapshot expiry, changed variants, missing country
+coverage, provider failure, customer links, and credential isolation.
+Live server-module checks: no destination -> needs_destination; US/CA/AU ->
+verified with one product; GB -> unavailable with zero products.
+The build reports existing nonfatal future-flag and bundling notices.
 
-| File | Purpose |
-| --- | --- |
-| `app/services/starter-intent.server.js` | Allowlist, deterministic dispatch, customer product URL validation, sanitized failure states |
-| `app/services/global-fulfillment.server.js` | Server-only unavailable eligibility boundary |
-| `app/routes/chat.jsx` | Request validation and starter SSE dispatch before the existing general chat flow |
-| `app/prompts/prompts.json` | Remove misleading vendor-based Global fulfillment instructions |
-| `extensions/chat-bubble/assets/chat.js` | Widget intents, state handling, preserved existing uncommitted widget fixes |
-| `extensions/chat-bubble/assets/lazy-home.js` | Homepage button/chip intents and state handling |
-| `extensions/chat-bubble/blocks/chat-interface.liquid` and `lazy-home.liquid` | Copy that does not imply verified Choice availability |
-| `tests/starter-intent.test.mjs` | Service and POST routing, URL allowlist, errors, missing configuration, request-scoped intent |
-| `tests/starter-home.test.mjs` | Executed homepage click-to-request contract and public credential-reference check |
-| `tests/widget-backend.test.mjs` | Executed widget click-to-request contract and updated starter-copy expectation |
-| `package.json` | Include the new regression tests in the full suite |
-| `STARTER_INTENTS.md` | Contracts, scope, configuration gate, and local verification |
-
-## Verification
-
-Focused tests: `node --test tests/starter-intent.test.mjs tests/starter-home.test.mjs tests/widget-backend.test.mjs tests/catalog-priority.test.mjs` — 25 passed.
-
-Commands ran from `shop-chat-agent-main` in PowerShell:
-
-| Command | Result |
-| --- | --- |
-| `npm run lint` | PASS |
-| `$env:DATABASE_URL='file:./dev.sqlite'; npm test` | PASS — 62 tests, zero failures/skips |
-| `npm run typecheck` | PASS |
-| `$env:DATABASE_URL='file:./dev.sqlite'; npm run build` | PASS — client and server bundles |
-| `git diff --check` | PASS |
-
-The build emitted React Router v8 opt-in notices, empty API-only client chunk
-notices, and a mixed static/dynamic database-import warning; none failed the build.
-
-A read-only scan of `build/client`, theme assets, and Liquid source checked 21
-files for Printify credential variable references, test-secret markers, and any
-available local/environment Printify credential values. It found zero matching
-files and printed no secret values. The initial Node module resolution was
-blocked by the filesystem sandbox; the approved read-only rerun passed. This
-does not establish a rendered merchant-theme check: these local templates were
-not published or rendered in a live Shopify theme.
-
-Tests execute route and theme code with service/DOM fakes. They establish source
-separation, request compatibility, and failure behavior locally; they do not
-establish live browser or production-provider behavior. Existing uncommitted
-CSS and verification-log edits were left intact, and existing widget changes
-were preserved while adding the intent contract. No commit, push, or deployment
-was performed.
+The read-only scripts/audit-printify-eligibility.mjs collects sanitized account
+product evidence into ignored printify-eligibility-audit.json. Its initial
+limit=100 request returned HTTP 400; the corrected limit=50 audit completed.
+No secret values or order/customer data were emitted.

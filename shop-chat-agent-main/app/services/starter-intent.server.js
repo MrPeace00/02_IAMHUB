@@ -26,12 +26,12 @@ export function customerProductUrl(value) {
   }
 }
 
-export async function dispatchStarter({ intent, searchShopify, searchGlobal = searchGlobalFulfillment }) {
+export async function dispatchStarter({ intent, destination, searchShopify, searchGlobal = searchGlobalFulfillment }) {
   if (!validStarterIntent(intent)) throw new TypeError('Unsupported starter intent');
   if (intent === undefined) return null; // Existing general chat; no implicit inheritance.
   if (intent === 'global_fulfillment') {
     try {
-      return { intent, ...await searchGlobal() };
+      return { intent, ...await searchGlobal({destination}) };
     } catch {
       // Never emit raw provider errors or attempt another catalog on failure.
       return { intent, state: 'unavailable', reason: 'provider_unavailable',

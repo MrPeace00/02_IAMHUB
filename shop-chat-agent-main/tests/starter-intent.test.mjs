@@ -3,13 +3,85 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import { dispatchStarter, validStarterIntent, STARTER_INTENTS, customerProductUrl } from '../app/services/starter-intent.server.js';
-import { searchGlobalFulfillment } from '../app/services/global-fulfillment.server.js';
+import { createGlobalFulfillment } from '../app/services/global-fulfillment.server.js';
+import { fulfillmentEvidence } from '../app/services/global-fulfillment-evidence.server.js';
+const searchGlobalFulfillment = createGlobalFulfillment({token:''});
 import { createCatalogPriority, addProviderPreference, catalogArgsForRequest, requestedProviderPreference } from '../app/services/catalog-priority.server.js';
 import { createSseStream } from '../app/services/streaming.server.js';
 import { getCorsHeaders, isAllowedOrigin } from '../app/services/cors.server.js';
 import AppConfig from '../app/services/config.server.js';
 
 const sharedProduct = { id: 'p1', title: 'Same shirt', vendor: 'Printify', url: 'https://lazycustoms.com/products/shirt' };
+
+function verifiedSource(change = {}) {
+  const evidence = structuredClone(fulfillmentEvidence);
+  const variants = evidence.variant_ids.map(id=>({id,sku:String(id),is_enabled:true,is_available:true}));
+  const product = {id:evidence.product_id,blueprint_id:evidence.blueprint_id,print_provider_id:99,
+    updated_at:evidence.updated_at,visible:true,external:{id:evidence.shopify_product_id},variants};
+  const storefront = {id:Number(evidence.shopify_product_id),available:true,title:'Verified crewneck',price:2978,
+    variants:variants.map(v=>({sku:v.sku,available:true}))};
+  const shipping = {profiles:[{countries:['US','CA','AU'],variant_ids:evidence.variant_ids}]};
+  const calls=[];
+  change.mutate?.({product,storefront,shipping,evidence});
+  const search = createGlobalFulfillment({token:'fixture-secret',evidence,now:()=>Date.parse(evidence.observed_at)+1000,
+    fetchImplementation:async (url,options)=>{
+      calls.push(url);
+      assert.equal(options.redirect,'error');
+      if (url.startsWith('https://api.printify.com/')) assert.equal(options.headers.Authorization,'Bearer fixture-secret');
+      else { assert.ok(url.startsWith('https://lazycustoms.com/products/')); assert.equal(options.headers.Authorization,undefined); }
+      if (change.fail) throw Error('fixture-secret');
+      return {ok:true,json:async()=>url.endsWith('.js') ? storefront : url.endsWith('/shipping.json') ? shipping : product};
+    },
+  });
+  return {search,calls};
+}
+
+test('real evidence boundary requires destination, checks live provider coverage and keeps customer URLs',async()=>{
+  const {search,calls}=verifiedSource();
+  const first=await search();
+  assert.equal(first.state,'needs_destination');
+  assert.deepEqual(first.destinations.map(d=>d.code),['US','CA','AU']);
+  for (const destination of ['US','CA','AU']) {
+    const result=await search({destination});
+    assert.equal(result.state,'verified');
+    assert.equal(result.products.length,1);
+    assert.match(result.products[0].url,/^https:\/\/lazycustoms.com\/products\//);
+    assert.doesNotMatch(JSON.stringify(result),/fixture-secret|printify.com\/app/);
+  }
+  assert.ok(calls.some(url=>url.endsWith('/shipping.json')));
+  assert.equal((await search({destination:'GB'})).reason,'destination_unverified');
+});
+
+test('changed variants, missing coverage, expired evidence and provider failures cannot become verified',async()=>{
+  for (const mutate of [
+    ({product})=>{product.print_provider_id=10;},
+    ({product})=>{product.updated_at='changed';},
+    ({product})=>{product.variants.push({id:9,sku:'9',is_enabled:true,is_available:true});},
+    ({storefront})=>{storefront.variants.push({sku:'not-approved',available:true});},
+    ({storefront})=>{storefront.id=123;},
+    ({shipping})=>{shipping.profiles[0].countries=['REST_OF_THE_WORLD'];},
+    ({shipping})=>{shipping.profiles[0].variant_ids=[];},
+    ({evidence})=>{evidence.expires_at=evidence.observed_at;},
+  ]) {
+    const result=await verifiedSource({mutate}).search({destination:'US'});
+    assert.equal(result.state,'unavailable');
+    assert.deepEqual(result.products,[]);
+  }
+  const failed=await verifiedSource({fail:true}).search({destination:'US'});
+  assert.equal(failed.state,'unavailable');
+  assert.doesNotMatch(JSON.stringify(failed),/fixture-secret/);
+});
+
+test('POST destination reaches the global source and bypasses Shopify search',async()=>{
+  const {search,calls}=verifiedSource();
+  const harness=routeHarness(search);
+  const response=await harness.post({message:'Same message',intent:'global_fulfillment',destination:'CA'});
+  const text=await response.text();
+  assert.match(text,/"state":"verified"/);
+  assert.match(text,/"destination":"CA"/);
+  assert.deepEqual(harness.calls,[]);
+  assert.equal(calls.length,3);
+});
 
 test('intent selects distinct services even with identical message, title and Printify vendor', async () => {
   const calls = [];
@@ -76,7 +148,7 @@ test('missing intent keeps general chat; all unknown intent types fail closed', 
   assert.deepEqual(STARTER_INTENTS, ['global_fulfillment', 'shopify_catalog']);
 });
 
-function routeHarness() {
+function routeHarness(searchGlobal = searchGlobalFulfillment) {
   const calls = [];
   const saved = [];
   const toolSource = readFileSync(new URL('../app/services/tool.server.js', import.meta.url), 'utf8')
@@ -84,7 +156,7 @@ function routeHarness() {
   const routeSource = readFileSync(new URL('../app/routes/chat.jsx', import.meta.url), 'utf8')
     .replace(/^import .*;\r?\n/gm, '').replace(/export async function/g, 'async function');
   const context = vm.createContext({ URL, Response, console, Intl, AppConfig,
-    validStarterIntent, dispatchStarter, createSseStream, getCorsHeaders, isAllowedOrigin,
+    validStarterIntent, dispatchStarter: args => dispatchStarter({...args,searchGlobal}), createSseStream, getCorsHeaders, isAllowedOrigin,
     addProviderPreference, catalogArgsForRequest, requestedProviderPreference,
     createCatalogPriority: () => createCatalogPriority({ cacheStore: new Map(), fetchImplementation: async () => ({
       ok: true, json: async () => ({ products: [{ id: 'p1', vendor: 'Printify' }] }),
