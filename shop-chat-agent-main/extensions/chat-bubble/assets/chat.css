@@ -6,8 +6,12 @@
   padding: 10px 16px;
   border-top: 1px solid #e5e7eb;
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 6px;
   flex-shrink: 0;
+}
+.shop-ai-shopping-start span {
+  grid-column: 1 / -1;
 }
 .shop-ai-shopping-start button {
   border: 1px solid currentColor;
@@ -205,12 +209,30 @@
 
   .shop-ai-chat-messages {
     flex: 1;
+    min-height: 0;
+    overflow-anchor: none;
+    scroll-behavior: auto;
     padding: 16px;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
     gap: 12px;
     -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  }
+
+  .shop-ai-chat-messages > * {
+    flex-shrink: 0;
+  }
+
+  .shop-ai-chat-header,
+  .shop-ai-shopping-start,
+  .shop-ai-chat-input {
+    flex-shrink: 0;
+  }
+
+  .shop-ai-chat-container button:disabled {
+    cursor: wait;
+    opacity: 0.6;
   }
 
   .shop-ai-message {
@@ -561,6 +583,10 @@
   
   /* Add to Cart Button Styling */
   .shop-ai-add-to-cart {
+    display: block;
+    box-sizing: border-box;
+    text-align: center;
+    text-decoration: none;
     width: 100%;
     padding: 8px 0;
     background-color: #5046e4;
