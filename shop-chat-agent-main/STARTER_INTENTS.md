@@ -1,6 +1,6 @@
 # Lazy Chat: evidence-backed Global Fulfillment
 
-Updated September 14, 2026 UTC on `codex/printify-first`.
+Updated September 14, 2026 UTC on `codex/global-fulfillment-recovery`.
 
 ## Verified scope
 
@@ -53,12 +53,13 @@ missing credentials, unsupported countries and failed sources return unverified
 with no Shopify fallback. A verified result means checked configuration and
 coverage, not proof that a future order has been delivered.
 
-## Configuration and tonight's completion steps
+## Production release gate
 
 1. Set PRINTIFY_API_TOKEN in Railway project valiant-liberation, service
    02_IAMHUB, production Variables. Use the existing valid token from the local
    ignored .env; never put it in Shopify theme settings or public JavaScript.
-2. Deploy the tested codex/printify-first commit to that Railway service.
+2. Merge the tested recovery branch into `main`, then confirm Railway deploys
+   that exact source revision to the service.
 3. Release the matching Shopify chat-bubble extension.
 4. Check Global fulfillment, then United States, Canada and Australia. Each
    should return the one crewneck. Shopify should retain ordinary catalog

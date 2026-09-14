@@ -2,6 +2,8 @@
 import 'dotenv/config';
 import {writeFile} from 'node:fs/promises';
 
+const outputPath = new URL('../printify-eligibility-audit.json', import.meta.url);
+
 const token = process.env.PRINTIFY_API_TOKEN;
 const evidence = {checked_at:new Date().toISOString(), source:'https://api.printify.com/v1', shops:[]};
 async function get(path) {
@@ -36,6 +38,5 @@ try {
     ? error.message : 'Provider audit could not complete';
   process.exitCode=1;
 }
-await writeFile('printify-eligibility-audit.json', JSON.stringify(evidence,null,2)+'\n');
+await writeFile(outputPath, JSON.stringify(evidence,null,2)+'\n');
 console.log(JSON.stringify(evidence,null,2));
-
