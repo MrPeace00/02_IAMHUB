@@ -2,3 +2,6 @@
 _lazycustoms/ops/evidence/live_runs/** text eol=lf
 _lazycustoms/ops/evidence/create_live_verification_fixtures_20260912.mjs text eol=lf
 _lazycustoms/ops/evidence/run_live_verification_20260912.mjs text eol=lf
+
+# PNG evidence is binary; the text rule above must not strip CR bytes from it.
+_lazycustoms/ops/evidence/live_runs/**/*.png binary
