@@ -24,6 +24,8 @@ values. At minimum the service needs:
 - `ANTHROPIC_CHAT_MODEL=claude-sonnet-5` (optional; this is the default)
 - `OPENAI_API_KEY`
 - `OPENAI_CHAT_MODEL=gpt-5.6` (optional; used when `AI_TEXT_PROVIDER=openai`)
+- `PRINTIFY_API_TOKEN` (server-only; required for evidence-backed Global
+  Fulfillment verification and never exposed to theme assets)
 - `SHOPIFY_API_KEY`
 - `SHOPIFY_API_SECRET`
 - `SHOPIFY_APP_URL=https://ai.lazycustoms.com`
@@ -35,6 +37,12 @@ values. At minimum the service needs:
 The default limits allow three image generations per browser session and ten
 per source IP per hour. Override `IMAGE_SESSION_LIMIT`, `IMAGE_IP_LIMIT`, or
 `IMAGE_RATE_WINDOW_SECONDS` only after reviewing actual usage.
+
+If `PRINTIFY_API_TOKEN` is absent, invalid, or cannot reach Printify, the Global
+Fulfillment starter fails closed as unverified. The ordinary Shopify catalog
+starter remains available. Product eligibility evidence is separately
+time-bounded in `app/services/global-fulfillment-evidence.server.js`; do not
+extend its expiry without re-observing the documented Printify confirmation.
 
 ## 3. Point the stable production hostname
 

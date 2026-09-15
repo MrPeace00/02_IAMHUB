@@ -26,29 +26,22 @@ export function customerProductUrl(value) {
   }
 }
 
-export async function dispatchStarter({ intent, searchShopify, searchGlobal = searchGlobalFulfillment }) {
+export async function dispatchStarter({ intent, destination, searchShopify, searchGlobal = searchGlobalFulfillment }) {
   if (!validStarterIntent(intent)) throw new TypeError('Unsupported starter intent');
   if (intent === undefined) return null; // Existing general chat; no implicit inheritance.
-
-  // One catalog backs both starters, because the store has one catalog. The
-  // starters differ in which products they keep and what each may claim about
-  // fulfillment, not in pretending a second product source exists.
-  const approvedProducts = async () => (await searchShopify())
-    .map(product => ({ ...product, url: customerProductUrl(product.url) }))
-    .filter(product => product.url);
-
   if (intent === 'global_fulfillment') {
     try {
-      return { intent, ...await searchGlobal({ searchCatalog: approvedProducts }) };
+      return { intent, ...await searchGlobal({destination}) };
     } catch {
-      // Never emit raw provider errors or fall back to the unfiltered catalog.
+      // Never emit raw provider errors or attempt another catalog on failure.
       return { intent, state: 'unavailable', reason: 'provider_unavailable',
-        message: 'Global fulfillment results cannot currently be retrieved. Please try again later.', products: [] };
+        message: 'Global fulfillment results cannot currently be verified. Please try again later.', products: [] };
     }
   }
-
   try {
-    const products = await approvedProducts();
+    const products = (await searchShopify()).map(product => ({
+      ...product, url: customerProductUrl(product.url),
+    })).filter(product => product.url);
     return { intent, state: 'catalog', products,
       message: products.length
         ? 'Here are products from the Lazy Customs Shopify catalog. Open a product page to choose options and check its personalization instructions. Store catalog results do not verify Printify Choice eligibility or global delivery.'

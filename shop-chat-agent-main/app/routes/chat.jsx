@@ -250,6 +250,7 @@ async function handleChatRequest(request) {
         conversationId,
         promptType,
         intent: body.intent,
+        destination: body.destination,
         stream
       });
     });
@@ -282,10 +283,11 @@ async function handleChatSession({
   conversationId,
   promptType,
   intent,
+  destination,
   stream
 }) {
   // Select the source before initializing AI, account discovery, or tool loops.
-  const starter = await dispatchStarter({ intent, searchShopify: async () => {
+  const starter = await dispatchStarter({ intent, destination, searchShopify: async () => {
     const client = new MCPClient(request.headers.get('Origin'), conversationId,
       request.headers.get('X-Shopify-Shop-Id'));
     await client.connectToStorefrontServer();

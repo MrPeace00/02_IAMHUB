@@ -270,7 +270,7 @@
        * @param {HTMLInputElement} chatInput - The input element
        * @param {HTMLElement} messagesContainer - The messages container
        */
-      send: async function(chatInput, messagesContainer, intent) {
+      send: async function(chatInput, messagesContainer, intent, destination) {
         const userMessage = chatInput.value.trim();
         if (!userMessage || this.busy || chatInput.disabled) return;
         this.busy = true;
@@ -287,7 +287,7 @@
         ShopAIChat.UI.showTypingIndicator();
 
         try {
-          await ShopAIChat.API.streamResponse(userMessage, conversationId, messagesContainer, intent);
+          await ShopAIChat.API.streamResponse(userMessage, conversationId, messagesContainer, intent, destination);
         } catch (error) {
           console.error('Error communicating with OpenAI API:', error);
           ShopAIChat.UI.removeTypingIndicator();
@@ -518,7 +518,7 @@
        * @param {string} conversationId - Conversation ID for context
        * @param {HTMLElement} messagesContainer - The messages container
        */
-      streamResponse: async function(userMessage, conversationId, messagesContainer, intent) {
+      streamResponse: async function(userMessage, conversationId, messagesContainer, intent, destination) {
         let currentMessageElement = null;
 
         try {
@@ -527,6 +527,7 @@
           const requestBody = JSON.stringify({
             message: userMessage,
             ...(intent ? { intent } : {}),
+            ...(destination ? { destination } : {}),
             conversation_id: conversationId,
             prompt_type: promptType
           });
@@ -655,6 +656,24 @@
           case 'starter_result':
             currentMessageElement.dataset.starterIntent = data.intent;
             currentMessageElement.dataset.verificationState = data.state;
+            if (data.state === 'needs_destination' && data.intent === 'global_fulfillment') {
+              const choices = document.createElement('div');
+              choices.className = 'shop-ai-shopping-start';
+              for (const country of data.destinations || []) {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.textContent = country.label;
+                button.addEventListener('click', () => {
+                  if (ShopAIChat.Message.busy) return;
+                  const {chatInput, messagesContainer} = ShopAIChat.UI.elements;
+                  chatInput.value = `Check Global Fulfillment for ${country.label}.`;
+                  ShopAIChat.Message.send(chatInput, messagesContainer, 'global_fulfillment', country.code);
+                  choices.remove();
+                });
+                choices.appendChild(button);
+              }
+              ShopAIChat.UI.elements.messagesContainer.appendChild(choices);
+            }
             break;
 
           case 'tool_use':
@@ -1009,7 +1028,7 @@
       const globalStart = container.querySelector('[data-shop-ai-global]');
       if (globalStart) globalStart.addEventListener('click', () => {
         if (chatInput.disabled || sendButton.disabled) return;
-        chatInput.value = 'Show me products made for global fulfillment.';
+        chatInput.value = 'Check verified Printify Choice global fulfillment options.';
         this.Message.send(chatInput, messagesContainer, 'global_fulfillment');
       });
 

@@ -2,7 +2,7 @@
   "use strict";
 
   const STARTER_INTENTS = ['global_fulfillment', 'shopify_catalog'];
-  const globalFulfillmentPrompt = "Show me products made for global fulfillment.";
+  const globalFulfillmentPrompt = "Check verified Printify Choice global fulfillment options.";
   const shopifyPrompt = "Show me the Lazy Customs Shopify catalog from any provider.";
 
   const initialSuggestions = [
@@ -169,7 +169,7 @@
           if (item.intent) {
             artMode = false;
             if (quizForm) quizForm.hidden = true;
-            streamChat(item.prompt, undefined, item.intent);
+            streamChat(item.prompt, undefined, item.intent, item.destination);
             return;
           }
           if (item.action === "art") {
@@ -439,7 +439,7 @@
       status.textContent = "Image ready. Choose the text you want Claude to create.";
     }
 
-    async function streamChat(prompt, quiz, intent) {
+    async function streamChat(prompt, quiz, intent, destination) {
       addMessage(prompt, "user");
       const assistant = addMessage("Thinking", "assistant", true);
       setBusy(true, "Looking through Lazy Customs…");
@@ -457,6 +457,7 @@
           body: JSON.stringify({
             message: prompt,
             ...(intent ? { intent } : {}),
+            ...(destination ? { destination } : {}),
             conversation_id: sessionStorage.getItem(conversationKey),
             prompt_type: "systemShopping",
             ...(quiz ? { quiz } : {}),
@@ -468,6 +469,7 @@
         const decoder = new TextDecoder();
         let buffer = "";
         let answer = "";
+        let destinations;
 
         for (;;) {
           const { value, done } = await reader.read();
@@ -491,6 +493,7 @@
             } else if (data.type === "starter_result") {
               assistant.dataset.starterIntent = data.intent;
               assistant.dataset.verificationState = data.state;
+              if (data.state === 'needs_destination') destinations = data.destinations;
             } else if (data.type === "chunk") {
               answer += data.chunk || "";
               assistant.classList.remove("lazy-home__message--pending");
@@ -505,7 +508,9 @@
 
         assistant.classList.remove("lazy-home__message--pending");
         if (!answer) assistant.textContent = "Tell me one more detail and I’ll narrow it down.";
-        renderChips(intent === 'global_fulfillment' ? initialSuggestions : suggestionsFor(prompt, false));
+        renderChips(destinations ? destinations.map(country => ({label:country.label,
+          prompt:`Check Global Fulfillment for ${country.label}.`, intent:'global_fulfillment', destination:country.code,
+        })) : intent === 'global_fulfillment' ? initialSuggestions : suggestionsFor(prompt, false));
         setBusy(false, "");
       } catch (error) {
         assistant.classList.remove("lazy-home__message--pending");

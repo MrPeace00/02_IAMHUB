@@ -49,6 +49,9 @@ export function createCatalogPriority({ fetchImplementation = fetch, now = Date.
       preferred_vendor:preference === 'printify' ? 'Printify' : null,
       excluded_vendor:preference === 'exclude_printify' ? 'Printify' : null,
       vendor_metadata_available:vendors.size > 0,
+      catalog_source:'shopify_catalog',
+      printify_choice_eligibility:'unverified',
+      destination_coverage:'unverified',
       note:'Vendor labels identify catalog grouping only. They do not establish Printify Choice routing, personalization support, or shipping coverage. Honor explicit product choices and customer constraints.',
     }};
     return {...result, structuredContent:updated, content:textIndex < 0 ? result.content : result.content.map((item,i) => i === textIndex ? {...item,text:JSON.stringify(updated)} : item)};
