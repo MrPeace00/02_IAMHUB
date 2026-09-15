@@ -1,6 +1,6 @@
 # UX — state, feedback, and failure
 
-> **Corpus source:** `MrPeace00/02_IAMHUB`, branch `claude/sharp-franklin-4q9u8d`, commit `fc30960`, captured 2026-09-15.
+> **Corpus source:** `MrPeace00/02_IAMHUB` `main` @ `ac7b8c8` (verified global fulfillment), merged to branch `claude/sharp-franklin-4q9u8d` @ `7698b92`. Captured 2026-09-15.
 > Project record (Engine §2.1 tier 3). A snapshot, not the deployed state.
 Files: `assets/chat.js`, `assets/lazy-home.js`, `app/services/streaming.server.js`.
 
@@ -29,7 +29,7 @@ Assistant text is accumulated into `dataset.rawText` while the element stays `hi
 | Event | Effect |
 | --- | --- |
 | `id` | Stores `conversation_id` in `sessionStorage`. |
-| `starter_result` | Records `intent` and `state` on the element's dataset. |
+| `starter_result` | Records `intent` and `state` on the element's dataset. On `needs_destination` (global path) it renders one button per allowed country; each re-issues a `global_fulfillment` request with that country code. |
 | `chunk` | Appends to `rawText`. No visible change. |
 | `message_complete` | Format, reveal, scroll. |
 | `product_results` | Render cards. Suppressed when the intent is `global_fulfillment` and the array is empty. |

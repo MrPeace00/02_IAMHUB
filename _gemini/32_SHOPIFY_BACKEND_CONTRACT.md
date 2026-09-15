@@ -1,6 +1,6 @@
 # Shopify frontend — the backend contract
 
-> **Corpus source:** `MrPeace00/02_IAMHUB`, branch `claude/sharp-franklin-4q9u8d`, commit `fc30960`, captured 2026-09-15.
+> **Corpus source:** `MrPeace00/02_IAMHUB` `main` @ `ac7b8c8` (verified global fulfillment), merged to branch `claude/sharp-franklin-4q9u8d` @ `7698b92`. Captured 2026-09-15.
 > Project record (Engine §2.1 tier 3). A snapshot, not the deployed state.
 Files: `app/routes/chat.jsx`, `app/services/cors.server.js`, `streaming.server.js`, `config.server.js`.
 
@@ -31,6 +31,7 @@ X-Shopify-Shop-Id: <shop id>
 | `intent` | Optional. `global_fulfillment` or `shopify_catalog` only. Any other value — including explicit `null` — is 400 **before any source call**. |
 | `conversation_id` | Optional. Returned on the `id` event and stored in `sessionStorage`. |
 | `prompt_type` | Selects the system prompt. Never used to infer intent. |
+| `destination` | Optional. A country code (US/CA/AU) consumed only by the global-fulfillment path. Never inferred; the widget's destination buttons set it explicitly. |
 | `quiz` | Optional structured context from the homepage quiz. |
 
 A body that is not a plain object — null, an array — is 400.
@@ -53,7 +54,7 @@ The `starter_result` event:
 }
 ```
 
-`state` is `catalog` or `unavailable`. **No branch emits `verified`.** `fulfillment` appears only on the Global fulfillment success path.
+`state` is one of `catalog`, `unavailable`, `verified`, or `needs_destination`. The Shopify path emits `catalog`/`unavailable`. The global-fulfillment path emits `verified` (with `destination`, `evidence_checked_at`, and one product), `needs_destination` (with `destinations: [{code,label}, ...]`, which the widget renders as buttons), or `unavailable` with a specific `reason`. See `20_UX_STARTER_FLOWS.md` and `24_UX_VERIFIED_FULFILLMENT.md`.
 
 ## Starter turn shape
 

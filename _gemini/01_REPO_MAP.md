@@ -1,6 +1,6 @@
 # Repository map
 
-> **Corpus source:** `MrPeace00/02_IAMHUB`, branch `claude/sharp-franklin-4q9u8d`, commit `fc30960`, captured 2026-09-15.
+> **Corpus source:** `MrPeace00/02_IAMHUB` `main` @ `ac7b8c8` (verified global fulfillment), merged to branch `claude/sharp-franklin-4q9u8d` @ `7698b92`. Captured 2026-09-15.
 > Project record (Engine §2.1 tier 3). A snapshot, not the deployed state.
 
 ## Top level
@@ -49,7 +49,8 @@ shop-chat-agent-main/
 | Service | Concern |
 | --- | --- |
 | `starter-intent.server.js` | Starter allowlist, deterministic dispatch, customer product URL validation. |
-| `global-fulfillment.server.js` | Printify-made filtering and the failure states for the Global fulfillment starter. |
+| `global-fulfillment.server.js` | The verified-fulfillment gate: config, evidence-freshness, live product/variant/shipping checks, and every failure state. |
+| `global-fulfillment-evidence.server.js` | Human-observed anchor record (24-hour window) for the one verified Printify Choice product. |
 | `catalog-priority.server.js` | Enriches catalog results with vendor metadata from the store's own `/products.json`; applies provider preference. |
 | `tool.server.js` | Normalizes tool results into product cards. Caps display at `AppConfig.tools.maxProductsToDisplay` = 8. |
 | `ai.server.js`, `anthropic.server.js`, `openai.server.js`, `openai-format.js` | Provider selection and per-provider request shaping. |

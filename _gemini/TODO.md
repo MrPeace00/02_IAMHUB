@@ -1,35 +1,37 @@
 # Lazy Chat — open work
 
-> **Corpus source:** `MrPeace00/02_IAMHUB`, branch `claude/sharp-franklin-4q9u8d`, commit `fc30960`, captured 2026-09-15.
-> Ordered by what unblocks the most. Every item names what closes it, so none of them is a standing wish.
+> **Corpus source:** `MrPeace00/02_IAMHUB` `main` @ `ac7b8c8` (verified global fulfillment), merged to branch `claude/sharp-franklin-4q9u8d` @ `7698b92`. Captured 2026-09-15.
+> Ordered by what unblocks the most. Every item names what closes it.
 
-## Blocking — do these first
+## Operational — keep the button lit
 
-- [ ] **Rotate the leaked Printify API token.** A token with `orders.write`, `products.write` and `uploads.write` scopes, valid to roughly September 2027, was pasted into a chat transcript on 2026-09-14. Printify → My profile → Connections → delete and regenerate. *Closes when:* the old token is deleted in the Printify console.
-- [ ] **Run the Printify discovery script and return its output.** `node scripts/inspect-printify-catalog.mjs` with the new token in `.env`. GET-only. *Closes when:* the product-object field names for eligibility and destination coverage are known from the live API. *Blocks:* every verified-eligibility item below.
+- [ ] **Keep the Global fulfillment evidence fresh.** `global-fulfillment-evidence.server.js` has a 24-hour window; when `expires_at` passes, every request returns `evidence_expired` and the button goes dark. Re-observe the Printify product and extend the window. *Last re-armed:* 2026-09-15T04:53Z (on operator attestation). *Closes when:* a recurring re-observation cadence exists rather than a manual bump.
+- [ ] **Re-audit identifiers periodically.** Run `node scripts/audit-printify-eligibility.mjs` (read-only, `PRINTIFY_API_TOKEN` in `.env`) to confirm the product's `updated_at`, variants, and external mapping still match the record. If Printify changed the product, the live check already fails closed with `product_evidence_changed` — this just tells you *before* a customer hits it.
 
-## The Global fulfillment gate
+## Expand coverage (each needs its own evidence)
 
-- [ ] **Implement verified Choice eligibility** against the real field names. Until then `global-fulfillment.server.js` may only say a product is Printify-made. *Blocked until:* the discovery output exists.
-- [ ] **Implement destination coverage and the country question.** Deliberately deferred — no source can check coverage, so asking for a country would collect an answer nothing can act on. *Blocked until:* the same output.
-- [ ] **Decide the alternative path:** a product-owner-confirmed customer-facing Printify URL (for example a Pop-Up Store) would let Global fulfillment link out instead of resolving eligibility in-app. *Closes when:* Mr. Peace confirms such a URL exists, or confirms none will.
-- [ ] Add provider timeout, cancellation, authorization, rate-limit and malformed-response handling once a real provider call exists. Current exception tests inject failures at the service boundary and are **not** evidence of a working integration.
+- [ ] **Add destinations beyond US/CA/AU.** The record excludes UK (v1 shipping profiles lack explicit GB coverage) and EU (pending store compliance). *Closes when:* live shipping profiles confirm coverage and compliance is settled, then the destination is added to the record.
+- [ ] **Verify more than one product.** The gate currently anchors a single crewneck. *Closes when:* the evidence model is generalized to a set and each product is human-observed + live-checked.
 
-## Small, unblocked, worth doing now
+## Small, unblocked
 
-- [ ] **Verify the store-alias assumption.** `customerProductUrl` canonicalizes `vbw9zu-f7.myshopify.com` and `lazy-customs-2.myshopify.com` product paths onto `lazycustoms.com`. Rests on `CURRENT_STATE.md` and `07-repo-audit.md`, not a live check. *Closes when:* one `curl -I` per alias for one known handle returns the same product.
-- [ ] **Restore server-side logging in the `POST /chat` catch block.** Genericizing the client body was right; dropping `console.error` removed the only diagnostic signal for a 500.
-- [ ] **Handle a missing `Origin` header explicitly** in the Shopify starter. It currently throws into the catch and reports `catalog_unavailable`, so every non-browser probe looks like a provider outage.
-- [ ] **Fix the unused `welcome_message` setting.** The widget schema defines it; the inline config hard-codes `"Heyyy"`. Either wire `block.settings.welcome_message` through or remove the setting.
-- [ ] **Reconsider `maximum-scale=1.0, user-scalable=no`** in `chat-interface.liquid`. It suppresses pinch-zoom for the whole page, not just the widget.
+- [ ] **Restore server-side logging in the `POST /chat` catch block.** Genericizing the client body was right; dropping `console.error` removed the only 500 diagnostic.
+- [ ] **Handle a missing `Origin` header explicitly** in the Shopify starter — it currently throws to the catch and looks like a provider outage to any non-browser probe.
+- [ ] **Fix the unused `welcome_message` widget setting** (schema defines it; inline config hard-codes "Heyyy").
+- [ ] **Reconsider `maximum-scale=1.0, user-scalable=no`** in `chat-interface.liquid` — it disables pinch-zoom page-wide.
+- [ ] **Confirm the store-alias assumption** behind `customerProductUrl` canonicalization with one `curl -I` per alias.
 
-## Decide and act
+## Branch / deploy
 
-- [ ] **Decide what happens to branch `claude/sharp-franklin-4q9u8d`.** It carries the starter separation, the Global fulfillment fix, the `.gitattributes` binary fix, and the discovery script. PR #1 was closed without merging on 2026-09-14 and was not reopened. *Closes when:* the branch is merged, reworked, or abandoned deliberately.
-- [ ] **Deploy, or decide not to.** Nothing in this branch has been deployed: no Railway redeploy, no Shopify extension release. *Closes when:* a deploy is performed and recorded in `VERIFICATION_LOG.md`, or the decision to hold is logged in `DECISIONS.md`.
-- [ ] **Live-verify both starter buttons in a browser** after any deploy. Every current test uses service and DOM fakes; none establishes live behavior.
+- [ ] **Decide branch `claude/sharp-franklin-4q9u8d`.** It now equals `main` plus the `_gemini` corpus. PR #1 was closed unmerged; PR #2 (the verified work) is already merged to `main`. *Closes when:* the corpus is merged or the branch is retired.
+- [ ] **Deploy the refreshed evidence.** The re-armed window only helps once `main`'s current `global-fulfillment-evidence.server.js` is live on Railway. *Closes when:* deployed and recorded in `VERIFICATION_LOG.md`.
+- [ ] **Live-verify both starters in a browser** after deploy, including a real `needs_destination` → `verified` round-trip.
+
+## Resolved / not needed
+
+- [x] **Printify token rotation — NOT needed.** Per D-113 the token was generated 2026-09-12 with custom scope, placed directly in Railway, NR-4 observed; never pasted to chat, committed, or in browser code. Operator determination; no rotation.
 
 ## Hygiene
 
-- [ ] Regenerate `_gemini/*.md` whenever the repository moves. Each file names commit `fc30960`; a corpus that disagrees with the code is worse than none.
-- [ ] Record any of the above that completes in `_lazycustoms/docs/VERIFICATION_LOG.md` with method and evidence, per the existing table format.
+- [ ] Regenerate `_gemini/*.md` whenever the repository moves. Every file names its capture commit; a corpus that disagrees with the code is worse than none.
+- [ ] Record completed items in `_lazycustoms/docs/VERIFICATION_LOG.md` with method and evidence.

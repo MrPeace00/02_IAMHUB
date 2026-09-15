@@ -1,6 +1,6 @@
 # UI — the two customer surfaces
 
-> **Corpus source:** `MrPeace00/02_IAMHUB`, branch `claude/sharp-franklin-4q9u8d`, commit `fc30960`, captured 2026-09-15.
+> **Corpus source:** `MrPeace00/02_IAMHUB` `main` @ `ac7b8c8` (verified global fulfillment), merged to branch `claude/sharp-franklin-4q9u8d` @ `7698b92`. Captured 2026-09-15.
 > Project record (Engine §2.1 tier 3). A snapshot, not the deployed state.
 
 Lazy Chat has exactly two customer-facing surfaces. Both ship inside one Shopify theme app extension, `extensions/chat-bubble/`, and both talk to the same backend.

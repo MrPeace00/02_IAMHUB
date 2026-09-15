@@ -1,6 +1,6 @@
 # UI — chat bubble widget
 
-> **Corpus source:** `MrPeace00/02_IAMHUB`, branch `claude/sharp-franklin-4q9u8d`, commit `fc30960`, captured 2026-09-15.
+> **Corpus source:** `MrPeace00/02_IAMHUB` `main` @ `ac7b8c8` (verified global fulfillment), merged to branch `claude/sharp-franklin-4q9u8d` @ `7698b92`. Captured 2026-09-15.
 > Project record (Engine §2.1 tier 3). A snapshot, not the deployed state.
 Files: `extensions/chat-bubble/blocks/chat-interface.liquid`, `assets/chat.js`, `assets/chat.css`.
 
@@ -48,3 +48,7 @@ Assistant text accumulates in `element.dataset.rawText` and is rendered once at 
 3. Renders `#`-prefixed headings as bold paragraphs rather than heading elements.
 
 The escape-first ordering is the reason raw Markdown and injected markup do not reach the DOM.
+
+## Destination buttons
+
+On a `needs_destination` result the widget renders one button per allowed country. Clicking a button re-issues an explicit `global_fulfillment` request carrying that country code via `Message.send(input, container, 'global_fulfillment', code)` — the destination is never guessed. See `24_UX_VERIFIED_FULFILLMENT.md`.

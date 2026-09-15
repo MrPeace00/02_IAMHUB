@@ -1,20 +1,12 @@
 # UX — the two starter flows
 
-> **Corpus source:** `MrPeace00/02_IAMHUB`, branch `claude/sharp-franklin-4q9u8d`, commit `fc30960`, captured 2026-09-15.
+> **Corpus source:** `MrPeace00/02_IAMHUB` `main` @ `ac7b8c8` (verified global fulfillment), merged to branch `claude/sharp-franklin-4q9u8d` @ `7698b92`. Captured 2026-09-15.
 > Project record (Engine §2.1 tier 3). A snapshot, not the deployed state.
-Files: `app/routes/chat.jsx`, `app/services/starter-intent.server.js`, `app/services/global-fulfillment.server.js`.
+Files: `app/routes/chat.jsx`, `app/services/starter-intent.server.js`, `app/services/global-fulfillment.server.js`, `app/services/global-fulfillment-evidence.server.js`.
 
 ## The fact that shapes everything
 
-**Lazy Customs has one catalog.** Printify Choice is an order-routing option applied at fulfillment, not a browsable storefront, so there is no second product source. Both starters read the same catalog.
-
-They are separated on three axes, in this order:
-
-1. **Code path** — a deterministic server dispatcher runs before any AI or account discovery.
-2. **Products kept** — Global fulfillment filters to Printify-made products; Shopify keeps the whole catalog.
-3. **Permitted claims** — see `22_UX_CLAIMS_AND_COPY.md`.
-
-The historical defect was that both surfaces sent different *prose* into the same LLM tool loop, so the difference depended on what the model did with a sentence. The dispatcher removed that.
+**Lazy Customs has one Shopify catalog.** Both starters read it. They differ on three axes, in this order: **code path**, **products kept**, and **what each may claim**. A deterministic server dispatcher runs before any AI or account discovery, so the difference no longer depends on what the model does with a prompt sentence.
 
 ## Dispatch order
 
@@ -22,35 +14,41 @@ The historical defect was that both surfaces sent different *prose* into the sam
 POST /chat
   -> reject non-object body or unknown intent            400
   -> reject non-string / blank message                   400
-  -> dispatchStarter(intent, ...)
+  -> dispatchStarter({ intent, destination, ... })
        intent undefined -> null -> existing general chat flow
-       intent present   -> deterministic source, SSE, end_turn, return
+       'shopify_catalog'   -> whole catalog, any provider
+       'global_fulfillment'-> verified-fulfillment gate (below)
 ```
 
-Neither starter reaches `createAIService` or customer-account discovery. Both read the catalog through the storefront MCP client with `{ catalog: { query: '' } }` and provider preference `any`.
+`destination` rides the same request body and is only consumed by the global path.
 
-## Global fulfillment
+## Shopify starter
 
-`searchGlobalFulfillment({ searchCatalog })` filters the approved catalog by `printifyFulfilled` — vendor matching `/^printify$/i`.
+Whole catalog, provider preference `any`, no fulfillment claim. Each product URL passes `customerProductUrl`; cards without an approved URL are dropped. Outcomes: `catalog` with products, `catalog` with an empty list and a "no approved customer pages" message, or `unavailable`/`catalog_unavailable` on a read error.
 
-| Outcome | `state` | `reason` |
-| --- | --- | --- |
-| Printify-made products found | `catalog` | — (plus `fulfillment: 'printify_network'`) |
-| Catalog read, no vendor known on any product | `unavailable` | `vendor_metadata_unavailable` |
-| Vendors known, none Printify | `unavailable` | `no_printify_fulfilled_products` |
-| No catalog function supplied | `unavailable` | `catalog_source_not_configured` |
-| Source threw | `unavailable` | `provider_unavailable` |
+## Global fulfillment starter — the verification chain
 
-The first two `unavailable` rows carry **different messages on purpose**. "We could not read it" and "there are none" are different facts, and merging them would tell a customer the store carries nothing Printify-made whenever a network read failed.
+This is not a catalog filter. It is a gated, evidence-backed verification of **one** confirmed Printify Choice product, re-checked live on every request. `createGlobalFulfillment()` runs these gates in order and returns `unavailable` at the first failure:
 
-## Shopify
+1. **Config.** No `PRINTIFY_API_TOKEN` or no evidence record → `eligibility_source_not_configured`.
+2. **Evidence freshness.** Evidence `expires_at` in the past, or `observed_at` in the future → `evidence_expired`.
+3. **Destination allowlist.** A supplied `destination` not in the evidence record → `destination_unverified` (message names US, CA, AU).
+4. **Live product match.** GET the Printify product; every one of these must still match the evidence: `product_id`, `blueprint_id`, `print_provider_id`, `updated_at`, `visible`, `external.id` = the Shopify product id, and the enabled variant id set. Any drift → `product_evidence_changed`.
+5. **Live storefront match.** GET `https://lazycustoms.com/products/<handle>.js`; the Shopify id must match and the product must be `available` → else `customer_product_unavailable`. At least one enabled Printify variant must map by SKU to an available storefront variant → else `customer_variants_unavailable`. A storefront variant available but not in the verified set → `customer_variants_changed`.
+6. **Destination question.** If no `destination` was supplied and everything above passed → `needs_destination`, returning the allowed `{code,label}` list. **This is the one place the flow asks for a delivery country — and only after live verification, only for the pre-approved destinations.**
+7. **Live shipping coverage.** GET the blueprint/print-provider shipping profiles; every verified variant must be covered for the chosen destination → else `destination_coverage_unverified`.
+8. **Verified.** Returns `state: 'verified'`, the destination, `evidence_checked_at`, and one product card with a delivery estimate.
 
-Whole catalog, any provider, no fulfillment claim. Two outcomes: `catalog` with products, `catalog` with an empty list and a "no approved customer pages" message, or `unavailable` / `catalog_unavailable` if the read threw.
+Any thrown error in the chain → `provider_unavailable`. No branch falls back to the unfiltered catalog, and no raw provider error text reaches the client.
 
-## Intent is request-scoped
+## States this starter can emit
 
-The server never infers intent from message wording, conversation history, or `prompt_type`. A follow-up message in the same conversation omits `intent` and goes through the general chat flow. Pressing the other starter explicitly selects that route. No persistent "global mode" exists.
+`verified` · `needs_destination` · `unavailable` (with `reason` one of: `eligibility_source_not_configured`, `evidence_expired`, `destination_unverified`, `product_evidence_changed`, `customer_product_unavailable`, `customer_variants_unavailable`, `customer_variants_changed`, `destination_coverage_unverified`, `provider_unavailable`).
 
-## No delivery-country question
+## Intent and destination are request-scoped
 
-No branch asks for a delivery country. This is deliberate: no connected source can check destination coverage, so the answer could not be acted on. The prompt policy in `prompts.json` carries the same instruction for free-form chat, and a regression test asserts no message asks for one.
+The server never infers intent or destination from message wording, history, or `prompt_type`. A follow-up omits both and returns to general chat. The destination buttons in the widget re-issue an explicit `global_fulfillment` request carrying the chosen country code.
+
+## The evidence record is human-anchored
+
+`global-fulfillment-evidence.server.js` is a human-observed confirmation: shop id, product id, blueprint, print provider (99 = Printify Choice), the Shopify product id and handle, the verified variant ids, and the approved destinations (US/CA/AU) with delivery estimates. It carries `observed_at`/`expires_at` (a 24-hour window) and a note that it must be re-observed before extending. See `24_UX_VERIFIED_FULFILLMENT.md`.

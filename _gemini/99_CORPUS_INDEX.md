@@ -1,6 +1,6 @@
 # Corpus index
 
-> **Corpus source:** `MrPeace00/02_IAMHUB`, branch `claude/sharp-franklin-4q9u8d`, commit `fc30960`, captured 2026-09-15.
+> **Corpus source:** `MrPeace00/02_IAMHUB` `main` @ `ac7b8c8` (verified global fulfillment), merged to branch `claude/sharp-franklin-4q9u8d` @ `7698b92`. Captured 2026-09-15.
 > Project record (Engine §2.1 tier 3). A snapshot, not the deployed state.
 
 Upload all files in this folder as sources. Paste `00_GEMINI_NOTEBOOK_ENGINE.md` into the notebook's custom-instruction field **as well as** uploading it.
@@ -18,9 +18,10 @@ Upload all files in this folder as sources. Paste `00_GEMINI_NOTEBOOK_ENGINE.md`
 | `21_UX_STATE_AND_FEEDBACK.md` | Request locking, buffered rendering, the full SSE event table. |
 | `22_UX_CLAIMS_AND_COPY.md` | The evidence ladder and the test-enforced claim limits. |
 | `23_UX_PERSONALIZATION.md` | Artwork and vision flows; the claim boundary on generated designs. |
+| `24_UX_VERIFIED_FULFILLMENT.md` | The evidence anchor + live-check mechanism behind a `verified` result; the 24-hour window; the audit script. |
 | `30_SHOPIFY_THEME_INTEGRATION.md` | Extension targets, asset delivery, backend origin, dev vs production. |
 | `31_SHOPIFY_CATALOG_AND_MCP.md` | UCP/MCP routing, vendor enrichment, provider preference. |
 | `32_SHOPIFY_BACKEND_CONTRACT.md` | Request schema, SSE contract, CORS, AppConfig limits. |
 | `TODO.md` | Open work, ordered, with what closes each item. |
 
-**Staleness.** Every file names commit `fc30960`. When the repository moves, regenerate rather than patch — a corpus that disagrees with the code is worse than no corpus.
+**Staleness.** Every file names its capture commit (`main` @ `ac7b8c8`, branch @ `7698b92`). When the repository moves, regenerate rather than patch — a corpus that disagrees with the code is worse than no corpus.
